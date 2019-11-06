@@ -1120,9 +1120,9 @@ public class EmbmsOemHook extends Handler {
                                 Log.i(access$0002, sb2.toString());
                                 break;
                             case 17:
-                                byte snrLength = buf.get();
-                                float[] snrArray = new float[snrLength];
-                                for (int i2 = 0; i2 < snrLength; i2++) {
+                                byte esnrLength = buf.get();
+                                float[] snrArray = new float[esnrLength];
+                                for (int i2 = 0; i2 < esnrLength; i2++) {
                                     snrArray[i2] = buf.getFloat();
                                 }
                                 this.snr = snrArray;
@@ -1133,9 +1133,9 @@ public class EmbmsOemHook extends Handler {
                                 Log.i(access$0003, sb3.toString());
                                 break;
                             case 18:
-                                byte tmgiPerMbsfnLength = buf.get();
-                                float[] esnrArray = new float[tmgiPerMbsfnLength];
-                                for (int i3 = 0; i3 < tmgiPerMbsfnLength; i3++) {
+                                byte esnrLength2 = buf.get();
+                                float[] esnrArray = new float[esnrLength2];
+                                for (int i3 = 0; i3 < esnrLength2; i3++) {
                                     esnrArray[i3] = buf.getFloat();
                                 }
                                 this.esnr = esnrArray;
@@ -1146,9 +1146,9 @@ public class EmbmsOemHook extends Handler {
                                 Log.i(access$0004, sb4.toString());
                                 break;
                             case 19:
-                                byte tmgiPerMbsfnLength2 = buf.get();
-                                int[] tmgiPerMbsfnArray = new int[tmgiPerMbsfnLength2];
-                                for (int i4 = 0; i4 < tmgiPerMbsfnLength2; i4++) {
+                                byte tmgiPerMbsfnLength = buf.get();
+                                int[] tmgiPerMbsfnArray = new int[tmgiPerMbsfnLength];
+                                for (int i4 = 0; i4 < tmgiPerMbsfnLength; i4++) {
                                     tmgiPerMbsfnArray[i4] = buf.getInt();
                                 }
                                 this.tmgiPerMbsfn = tmgiPerMbsfnArray;

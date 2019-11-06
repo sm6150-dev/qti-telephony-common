@@ -43,7 +43,7 @@ public class WifiSarController implements SarControllerClient {
         this.PATERN1_DEVCIE_LIST = str2;
         String str3 = "andromeda";
         this.PATERN2_DEVCIE_LIST = str3;
-        String str4 = "raphael,davinci,davinciin";
+        String str4 = "raphael,davinci,davinciin,phoenixin";
         this.PATERN3_DEVCIE_LIST = str4;
         Log.d(str, "WifiSarController init...");
         String device = Build.DEVICE.toLowerCase();

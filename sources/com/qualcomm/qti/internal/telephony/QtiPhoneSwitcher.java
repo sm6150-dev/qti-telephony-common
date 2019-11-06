@@ -269,11 +269,11 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
                 diffDetected = true;
             }
         }
-        int oldPreferredDataPhoneId = this.mPreferredDataPhoneId;
+        int i2 = this.mPreferredDataPhoneId;
         updatePreferredDataPhoneId();
-        if (oldPreferredDataPhoneId != this.mPreferredDataPhoneId) {
+        if (i2 != this.mPreferredDataPhoneId) {
             sb.append(" preferred phoneId ");
-            sb.append(oldPreferredDataPhoneId);
+            sb.append(i2);
             sb.append(str);
             sb.append(this.mPreferredDataPhoneId);
             mPreferredDataPhoneIdUpdated = true;
