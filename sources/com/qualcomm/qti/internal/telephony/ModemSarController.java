@@ -28,6 +28,7 @@ public class ModemSarController implements SarControllerClient {
     private static final String DEVICE_TYPE_F10 = "davinci";
     private static final String DEVICE_TYPE_GRUS = "grus";
     private static final String DEVICE_TYPE_PHOENIXIN = "phoenixin";
+    private static final String DEVICE_TYPE_TUCANA = "tucana";
     private static final int DSI_0 = 0;
     private static final int DSI_1 = 1;
     private static final int DSI_2 = 2;
@@ -435,6 +436,9 @@ public class ModemSarController implements SarControllerClient {
             if (mDeviceName.contains(DEVICE_TYPE_PHOENIXIN)) {
                 return onInitSarParameterG7B();
             }
+            if (mDeviceName.contains(DEVICE_TYPE_TUCANA)) {
+                return onInitSarParameterF4();
+            }
             log("not support this product");
             return false;
         }
@@ -504,6 +508,16 @@ public class ModemSarController implements SarControllerClient {
             }
             return sarFlag;
         }
+    }
+
+    private static boolean onInitSarParameterF4() {
+        log("onInitSarParameterF4");
+        if (!mDeviceSW.contains(DEVICE_INFO_SW_GLOBAL) || !mDeviceHW.contains(DEVICE_INFO_HW_GLOBAL)) {
+            log("not support this version");
+            return false;
+        }
+        DSI_Hash_Init_Common_Cfg();
+        return true;
     }
 
     public void onStateChanged(int type, int value) {
