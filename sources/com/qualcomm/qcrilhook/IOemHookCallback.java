@@ -7,6 +7,9 @@ import android.os.Parcel;
 import android.os.RemoteException;
 
 public interface IOemHookCallback extends IInterface {
+    void onOemHookException(int i) throws RemoteException;
+
+    void onOemHookResponse(byte[] bArr, int i) throws RemoteException;
 
     public static class Default implements IOemHookCallback {
         public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
@@ -24,6 +27,44 @@ public interface IOemHookCallback extends IInterface {
         private static final String DESCRIPTOR = "com.qualcomm.qcrilhook.IOemHookCallback";
         static final int TRANSACTION_onOemHookException = 2;
         static final int TRANSACTION_onOemHookResponse = 1;
+
+        public Stub() {
+            attachInterface(this, DESCRIPTOR);
+        }
+
+        public static IOemHookCallback asInterface(IBinder obj) {
+            if (obj == null) {
+                return null;
+            }
+            IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
+            if (iin == null || !(iin instanceof IOemHookCallback)) {
+                return new Proxy(obj);
+            }
+            return (IOemHookCallback) iin;
+        }
+
+        public IBinder asBinder() {
+            return this;
+        }
+
+        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+            if (code == 1) {
+                data.enforceInterface(DESCRIPTOR);
+                onOemHookResponse(data.createByteArray(), data.readInt());
+                reply.writeNoException();
+                return true;
+            } else if (code == 2) {
+                data.enforceInterface(DESCRIPTOR);
+                onOemHookException(data.readInt());
+                reply.writeNoException();
+                return true;
+            } else if (code != 1598968902) {
+                return super.onTransact(code, data, reply, flags);
+            } else {
+                reply.writeString(DESCRIPTOR);
+                return true;
+            }
+        }
 
         private static class Proxy implements IOemHookCallback {
             public static IOemHookCallback sDefaultImpl;
@@ -81,45 +122,6 @@ public interface IOemHookCallback extends IInterface {
             }
         }
 
-        public Stub() {
-            attachInterface(this, DESCRIPTOR);
-        }
-
-        public static IOemHookCallback asInterface(IBinder obj) {
-            if (obj == null) {
-                return null;
-            }
-            IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
-            if (iin == null || !(iin instanceof IOemHookCallback)) {
-                return new Proxy(obj);
-            }
-            return (IOemHookCallback) iin;
-        }
-
-        public IBinder asBinder() {
-            return this;
-        }
-
-        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
-            String descriptor = DESCRIPTOR;
-            if (code == 1) {
-                data.enforceInterface(descriptor);
-                onOemHookResponse(data.createByteArray(), data.readInt());
-                reply.writeNoException();
-                return true;
-            } else if (code == 2) {
-                data.enforceInterface(descriptor);
-                onOemHookException(data.readInt());
-                reply.writeNoException();
-                return true;
-            } else if (code != 1598968902) {
-                return super.onTransact(code, data, reply, flags);
-            } else {
-                reply.writeString(descriptor);
-                return true;
-            }
-        }
-
         public static boolean setDefaultImpl(IOemHookCallback impl) {
             if (Proxy.sDefaultImpl != null || impl == null) {
                 return false;
@@ -132,8 +134,4 @@ public interface IOemHookCallback extends IInterface {
             return Proxy.sDefaultImpl;
         }
     }
-
-    void onOemHookException(int i) throws RemoteException;
-
-    void onOemHookResponse(byte[] bArr, int i) throws RemoteException;
 }

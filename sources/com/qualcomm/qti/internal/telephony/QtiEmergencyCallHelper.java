@@ -4,10 +4,8 @@ import android.content.Context;
 import android.os.SystemProperties;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
-import android.telephony.TelephonyManager.MultiSimVariants;
 import android.util.Log;
 import com.android.internal.telephony.Phone;
-import com.android.internal.telephony.PhoneConstants.State;
 import com.android.internal.telephony.PhoneFactory;
 
 public class QtiEmergencyCallHelper {
@@ -18,102 +16,148 @@ public class QtiEmergencyCallHelper {
     private static final int PROVISIONED = 1;
     private static QtiEmergencyCallHelper sInstance = null;
 
-    public static int getPhoneIdForECall(Context context) {
-        Phone[] phones;
-        QtiSubscriptionController scontrol = QtiSubscriptionController.getInstance();
-        int voicePhoneId = scontrol.getPhoneId(scontrol.getDefaultVoiceSubId());
-        int phoneId = -1;
-        TelephonyManager tm = (TelephonyManager) context.getSystemService("phone");
-        int phoneCount = tm.getPhoneCount();
-        boolean isDeviceInSingleStandby = isDeviceInSingleStandby(context);
-        String str = LOG_TAG;
-        if (!isDeviceInSingleStandby && tm.getMultiSimConfiguration() != MultiSimVariants.DSDA) {
-            for (Phone phone : PhoneFactory.getPhones()) {
-                if (phone.getState() == State.OFFHOOK) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("Call already active on phoneId: ");
-                    sb.append(phone.getPhoneId());
-                    Log.d(str, sb.toString());
-                    return phone.getPhoneId();
-                }
-            }
-        }
-        for (int phId = 0; phId < phoneCount; phId++) {
-            if (PhoneFactory.getPhone(phId).getServiceState().getState() == 0) {
-                phoneId = phId;
-                if (phoneId == voicePhoneId) {
-                    break;
-                }
-            }
-        }
-        StringBuilder sb2 = new StringBuilder();
-        String str2 = "Voice phoneId in service = ";
-        sb2.append(str2);
-        sb2.append(phoneId);
-        Log.d(str, sb2.toString());
-        if (phoneId == -1) {
-            for (int phId2 = 0; phId2 < phoneCount; phId2++) {
-                Phone phone2 = PhoneFactory.getPhone(phId2);
-                int state = phone2.getServiceState().getState();
-                if (phone2.getServiceState().isEmergencyOnly()) {
-                    phoneId = phId2;
-                    if (phoneId == voicePhoneId) {
-                        break;
-                    }
-                }
-            }
-        }
-        StringBuilder sb3 = new StringBuilder();
-        sb3.append("Voice phoneId in Limited service = ");
-        sb3.append(phoneId);
-        Log.d(str, sb3.toString());
-        if (phoneId == -1) {
-            phoneId = getPrimaryStackPhoneId(context);
-            for (int phId3 = 0; phId3 < phoneCount; phId3++) {
-                QtiUiccCardProvisioner uiccProvisioner = QtiUiccCardProvisioner.getInstance();
-                if (tm.getSimState(phId3) == 5 && uiccProvisioner.getCurrentUiccCardProvisioningStatus(phId3) == 1) {
-                    phoneId = phId3;
-                    if (phoneId == voicePhoneId) {
-                        break;
-                    }
-                }
-            }
-        }
-        StringBuilder sb4 = new StringBuilder();
-        sb4.append(str2);
-        sb4.append(phoneId);
-        sb4.append(" preferred phoneId =");
-        sb4.append(voicePhoneId);
-        Log.d(str, sb4.toString());
-        return phoneId;
+    /*  JADX ERROR: JadxRuntimeException in pass: CodeShrinkVisitor
+        jadx.core.utils.exceptions.JadxRuntimeException: Don't wrap MOVE or CONST insns: 0x006d: MOVE  (r2v13 'phoneId' int) = (r5v2 'phId' int)
+        	at jadx.core.dex.instructions.args.InsnArg.wrapArg(InsnArg.java:164)
+        	at jadx.core.dex.visitors.shrink.CodeShrinkVisitor.assignInline(CodeShrinkVisitor.java:133)
+        	at jadx.core.dex.visitors.shrink.CodeShrinkVisitor.checkInline(CodeShrinkVisitor.java:118)
+        	at jadx.core.dex.visitors.shrink.CodeShrinkVisitor.shrinkBlock(CodeShrinkVisitor.java:65)
+        	at jadx.core.dex.visitors.shrink.CodeShrinkVisitor.shrinkMethod(CodeShrinkVisitor.java:43)
+        	at jadx.core.dex.visitors.shrink.CodeShrinkVisitor.visit(CodeShrinkVisitor.java:35)
+        */
+    public static int getPhoneIdForECall(android.content.Context r12) {
+        /*
+            com.qualcomm.qti.internal.telephony.QtiSubscriptionController r0 = com.qualcomm.qti.internal.telephony.QtiSubscriptionController.getInstance()
+            int r1 = r0.getDefaultVoiceSubId()
+            int r1 = r0.getPhoneId(r1)
+            r2 = -1
+            java.lang.String r3 = "phone"
+            java.lang.Object r3 = r12.getSystemService(r3)
+            android.telephony.TelephonyManager r3 = (android.telephony.TelephonyManager) r3
+            int r4 = r3.getPhoneCount()
+            boolean r5 = isDeviceInSingleStandby(r12)
+            java.lang.String r6 = "QtiEmergencyCallHelper"
+            if (r5 != 0) goto L_0x005c
+            android.telephony.TelephonyManager$MultiSimVariants r5 = r3.getMultiSimConfiguration()
+            android.telephony.TelephonyManager$MultiSimVariants r7 = android.telephony.TelephonyManager.MultiSimVariants.DSDA
+            if (r5 == r7) goto L_0x005c
+            com.android.internal.telephony.Phone[] r5 = com.android.internal.telephony.PhoneFactory.getPhones()
+            int r7 = r5.length
+            r8 = 0
+        L_0x0030:
+            if (r8 >= r7) goto L_0x005c
+            r9 = r5[r8]
+            com.android.internal.telephony.PhoneConstants$State r10 = r9.getState()
+            com.android.internal.telephony.PhoneConstants$State r11 = com.android.internal.telephony.PhoneConstants.State.OFFHOOK
+            if (r10 != r11) goto L_0x0059
+            java.lang.StringBuilder r5 = new java.lang.StringBuilder
+            r5.<init>()
+            java.lang.String r7 = "Call already active on phoneId: "
+            r5.append(r7)
+            int r7 = r9.getPhoneId()
+            r5.append(r7)
+            java.lang.String r5 = r5.toString()
+            android.util.Log.d(r6, r5)
+            int r5 = r9.getPhoneId()
+            return r5
+        L_0x0059:
+            int r8 = r8 + 1
+            goto L_0x0030
+        L_0x005c:
+            r5 = 0
+        L_0x005d:
+            if (r5 >= r4) goto L_0x0074
+            com.android.internal.telephony.Phone r7 = com.android.internal.telephony.PhoneFactory.getPhone(r5)
+            android.telephony.ServiceState r8 = r7.getServiceState()
+            int r8 = r8.getState()
+            if (r8 != 0) goto L_0x0071
+            r2 = r5
+            if (r2 != r1) goto L_0x0071
+            goto L_0x0074
+        L_0x0071:
+            int r5 = r5 + 1
+            goto L_0x005d
+        L_0x0074:
+            java.lang.StringBuilder r5 = new java.lang.StringBuilder
+            r5.<init>()
+            java.lang.String r7 = "Voice phoneId in service = "
+            r5.append(r7)
+            r5.append(r2)
+            java.lang.String r5 = r5.toString()
+            android.util.Log.d(r6, r5)
+            r5 = -1
+            if (r2 != r5) goto L_0x00ab
+            r8 = 0
+        L_0x008c:
+            if (r8 >= r4) goto L_0x00ab
+            com.android.internal.telephony.Phone r9 = com.android.internal.telephony.PhoneFactory.getPhone(r8)
+            android.telephony.ServiceState r10 = r9.getServiceState()
+            int r10 = r10.getState()
+            android.telephony.ServiceState r11 = r9.getServiceState()
+            boolean r11 = r11.isEmergencyOnly()
+            if (r11 == 0) goto L_0x00a8
+            r2 = r8
+            if (r2 != r1) goto L_0x00a8
+            goto L_0x00ab
+        L_0x00a8:
+            int r8 = r8 + 1
+            goto L_0x008c
+        L_0x00ab:
+            java.lang.StringBuilder r8 = new java.lang.StringBuilder
+            r8.<init>()
+            java.lang.String r9 = "Voice phoneId in Limited service = "
+            r8.append(r9)
+            r8.append(r2)
+            java.lang.String r8 = r8.toString()
+            android.util.Log.d(r6, r8)
+            if (r2 != r5) goto L_0x00e1
+            int r2 = getPrimaryStackPhoneId(r12)
+            r5 = 0
+        L_0x00c6:
+            if (r5 >= r4) goto L_0x00e1
+            com.qualcomm.qti.internal.telephony.QtiUiccCardProvisioner r8 = com.qualcomm.qti.internal.telephony.QtiUiccCardProvisioner.getInstance()
+            int r9 = r3.getSimState(r5)
+            r10 = 5
+            if (r9 != r10) goto L_0x00de
+            int r9 = r8.getCurrentUiccCardProvisioningStatus(r5)
+            r10 = 1
+            if (r9 != r10) goto L_0x00de
+            r2 = r5
+            if (r2 != r1) goto L_0x00de
+            goto L_0x00e1
+        L_0x00de:
+            int r5 = r5 + 1
+            goto L_0x00c6
+        L_0x00e1:
+            java.lang.StringBuilder r5 = new java.lang.StringBuilder
+            r5.<init>()
+            r5.append(r7)
+            r5.append(r2)
+            java.lang.String r7 = " preferred phoneId ="
+            r5.append(r7)
+            r5.append(r1)
+            java.lang.String r5 = r5.toString()
+            android.util.Log.d(r6, r5)
+            return r2
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.qualcomm.qti.internal.telephony.QtiEmergencyCallHelper.getPhoneIdForECall(android.content.Context):int");
     }
 
     public static int getPrimaryStackPhoneId(Context context) {
-        String str;
         int primayStackPhoneId = -1;
         int phoneCount = ((TelephonyManager) context.getSystemService("phone")).getPhoneCount();
         int i = 0;
         while (true) {
-            str = LOG_TAG;
             if (i >= phoneCount) {
                 break;
             }
             Phone phone = PhoneFactory.getPhone(i);
             if (phone != null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Logical Modem id: ");
-                sb.append(phone.getModemUuId());
-                sb.append(" phoneId: ");
-                sb.append(i);
-                Log.d(str, sb.toString());
+                Log.d(LOG_TAG, "Logical Modem id: " + phone.getModemUuId() + " phoneId: " + i);
                 String modemUuId = phone.getModemUuId();
                 if (modemUuId != null && modemUuId.length() > 0 && !modemUuId.isEmpty() && Integer.parseInt(modemUuId) == 0) {
                     primayStackPhoneId = i;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("Primay Stack phone id: ");
-                    sb2.append(primayStackPhoneId);
-                    sb2.append(" selected");
-                    Log.d(str, sb2.toString());
+                    Log.d(LOG_TAG, "Primay Stack phone id: " + primayStackPhoneId + " selected");
                     break;
                 }
             }
@@ -122,15 +166,13 @@ public class QtiEmergencyCallHelper {
         if (primayStackPhoneId != -1) {
             return primayStackPhoneId;
         }
-        Log.d(str, "Returning default phone id");
+        Log.d(LOG_TAG, "Returning default phone id");
         return 0;
     }
 
     public static boolean isDeviceInSingleStandby(Context context) {
-        boolean z = SystemProperties.getBoolean(ALLOW_ECALL_ENHANCEMENT_PROPERTY, true);
-        String str = LOG_TAG;
-        if (!z) {
-            Log.d(str, "persist.vendor.radio.enhance_ecall not enabled");
+        if (!SystemProperties.getBoolean(ALLOW_ECALL_ENHANCEMENT_PROPERTY, true)) {
+            Log.d(LOG_TAG, "persist.vendor.radio.enhance_ecall not enabled");
             return false;
         }
         TelephonyManager tm = (TelephonyManager) context.getSystemService("phone");
@@ -144,11 +186,11 @@ public class QtiEmergencyCallHelper {
             if (tm.getSimState(phoneId) == 5 && uiccProvisioner.getCurrentUiccCardProvisioningStatus(phoneId) == 1) {
                 phoneId++;
             } else {
-                Log.d(str, "modem is in single standby mode");
+                Log.d(LOG_TAG, "modem is in single standby mode");
                 return true;
             }
         }
-        Log.d(str, "modem is in dual standby mode");
+        Log.d(LOG_TAG, "modem is in dual standby mode");
         return false;
     }
 

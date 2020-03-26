@@ -31,18 +31,7 @@ public final class Carrier {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".mcc = ");
-        builder.append(this.mcc);
-        builder.append(", .mnc = ");
-        builder.append(this.mnc);
-        builder.append(", .matchType = ");
-        builder.append(CarrierMatchType.toString(this.matchType));
-        builder.append(", .matchData = ");
-        builder.append(this.matchData);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".mcc = " + this.mcc + ", .mnc = " + this.mnc + ", .matchType = " + CarrierMatchType.toString(this.matchType) + ", .matchData = " + this.matchData + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -87,7 +76,7 @@ public final class Carrier {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 56);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((Carrier) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

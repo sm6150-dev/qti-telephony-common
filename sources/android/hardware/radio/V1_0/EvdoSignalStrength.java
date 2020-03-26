@@ -30,16 +30,7 @@ public final class EvdoSignalStrength {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".dbm = ");
-        builder.append(this.dbm);
-        builder.append(", .ecio = ");
-        builder.append(this.ecio);
-        builder.append(", .signalNoiseRatio = ");
-        builder.append(this.signalNoiseRatio);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".dbm = " + this.dbm + ", .ecio = " + this.ecio + ", .signalNoiseRatio = " + this.signalNoiseRatio + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -79,7 +70,7 @@ public final class EvdoSignalStrength {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 12);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((EvdoSignalStrength) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

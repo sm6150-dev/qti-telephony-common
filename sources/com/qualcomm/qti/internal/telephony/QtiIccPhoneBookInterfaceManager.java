@@ -2,9 +2,8 @@ package com.qualcomm.qti.internal.telephony;
 
 import android.os.Message;
 import android.os.SystemProperties;
-import com.android.internal.telephony.IccCardConstants.State;
+import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.telephony.IccPhoneBookInterfaceManager;
-import com.android.internal.telephony.IccPhoneBookInterfaceManager.Request;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.uicc.AdnRecord;
 import com.android.internal.telephony.uicc.UiccController;
@@ -35,12 +34,9 @@ public class QtiIccPhoneBookInterfaceManager extends IccPhoneBookInterfaceManage
     public List<AdnRecord> getAdnRecordsInEf(int efid) {
         if (this.mPhone.getContext().checkCallingOrSelfPermission("android.permission.READ_CONTACTS") == 0) {
             int efid2 = updateEfForIccType(efid);
-            StringBuilder sb = new StringBuilder();
-            sb.append("getAdnRecordsInEF: efid=0x");
-            sb.append(Integer.toHexString(efid2).toUpperCase());
-            logd(sb.toString());
+            logd("getAdnRecordsInEF: efid=0x" + Integer.toHexString(efid2).toUpperCase());
             checkThread();
-            Request loadRequest = new Request();
+            IccPhoneBookInterfaceManager.Request loadRequest = new IccPhoneBookInterfaceManager.Request();
             synchronized (loadRequest) {
                 Message response = this.mBaseHandler.obtainMessage(2, loadRequest);
                 if (!isSimPhoneBookEnabled() || !(efid2 == 20272 || efid2 == 28474)) {
@@ -236,8 +232,8 @@ public class QtiIccPhoneBookInterfaceManager extends IccPhoneBookInterfaceManage
         int[] capacity = new int[10];
         if (isSimPhoneBookEnabled()) {
             if (this.mSimPbAdnCache != null) {
-                State cardstate = UiccController.getInstance().getUiccProfileForPhone(this.mPhoneId).getState();
-                if (cardstate == State.READY || cardstate == State.LOADED) {
+                IccCardConstants.State cardstate = UiccController.getInstance().getUiccProfileForPhone(this.mPhoneId).getState();
+                if (cardstate == IccCardConstants.State.READY || cardstate == IccCardConstants.State.LOADED) {
                     capacity[0] = this.mSimPbAdnCache.getAdnCount();
                     capacity[1] = this.mSimPbAdnCache.getUsedAdnCount();
                     capacity[2] = this.mSimPbAdnCache.getEmailCount();
@@ -255,30 +251,7 @@ public class QtiIccPhoneBookInterfaceManager extends IccPhoneBookInterfaceManage
                 loge("mAdnCache is NULL when getAdnRecordsCapacity.");
             }
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getAdnRecordsCapacity on slot ");
-        sb.append(this.mPhoneId);
-        sb.append(": max adn=");
-        sb.append(capacity[0]);
-        sb.append(", used adn=");
-        sb.append(capacity[1]);
-        sb.append(", max email=");
-        sb.append(capacity[2]);
-        sb.append(", used email=");
-        sb.append(capacity[3]);
-        sb.append(", max anr=");
-        sb.append(capacity[4]);
-        sb.append(", used anr=");
-        sb.append(capacity[5]);
-        sb.append(", max name length =");
-        sb.append(capacity[6]);
-        sb.append(", max number length =");
-        sb.append(capacity[7]);
-        sb.append(", max email length =");
-        sb.append(capacity[8]);
-        sb.append(", max anr length =");
-        sb.append(capacity[9]);
-        logd(sb.toString());
+        logd("getAdnRecordsCapacity on slot " + this.mPhoneId + ": max adn=" + capacity[0] + ", used adn=" + capacity[1] + ", max email=" + capacity[2] + ", used email=" + capacity[3] + ", max anr=" + capacity[4] + ", used anr=" + capacity[5] + ", max name length =" + capacity[6] + ", max number length =" + capacity[7] + ", max email length =" + capacity[8] + ", max anr length =" + capacity[9]);
         return capacity;
     }
 }

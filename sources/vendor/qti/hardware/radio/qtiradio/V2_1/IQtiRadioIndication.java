@@ -7,7 +7,6 @@ import android.os.HwBinder;
 import android.os.HwBlob;
 import android.os.HwParcel;
 import android.os.IHwBinder;
-import android.os.IHwBinder.DeathRecipient;
 import android.os.IHwInterface;
 import android.os.NativeHandle;
 import android.os.RemoteException;
@@ -20,6 +19,78 @@ import vendor.qti.hardware.radio.qtiradio.V2_0.SignalStrength;
 
 public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadioIndication {
     public static final String kInterfaceName = "vendor.qti.hardware.radio.qtiradio@2.1::IQtiRadioIndication";
+
+    IHwBinder asBinder();
+
+    void debug(NativeHandle nativeHandle, ArrayList<String> arrayList) throws RemoteException;
+
+    DebugInfo getDebugInfo() throws RemoteException;
+
+    ArrayList<byte[]> getHashChain() throws RemoteException;
+
+    ArrayList<String> interfaceChain() throws RemoteException;
+
+    String interfaceDescriptor() throws RemoteException;
+
+    boolean linkToDeath(IHwBinder.DeathRecipient deathRecipient, long j) throws RemoteException;
+
+    void notifySyspropsChanged() throws RemoteException;
+
+    void on5gConfigInfoChange(int i) throws RemoteException;
+
+    void onNrBearerAllocationChange_2_1(int i) throws RemoteException;
+
+    void onUpperLayerIndInfoChange(UpperLayerIndInfo upperLayerIndInfo) throws RemoteException;
+
+    void ping() throws RemoteException;
+
+    void setHALInstrumentation() throws RemoteException;
+
+    boolean unlinkToDeath(IHwBinder.DeathRecipient deathRecipient) throws RemoteException;
+
+    static IQtiRadioIndication asInterface(IHwBinder binder) {
+        if (binder == null) {
+            return null;
+        }
+        IHwInterface iface = binder.queryLocalInterface(kInterfaceName);
+        if (iface != null && (iface instanceof IQtiRadioIndication)) {
+            return (IQtiRadioIndication) iface;
+        }
+        IQtiRadioIndication proxy = new Proxy(binder);
+        try {
+            Iterator<String> it = proxy.interfaceChain().iterator();
+            while (it.hasNext()) {
+                if (it.next().equals(kInterfaceName)) {
+                    return proxy;
+                }
+            }
+        } catch (RemoteException e) {
+        }
+        return null;
+    }
+
+    static IQtiRadioIndication castFrom(IHwInterface iface) {
+        if (iface == null) {
+            return null;
+        }
+        return asInterface(iface.asBinder());
+    }
+
+    static IQtiRadioIndication getService(String serviceName, boolean retry) throws RemoteException {
+        return asInterface(HwBinder.getService(kInterfaceName, serviceName, retry));
+    }
+
+    static IQtiRadioIndication getService(boolean retry) throws RemoteException {
+        return getService("default", retry);
+    }
+
+    static IQtiRadioIndication getService(String serviceName) throws RemoteException {
+        return asInterface(HwBinder.getService(kInterfaceName, serviceName));
+    }
+
+    static IQtiRadioIndication getService() throws RemoteException {
+        return getService("default");
+    }
 
     public static final class Proxy implements IQtiRadioIndication {
         private IHwBinder mRemote;
@@ -34,10 +105,7 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
 
         public String toString() {
             try {
-                StringBuilder sb = new StringBuilder();
-                sb.append(interfaceDescriptor());
-                sb.append("@Proxy");
-                return sb.toString();
+                return interfaceDescriptor() + "@Proxy";
             } catch (RemoteException e) {
                 return "[class or subclass of vendor.qti.hardware.radio.qtiradio@2.1::IQtiRadioIndication]@Proxy";
             }
@@ -206,17 +274,17 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                 this.mRemote.transact(256398152, _hidl_request, _hidl_reply, 0);
                 _hidl_reply.verifySuccess();
                 _hidl_request.releaseTemporaryStorage();
-                ArrayList arrayList = new ArrayList();
+                ArrayList<byte[]> _hidl_out_hashchain = new ArrayList<>();
                 HwBlob _hidl_blob = _hidl_reply.readBuffer(16);
                 int _hidl_vec_size = _hidl_blob.getInt32(8);
                 HwBlob childBlob = _hidl_reply.readEmbeddedBuffer((long) (_hidl_vec_size * 32), _hidl_blob.handle(), 0, true);
-                arrayList.clear();
+                _hidl_out_hashchain.clear();
                 for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
                     byte[] _hidl_vec_element = new byte[32];
                     childBlob.copyToInt8Array((long) (_hidl_index_0 * 32), _hidl_vec_element, 32);
-                    arrayList.add(_hidl_vec_element);
+                    _hidl_out_hashchain.add(_hidl_vec_element);
                 }
-                return arrayList;
+                return _hidl_out_hashchain;
             } finally {
                 _hidl_reply.release();
             }
@@ -234,7 +302,7 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
             }
         }
 
-        public boolean linkToDeath(DeathRecipient recipient, long cookie) throws RemoteException {
+        public boolean linkToDeath(IHwBinder.DeathRecipient recipient, long cookie) throws RemoteException {
             return this.mRemote.linkToDeath(recipient, cookie);
         }
 
@@ -279,7 +347,7 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
             }
         }
 
-        public boolean unlinkToDeath(DeathRecipient recipient) throws RemoteException {
+        public boolean unlinkToDeath(IHwBinder.DeathRecipient recipient) throws RemoteException {
             return this.mRemote.unlinkToDeath(recipient);
         }
     }
@@ -307,7 +375,7 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
         public final void setHALInstrumentation() {
         }
 
-        public final boolean linkToDeath(DeathRecipient recipient, long cookie) {
+        public final boolean linkToDeath(IHwBinder.DeathRecipient recipient, long cookie) {
             return true;
         }
 
@@ -326,7 +394,7 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
             HwBinder.enableInstrumentation();
         }
 
-        public final boolean unlinkToDeath(DeathRecipient recipient) {
+        public final boolean unlinkToDeath(IHwBinder.DeathRecipient recipient) {
             return true;
         }
 
@@ -342,23 +410,18 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append(interfaceDescriptor());
-            sb.append("@Stub");
-            return sb.toString();
+            return interfaceDescriptor() + "@Stub";
         }
 
         public void onTransact(int _hidl_code, HwParcel _hidl_request, HwParcel _hidl_reply, int _hidl_flags) throws RemoteException {
-            String str = IQtiRadioIndication.kInterfaceName;
-            String str2 = vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadioIndication.kInterfaceName;
-            boolean z = false;
-            boolean z2 = true;
+            boolean _hidl_is_oneway = false;
+            boolean _hidl_is_oneway2 = true;
             switch (_hidl_code) {
                 case 1:
                     if (_hidl_flags != false && true) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
@@ -368,107 +431,106 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                     return;
                 case 2:
                     if (_hidl_flags != false && true) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str2);
+                    _hidl_request.enforceInterface(vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadioIndication.kInterfaceName);
                     on5gStatusChange(_hidl_request.readInt32());
                     return;
                 case 3:
                     if (_hidl_flags != false && true) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str2);
+                    _hidl_request.enforceInterface(vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadioIndication.kInterfaceName);
                     DcParam dcParam = new DcParam();
                     dcParam.readFromParcel(_hidl_request);
                     onNrDcParamChange(dcParam);
                     return;
                 case 4:
                     if (_hidl_flags != false && true) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str2);
+                    _hidl_request.enforceInterface(vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadioIndication.kInterfaceName);
                     onNrBearerAllocationChange(_hidl_request.readInt32());
                     return;
                 case 5:
                     if ((_hidl_flags & 1) != 0) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str2);
+                    _hidl_request.enforceInterface(vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadioIndication.kInterfaceName);
                     SignalStrength signalStrength = new SignalStrength();
                     signalStrength.readFromParcel(_hidl_request);
                     onSignalStrengthChange(signalStrength);
                     return;
                 case 6:
                     if (_hidl_flags != false && true) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IQtiRadioIndication.kInterfaceName);
                     UpperLayerIndInfo uliInfo = new UpperLayerIndInfo();
                     uliInfo.readFromParcel(_hidl_request);
                     onUpperLayerIndInfoChange(uliInfo);
                     return;
                 case 7:
                     if (_hidl_flags != false && true) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IQtiRadioIndication.kInterfaceName);
                     onNrBearerAllocationChange_2_1(_hidl_request.readInt32());
                     return;
                 case 8:
                     if (_hidl_flags != false && true) {
-                        z = true;
+                        _hidl_is_oneway = true;
                     }
-                    if (!z) {
+                    if (!_hidl_is_oneway) {
                         _hidl_reply.writeStatus(Integer.MIN_VALUE);
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IQtiRadioIndication.kInterfaceName);
                     on5gConfigInfoChange(_hidl_request.readInt32());
                     return;
                 default:
-                    String str3 = IBase.kInterfaceName;
                     switch (_hidl_code) {
                         case 256067662:
                             if (_hidl_flags == false || !true) {
-                                z2 = false;
+                                _hidl_is_oneway2 = false;
                             }
-                            if (z2) {
+                            if (_hidl_is_oneway2) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ArrayList<String> _hidl_out_descriptors = interfaceChain();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.writeStringVector(_hidl_out_descriptors);
@@ -476,28 +538,28 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                             return;
                         case 256131655:
                             if (_hidl_flags == false || !true) {
-                                z2 = false;
+                                _hidl_is_oneway2 = false;
                             }
-                            if (z2) {
+                            if (_hidl_is_oneway2) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             debug(_hidl_request.readNativeHandle(), _hidl_request.readStringVector());
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.send();
                             return;
                         case 256136003:
                             if (_hidl_flags == false || !true) {
-                                z2 = false;
+                                _hidl_is_oneway2 = false;
                             }
-                            if (z2) {
+                            if (_hidl_is_oneway2) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             String _hidl_out_descriptor = interfaceDescriptor();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.writeString(_hidl_out_descriptor);
@@ -505,14 +567,14 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                             return;
                         case 256398152:
                             if (_hidl_flags == false || !true) {
-                                z2 = false;
+                                _hidl_is_oneway2 = false;
                             }
-                            if (z2) {
+                            if (_hidl_is_oneway2) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ArrayList<byte[]> _hidl_out_hashchain = getHashChain();
                             _hidl_reply.writeStatus(0);
                             HwBlob _hidl_blob = new HwBlob(16);
@@ -522,7 +584,7 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                             HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
                             for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
                                 long _hidl_array_offset_1 = (long) (_hidl_index_0 * 32);
-                                byte[] _hidl_array_item_1 = (byte[]) _hidl_out_hashchain.get(_hidl_index_0);
+                                byte[] _hidl_array_item_1 = _hidl_out_hashchain.get(_hidl_index_0);
                                 if (_hidl_array_item_1 == null || _hidl_array_item_1.length != 32) {
                                     throw new IllegalArgumentException("Array element is not of the expected length");
                                 }
@@ -534,21 +596,21 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                             return;
                         case 256462420:
                             if ((_hidl_flags & 1) != 0) {
-                                z = true;
+                                _hidl_is_oneway = true;
                             }
-                            if (!z) {
+                            if (!_hidl_is_oneway) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             setHALInstrumentation();
                             return;
                         case 256660548:
                             if ((_hidl_flags & 1) != 0) {
-                                z = true;
+                                _hidl_is_oneway = true;
                             }
-                            if (z) {
+                            if (_hidl_is_oneway) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
@@ -556,28 +618,28 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                             return;
                         case 256921159:
                             if (_hidl_flags == false || !true) {
-                                z2 = false;
+                                _hidl_is_oneway2 = false;
                             }
-                            if (z2) {
+                            if (_hidl_is_oneway2) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ping();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.send();
                             return;
                         case 257049926:
                             if (_hidl_flags == false || !true) {
-                                z2 = false;
+                                _hidl_is_oneway2 = false;
                             }
-                            if (z2) {
+                            if (_hidl_is_oneway2) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             DebugInfo _hidl_out_info = getDebugInfo();
                             _hidl_reply.writeStatus(0);
                             _hidl_out_info.writeToParcel(_hidl_reply);
@@ -585,21 +647,21 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                             return;
                         case 257120595:
                             if ((_hidl_flags & 1) != 0) {
-                                z = true;
+                                _hidl_is_oneway = true;
                             }
-                            if (!z) {
+                            if (!_hidl_is_oneway) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str3);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             notifySyspropsChanged();
                             return;
                         case 257250372:
                             if ((_hidl_flags & 1) != 0) {
-                                z = true;
+                                _hidl_is_oneway = true;
                             }
-                            if (z) {
+                            if (_hidl_is_oneway) {
                                 _hidl_reply.writeStatus(Integer.MIN_VALUE);
                                 _hidl_reply.send();
                                 return;
@@ -610,78 +672,5 @@ public interface IQtiRadioIndication extends vendor.qti.hardware.radio.qtiradio.
                     }
             }
         }
-    }
-
-    IHwBinder asBinder();
-
-    void debug(NativeHandle nativeHandle, ArrayList<String> arrayList) throws RemoteException;
-
-    DebugInfo getDebugInfo() throws RemoteException;
-
-    ArrayList<byte[]> getHashChain() throws RemoteException;
-
-    ArrayList<String> interfaceChain() throws RemoteException;
-
-    String interfaceDescriptor() throws RemoteException;
-
-    boolean linkToDeath(DeathRecipient deathRecipient, long j) throws RemoteException;
-
-    void notifySyspropsChanged() throws RemoteException;
-
-    void on5gConfigInfoChange(int i) throws RemoteException;
-
-    void onNrBearerAllocationChange_2_1(int i) throws RemoteException;
-
-    void onUpperLayerIndInfoChange(UpperLayerIndInfo upperLayerIndInfo) throws RemoteException;
-
-    void ping() throws RemoteException;
-
-    void setHALInstrumentation() throws RemoteException;
-
-    boolean unlinkToDeath(DeathRecipient deathRecipient) throws RemoteException;
-
-    static IQtiRadioIndication asInterface(IHwBinder binder) {
-        if (binder == null) {
-            return null;
-        }
-        String str = kInterfaceName;
-        IHwInterface iface = binder.queryLocalInterface(str);
-        if (iface != null && (iface instanceof IQtiRadioIndication)) {
-            return (IQtiRadioIndication) iface;
-        }
-        IQtiRadioIndication proxy = new Proxy(binder);
-        try {
-            Iterator it = proxy.interfaceChain().iterator();
-            while (it.hasNext()) {
-                if (((String) it.next()).equals(str)) {
-                    return proxy;
-                }
-            }
-        } catch (RemoteException e) {
-        }
-        return null;
-    }
-
-    static IQtiRadioIndication castFrom(IHwInterface iface) {
-        if (iface == null) {
-            return null;
-        }
-        return asInterface(iface.asBinder());
-    }
-
-    static IQtiRadioIndication getService(String serviceName, boolean retry) throws RemoteException {
-        return asInterface(HwBinder.getService(kInterfaceName, serviceName, retry));
-    }
-
-    static IQtiRadioIndication getService(boolean retry) throws RemoteException {
-        return getService("default", retry);
-    }
-
-    static IQtiRadioIndication getService(String serviceName) throws RemoteException {
-        return asInterface(HwBinder.getService(kInterfaceName, serviceName));
-    }
-
-    static IQtiRadioIndication getService() throws RemoteException {
-        return getService("default");
     }
 }

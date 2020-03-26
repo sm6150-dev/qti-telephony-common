@@ -40,36 +40,7 @@ public final class Call {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".state = ");
-        builder.append(CallState.toString(this.state));
-        builder.append(", .index = ");
-        builder.append(this.index);
-        builder.append(", .toa = ");
-        builder.append(this.toa);
-        builder.append(", .isMpty = ");
-        builder.append(this.isMpty);
-        builder.append(", .isMT = ");
-        builder.append(this.isMT);
-        builder.append(", .als = ");
-        builder.append(this.als);
-        builder.append(", .isVoice = ");
-        builder.append(this.isVoice);
-        builder.append(", .isVoicePrivacy = ");
-        builder.append(this.isVoicePrivacy);
-        builder.append(", .number = ");
-        builder.append(this.number);
-        builder.append(", .numberPresentation = ");
-        builder.append(CallPresentation.toString(this.numberPresentation));
-        builder.append(", .name = ");
-        builder.append(this.name);
-        builder.append(", .namePresentation = ");
-        builder.append(CallPresentation.toString(this.namePresentation));
-        builder.append(", .uusInfo = ");
-        builder.append(this.uusInfo);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".state = " + CallState.toString(this.state) + ", .index = " + this.index + ", .toa = " + this.toa + ", .isMpty = " + this.isMpty + ", .isMT = " + this.isMT + ", .als = " + this.als + ", .isVoice = " + this.isVoice + ", .isVoicePrivacy = " + this.isVoicePrivacy + ", .number = " + this.number + ", .numberPresentation = " + CallPresentation.toString(this.numberPresentation) + ", .name = " + this.name + ", .namePresentation = " + CallPresentation.toString(this.namePresentation) + ", .uusInfo = " + this.uusInfo + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -130,7 +101,7 @@ public final class Call {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 88);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((Call) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -154,7 +125,7 @@ public final class Call {
         _hidl_blob.putBool(_hidl_offset + 72 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((UusInfo) this.uusInfo.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            this.uusInfo.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(72 + _hidl_offset + 0, childBlob);
     }

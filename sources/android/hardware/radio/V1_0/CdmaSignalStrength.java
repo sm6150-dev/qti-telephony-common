@@ -29,14 +29,7 @@ public final class CdmaSignalStrength {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".dbm = ");
-        builder.append(this.dbm);
-        builder.append(", .ecio = ");
-        builder.append(this.ecio);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".dbm = " + this.dbm + ", .ecio = " + this.ecio + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class CdmaSignalStrength {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 8);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaSignalStrength) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

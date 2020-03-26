@@ -30,16 +30,7 @@ public final class QtiRadioResponseInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".type = ");
-        builder.append(QtiRadioResponseType.toString(this.type));
-        builder.append(", .serial = ");
-        builder.append(this.serial);
-        builder.append(", .error = ");
-        builder.append(QtiRadioError.toString(this.error));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".type = " + QtiRadioResponseType.toString(this.type) + ", .serial = " + this.serial + ", .error = " + QtiRadioError.toString(this.error) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -79,7 +70,7 @@ public final class QtiRadioResponseInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 12);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((QtiRadioResponseInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

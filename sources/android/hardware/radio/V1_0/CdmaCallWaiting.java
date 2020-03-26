@@ -33,22 +33,7 @@ public final class CdmaCallWaiting {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".number = ");
-        builder.append(this.number);
-        builder.append(", .numberPresentation = ");
-        builder.append(CdmaCallWaitingNumberPresentation.toString(this.numberPresentation));
-        builder.append(", .name = ");
-        builder.append(this.name);
-        builder.append(", .signalInfoRecord = ");
-        builder.append(this.signalInfoRecord);
-        builder.append(", .numberType = ");
-        builder.append(CdmaCallWaitingNumberType.toString(this.numberType));
-        builder.append(", .numberPlan = ");
-        builder.append(CdmaCallWaitingNumberPlan.toString(this.numberPlan));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".number = " + this.number + ", .numberPresentation = " + CdmaCallWaitingNumberPresentation.toString(this.numberPresentation) + ", .name = " + this.name + ", .signalInfoRecord = " + this.signalInfoRecord + ", .numberType = " + CdmaCallWaitingNumberType.toString(this.numberType) + ", .numberPlan = " + CdmaCallWaitingNumberPlan.toString(this.numberPlan) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -94,7 +79,7 @@ public final class CdmaCallWaiting {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 56);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaCallWaiting) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

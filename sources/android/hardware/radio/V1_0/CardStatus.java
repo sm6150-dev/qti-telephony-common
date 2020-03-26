@@ -33,22 +33,7 @@ public final class CardStatus {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cardState = ");
-        builder.append(CardState.toString(this.cardState));
-        builder.append(", .universalPinState = ");
-        builder.append(PinState.toString(this.universalPinState));
-        builder.append(", .gsmUmtsSubscriptionAppIndex = ");
-        builder.append(this.gsmUmtsSubscriptionAppIndex);
-        builder.append(", .cdmaSubscriptionAppIndex = ");
-        builder.append(this.cdmaSubscriptionAppIndex);
-        builder.append(", .imsSubscriptionAppIndex = ");
-        builder.append(this.imsSubscriptionAppIndex);
-        builder.append(", .applications = ");
-        builder.append(this.applications);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cardState = " + CardState.toString(this.cardState) + ", .universalPinState = " + PinState.toString(this.universalPinState) + ", .gsmUmtsSubscriptionAppIndex = " + this.gsmUmtsSubscriptionAppIndex + ", .cdmaSubscriptionAppIndex = " + this.cdmaSubscriptionAppIndex + ", .imsSubscriptionAppIndex = " + this.imsSubscriptionAppIndex + ", .applications = " + this.applications + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -100,7 +85,7 @@ public final class CardStatus {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 40);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CardStatus) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -117,7 +102,7 @@ public final class CardStatus {
         _hidl_blob.putBool(_hidl_offset + 24 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 64);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((AppStatus) this.applications.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
+            this.applications.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
         }
         _hidl_blob.putBlob(24 + _hidl_offset + 0, childBlob);
     }

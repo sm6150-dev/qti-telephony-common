@@ -32,20 +32,7 @@ public final class SignalStrength {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".gw = ");
-        builder.append(this.gw);
-        builder.append(", .cdma = ");
-        builder.append(this.cdma);
-        builder.append(", .evdo = ");
-        builder.append(this.evdo);
-        builder.append(", .lte = ");
-        builder.append(this.lte);
-        builder.append(", .tdScdma = ");
-        builder.append(this.tdScdma);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".gw = " + this.gw + ", .cdma = " + this.cdma + ", .evdo = " + this.evdo + ", .lte = " + this.lte + ", .tdScdma = " + this.tdScdma + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -87,7 +74,7 @@ public final class SignalStrength {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 60);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SignalStrength) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 60));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 60));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

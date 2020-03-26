@@ -30,16 +30,7 @@ public final class SimRefreshResult {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".type = ");
-        builder.append(SimRefreshType.toString(this.type));
-        builder.append(", .efId = ");
-        builder.append(this.efId);
-        builder.append(", .aid = ");
-        builder.append(this.aid);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".type = " + SimRefreshType.toString(this.type) + ", .efId = " + this.efId + ", .aid = " + this.aid + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -81,7 +72,7 @@ public final class SimRefreshResult {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SimRefreshResult) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

@@ -10,8 +10,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemProperties;
 import android.os.UserHandle;
-import android.provider.Settings.Global;
-import android.provider.Settings.SettingNotFoundException;
+import android.provider.Settings;
 import android.telephony.RadioAccessFamily;
 import android.telephony.Rlog;
 import android.telephony.SubscriptionManager;
@@ -20,7 +19,7 @@ import android.util.Log;
 import com.android.internal.telephony.CommandException;
 import com.android.internal.telephony.CommandsInterface;
 import com.android.internal.telephony.Phone;
-import com.android.internal.telephony.PhoneConstants.State;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.ProxyController;
 import com.android.internal.telephony.RadioCapability;
 import com.android.internal.telephony.dataconnection.DataEnabledSettings;
@@ -53,10 +52,7 @@ public class QtiRadioCapabilityController extends Handler {
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            StringBuilder sb = new StringBuilder();
-            sb.append("mReceiver: action ");
-            sb.append(action);
-            Rlog.d(QtiRadioCapabilityController.LOG_TAG, sb.toString());
+            Rlog.d(QtiRadioCapabilityController.LOG_TAG, "mReceiver: action " + action);
             if (action.equals("android.intent.action.ACTION_SET_RADIO_CAPABILITY_DONE")) {
                 QtiRadioCapabilityController qtiRadioCapabilityController = QtiRadioCapabilityController.this;
                 qtiRadioCapabilityController.sendMessage(qtiRadioCapabilityController.obtainMessage(3, 1, -1));
@@ -70,12 +66,11 @@ public class QtiRadioCapabilityController extends Handler {
     private SubscriptionManager mSubscriptionManager = null;
 
     public static QtiRadioCapabilityController make(Context context, Phone[] phone, CommandsInterface[] ci) {
-        String str = LOG_TAG;
-        Rlog.d(str, "getInstance");
+        Rlog.d(LOG_TAG, "getInstance");
         if (sInstance == null) {
             sInstance = new QtiRadioCapabilityController(context, phone, ci);
         } else {
-            Log.wtf(str, "QtiRadioCapabilityController.make() should be called once");
+            Log.wtf(LOG_TAG, "QtiRadioCapabilityController.make() should be called once");
         }
         return sInstance;
     }
@@ -104,7 +99,7 @@ public class QtiRadioCapabilityController extends Handler {
             CommandsInterface[] commandsInterfaceArr = this.mCi;
             if (i2 < commandsInterfaceArr.length) {
                 commandsInterfaceArr[i2].registerForNotAvailable(this, 1, new Integer(i2));
-                this.mStoredResponse.put(Integer.valueOf(i2), null);
+                this.mStoredResponse.put(Integer.valueOf(i2), (Object) null);
                 i2++;
             } else {
                 IntentFilter filter = new IntentFilter("android.intent.action.ACTION_SET_RADIO_CAPABILITY_DONE");
@@ -129,10 +124,7 @@ public class QtiRadioCapabilityController extends Handler {
             AsyncResult ar = (AsyncResult) msg.obj;
             if (ar.userObj != null) {
                 Integer phoneId = (Integer) ar.userObj;
-                StringBuilder sb = new StringBuilder();
-                sb.append("EVENT_RADIO_NOT_AVAILABLE, phoneId = ");
-                sb.append(phoneId);
-                logd(sb.toString());
+                logd("EVENT_RADIO_NOT_AVAILABLE, phoneId = " + phoneId);
                 processRadioNotAvailable(ar, phoneId.intValue());
                 return;
             }
@@ -166,7 +158,7 @@ public class QtiRadioCapabilityController extends Handler {
                 qtiSubscriptionController.setDefaultDataSubId(qtiSubscriptionController.getDefaultDataSubId());
             } else {
                 for (int i = 0; i < mNumPhones; i++) {
-                    if (((Message) this.mStoredResponse.get(Integer.valueOf(i))) != null) {
+                    if (this.mStoredResponse.get(Integer.valueOf(i)) != null) {
                         logd("handleUpdateBindingDone: try initiate pending flex map req ");
                         if (updateStackBindingIfRequired(DBG)) {
                             return;
@@ -192,13 +184,13 @@ public class QtiRadioCapabilityController extends Handler {
         notifyRadioCapsUpdated(z2);
         for (int i4 = 0; i4 < mNumPhones; i4++) {
             int errorCode = 0;
-            Message resp = (Message) this.mStoredResponse.get(Integer.valueOf(i4));
+            Message resp = this.mStoredResponse.get(Integer.valueOf(i4));
             if (resp != null) {
                 if (result != 1) {
                     errorCode = 2;
                 }
                 sendResponseToTarget(resp, errorCode);
-                this.mStoredResponse.put(Integer.valueOf(i4), null);
+                this.mStoredResponse.put(Integer.valueOf(i4), (Object) null);
             }
         }
     }
@@ -213,30 +205,18 @@ public class QtiRadioCapabilityController extends Handler {
     }
 
     private void processRadioNotAvailable(AsyncResult ar, int phoneId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("processRadioNotAvailable on phoneId = ");
-        sb.append(phoneId);
-        logd(sb.toString());
+        logd("processRadioNotAvailable on phoneId = " + phoneId);
         this.mNeedSetDds = DBG;
     }
 
     private void syncCurrentStackInfo() {
-        int i = 0;
-        while (i < mNumPhones) {
+        for (int i = 0; i < mNumPhones; i++) {
             this.mCurrentStackId[i] = Integer.valueOf(this.mPhone[i].getModemUuId()).intValue();
             this.mRadioAccessFamily[this.mCurrentStackId[i]] = this.mPhone[i].getRadioAccessFamily();
             int[] iArr = this.mPreferredStackId;
             int[] iArr2 = this.mCurrentStackId;
             iArr[i] = iArr2[i] >= 0 ? iArr2[i] : i;
-            StringBuilder sb = new StringBuilder();
-            sb.append("syncCurrentStackInfo, current stackId[");
-            sb.append(i);
-            sb.append("] = ");
-            sb.append(this.mCurrentStackId[i]);
-            sb.append(" raf = ");
-            sb.append(this.mRadioAccessFamily[this.mCurrentStackId[i]]);
-            logv(sb.toString());
-            i++;
+            logv("syncCurrentStackInfo, current stackId[" + i + "] = " + this.mCurrentStackId[i] + " raf = " + this.mRadioAccessFamily[this.mCurrentStackId[i]]);
         }
     }
 
@@ -415,10 +395,7 @@ public class QtiRadioCapabilityController extends Handler {
 
     private void updatePreferredStackIds(boolean isNwModeRequest) {
         if (!areAllModemCapInfoReceived()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("updatePreferredStackIds: Modem Caps not Available, request =");
-            sb.append(isNwModeRequest);
-            loge(sb.toString());
+            loge("updatePreferredStackIds: Modem Caps not Available, request =" + isNwModeRequest);
             return;
         }
         if (!isNwModeRequest) {
@@ -426,48 +403,15 @@ public class QtiRadioCapabilityController extends Handler {
         }
         syncCurrentStackInfo();
         for (int curPhoneId = 0; curPhoneId < mNumPhones; curPhoneId++) {
-            String str = "] on phoneId[";
-            String str2 = "]";
             if (isNwModeSupportedOnStack(this.mPrefNwMode[curPhoneId], this.mCurrentStackId[curPhoneId])) {
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("updatePreferredStackIds: current stack[");
-                sb2.append(this.mCurrentStackId[curPhoneId]);
-                sb2.append("]supports NwMode[");
-                sb2.append(this.mPrefNwMode[curPhoneId]);
-                sb2.append(str);
-                sb2.append(curPhoneId);
-                sb2.append(str2);
-                logd(sb2.toString());
+                logd("updatePreferredStackIds: current stack[" + this.mCurrentStackId[curPhoneId] + "]supports NwMode[" + this.mPrefNwMode[curPhoneId] + "] on phoneId[" + curPhoneId + "]");
             } else {
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("updatePreferredStackIds:  current stack[");
-                sb3.append(this.mCurrentStackId[curPhoneId]);
-                String str3 = "],  NwMode[";
-                sb3.append(str3);
-                sb3.append(this.mPrefNwMode[curPhoneId]);
-                sb3.append(str);
-                sb3.append(curPhoneId);
-                sb3.append(str2);
-                logd(sb3.toString());
+                logd("updatePreferredStackIds:  current stack[" + this.mCurrentStackId[curPhoneId] + "],  NwMode[" + this.mPrefNwMode[curPhoneId] + "] on phoneId[" + curPhoneId + "]");
                 for (int otherPhoneId = 0; otherPhoneId < mNumPhones; otherPhoneId++) {
                     if (otherPhoneId != curPhoneId) {
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("updatePreferredStackIds:  other stack[");
-                        sb4.append(this.mCurrentStackId[otherPhoneId]);
-                        sb4.append(str3);
-                        sb4.append(this.mPrefNwMode[curPhoneId]);
-                        sb4.append(str);
-                        sb4.append(curPhoneId);
-                        sb4.append(str2);
-                        logd(sb4.toString());
+                        logd("updatePreferredStackIds:  other stack[" + this.mCurrentStackId[otherPhoneId] + "],  NwMode[" + this.mPrefNwMode[curPhoneId] + "] on phoneId[" + curPhoneId + "]");
                         if (isNwModeSupportedOnStack(this.mPrefNwMode[curPhoneId], this.mCurrentStackId[otherPhoneId]) && ((isCardAbsent(otherPhoneId) && !isCardAbsent(curPhoneId)) || isNwModeSupportedOnStack(this.mPrefNwMode[otherPhoneId], this.mCurrentStackId[curPhoneId]))) {
-                            StringBuilder sb5 = new StringBuilder();
-                            sb5.append("updatePreferredStackIds: Cross Binding is possible between phoneId[");
-                            sb5.append(curPhoneId);
-                            sb5.append("] and phoneId[");
-                            sb5.append(otherPhoneId);
-                            sb5.append(str2);
-                            logd(sb5.toString());
+                            logd("updatePreferredStackIds: Cross Binding is possible between phoneId[" + curPhoneId + "] and phoneId[" + otherPhoneId + "]");
                             int[] iArr = this.mPreferredStackId;
                             int[] iArr2 = this.mCurrentStackId;
                             iArr[curPhoneId] = iArr2[otherPhoneId];
@@ -511,39 +455,20 @@ public class QtiRadioCapabilityController extends Handler {
 
     private int getNetworkModeFromDB(int phoneId) {
         int networkMode;
-        String str = "preferred_network_mode";
         int[] subId = this.mQtiSubscriptionController.getSubId(phoneId);
         try {
-            networkMode = QtiPhoneUtils.getIntAtIndex(this.mContext.getContentResolver(), str, phoneId);
-        } catch (SettingNotFoundException e) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("getNwMode: ");
-            sb.append(phoneId);
-            sb.append(" ,Could not find PREFERRED_NETWORK_MODE!!!");
-            loge(sb.toString());
+            networkMode = QtiPhoneUtils.getIntAtIndex(this.mContext.getContentResolver(), "preferred_network_mode", phoneId);
+        } catch (Settings.SettingNotFoundException e) {
+            loge("getNwMode: " + phoneId + " ,Could not find PREFERRED_NETWORK_MODE!!!");
             networkMode = Phone.PREFERRED_NT_MODE;
         }
-        String str2 = "] = ";
         if (subId == null || subId.length <= 0 || !this.mSubscriptionManager.isActiveSubscriptionId(subId[0])) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append(" get slotId based N/W mode, val[");
-            sb2.append(phoneId);
-            sb2.append(str2);
-            sb2.append(networkMode);
-            logi(sb2.toString());
+            logi(" get slotId based N/W mode, val[" + phoneId + "] = " + networkMode);
             return networkMode;
         }
         ContentResolver contentResolver = this.mContext.getContentResolver();
-        StringBuilder sb3 = new StringBuilder();
-        sb3.append(str);
-        sb3.append(subId[0]);
-        int networkMode2 = Global.getInt(contentResolver, sb3.toString(), networkMode);
-        StringBuilder sb4 = new StringBuilder();
-        sb4.append(" get sub based N/W mode, val[");
-        sb4.append(phoneId);
-        sb4.append(str2);
-        sb4.append(networkMode2);
-        logi(sb4.toString());
+        int networkMode2 = Settings.Global.getInt(contentResolver, "preferred_network_mode" + subId[0], networkMode);
+        logi(" get sub based N/W mode, val[" + phoneId + "] = " + networkMode2);
         return networkMode2;
     }
 
@@ -552,25 +477,12 @@ public class QtiRadioCapabilityController extends Handler {
             int nwModeFromDB = getNetworkModeFromDB(i);
             if (this.mPrefNwMode[i] != nwModeFromDB) {
                 int[] subId = this.mQtiSubscriptionController.getSubId(i);
-                StringBuilder sb = new StringBuilder();
-                sb.append("updateNewNwModeToDB: subId[");
-                sb.append(i);
-                sb.append("] = ");
-                sb.append(subId);
-                sb.append(" new Nw mode = ");
-                sb.append(this.mPrefNwMode[i]);
-                sb.append(" old n/w mode = ");
-                sb.append(nwModeFromDB);
-                logi(sb.toString());
-                String str = "preferred_network_mode";
+                logi("updateNewNwModeToDB: subId[" + i + "] = " + subId + " new Nw mode = " + this.mPrefNwMode[i] + " old n/w mode = " + nwModeFromDB);
                 if (this.mSubscriptionManager.isActiveSubscriptionId(subId[0])) {
                     ContentResolver contentResolver = this.mContext.getContentResolver();
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append(str);
-                    sb2.append(subId[0]);
-                    Global.putInt(contentResolver, sb2.toString(), this.mPrefNwMode[i]);
+                    Settings.Global.putInt(contentResolver, "preferred_network_mode" + subId[0], this.mPrefNwMode[i]);
                 }
-                QtiPhoneUtils.putIntAtIndex(this.mContext.getContentResolver(), str, i, this.mPrefNwMode[i]);
+                QtiPhoneUtils.putIntAtIndex(this.mContext.getContentResolver(), "preferred_network_mode", i, this.mPrefNwMode[i]);
             }
         }
     }
@@ -682,30 +594,18 @@ public class QtiRadioCapabilityController extends Handler {
 
     private int getNumOfRafSupportedForNwMode(int nwMode, int radioAccessFamily) {
         if (radioAccessFamily == 0) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(" Modem Capabilites are null. Return!!, N/W mode ");
-            sb.append(nwMode);
-            loge(sb.toString());
+            loge(" Modem Capabilites are null. Return!!, N/W mode " + nwMode);
             return 0;
         }
         int nwModeRaf = RadioAccessFamily.getRafFromNetworkType(nwMode);
         int supportedRafMaskForNwMode = radioAccessFamily & nwModeRaf;
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("getNumOfRATsSupportedForNwMode: nwMode[");
-        sb2.append(nwMode);
-        sb2.append(" nwModeRaf = ");
-        sb2.append(nwModeRaf);
-        sb2.append("] raf = ");
-        sb2.append(radioAccessFamily);
-        sb2.append(" supportedRafMaskForNwMode:");
-        sb2.append(supportedRafMaskForNwMode);
-        logv(sb2.toString());
+        logv("getNumOfRATsSupportedForNwMode: nwMode[" + nwMode + " nwModeRaf = " + nwModeRaf + "] raf = " + radioAccessFamily + " supportedRafMaskForNwMode:" + supportedRafMaskForNwMode);
         return Integer.bitCount(supportedRafMaskForNwMode);
     }
 
     private void sendSubscriptionSettings(int phoneId) {
         Phone phone = this.mPhone[phoneId];
-        this.mCi[phoneId].setPreferredNetworkType(getNetworkModeFromDB(phoneId), null);
+        this.mCi[phoneId].setPreferredNetworkType(getNetworkModeFromDB(phoneId), (Message) null);
         int[] subId = this.mQtiSubscriptionController.getSubId(phoneId);
         if (subId != null && subId.length > 0 && this.mSubscriptionManager.isActiveSubscriptionId(subId[0])) {
             DataEnabledSettings dataEnabledSettings = phone.getDataEnabledSettings();
@@ -714,10 +614,7 @@ public class QtiRadioCapabilityController extends Handler {
     }
 
     private void notifyRadioCapsUpdated(boolean isCrossMapDone) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("notifyRadioCapsUpdated: radio caps updated ");
-        sb.append(isCrossMapDone);
-        logd(sb.toString());
+        logd("notifyRadioCapsUpdated: radio caps updated " + isCrossMapDone);
         if (isCrossMapDone) {
             for (int i = 0; i < mNumPhones; i++) {
                 this.mCurrentStackId[i] = this.mPreferredStackId[i];
@@ -728,14 +625,14 @@ public class QtiRadioCapabilityController extends Handler {
 
     private void sendResponseToTarget(Message response, int responseCode) {
         if (response != null) {
-            AsyncResult.forMessage(response, null, CommandException.fromRilErrno(responseCode));
+            AsyncResult.forMessage(response, (Object) null, CommandException.fromRilErrno(responseCode));
             response.sendToTarget();
         }
     }
 
     private boolean isAnyCallsInProgress() {
         for (int i = 0; i < mNumPhones; i++) {
-            if (this.mPhone[i].getState() != State.IDLE) {
+            if (this.mPhone[i].getState() != PhoneConstants.State.IDLE) {
                 return DBG;
             }
         }
@@ -757,10 +654,7 @@ public class QtiRadioCapabilityController extends Handler {
             return VDBG;
         }
         boolean retVal = uiccProvisioner.isAnyProvisionRequestInProgress();
-        StringBuilder sb = new StringBuilder();
-        sb.append("isUiccProvisionInProgress: retVal =  ");
-        sb.append(retVal);
-        logd(sb.toString());
+        logd("isUiccProvisionInProgress: retVal =  " + retVal);
         return retVal;
     }
 
@@ -769,12 +663,7 @@ public class QtiRadioCapabilityController extends Handler {
         QtiUiccCardProvisioner uiccProvisioner = QtiUiccCardProvisioner.getInstance();
         if (uiccProvisioner != null) {
             provisionStatus = uiccProvisioner.getCurrentUiccCardProvisioningStatus(phoneId);
-            StringBuilder sb = new StringBuilder();
-            sb.append("provisionStatus[");
-            sb.append(phoneId);
-            sb.append("] : ");
-            sb.append(provisionStatus);
-            logd(sb.toString());
+            logd("provisionStatus[" + phoneId + "] : " + provisionStatus);
         }
         return provisionStatus == -2 ? DBG : VDBG;
     }
@@ -795,19 +684,10 @@ public class QtiRadioCapabilityController extends Handler {
 
     public void radioCapabilityUpdated(int phoneId, RadioCapability rc) {
         if (!QtiPhoneUtils.getInstance().isValidPhoneId(phoneId) || isSetNWModeInProgress()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("radioCapabilityUpdated: Invalid phoneId=");
-            sb.append(phoneId);
-            sb.append(" or SetNWModeInProgress");
-            loge(sb.toString());
+            loge("radioCapabilityUpdated: Invalid phoneId=" + phoneId + " or SetNWModeInProgress");
             return;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append(" radioCapabilityUpdated phoneId[");
-        sb2.append(phoneId);
-        sb2.append("] rc = ");
-        sb2.append(rc);
-        logd(sb2.toString());
+        logd(" radioCapabilityUpdated phoneId[" + phoneId + "] rc = " + rc);
         if (areAllModemCapInfoReceived()) {
             sendMessage(obtainMessage(2));
         }
@@ -816,57 +696,38 @@ public class QtiRadioCapabilityController extends Handler {
     public void setDdsIfRequired(boolean forceSetDds) {
         int ddsSubId = this.mQtiSubscriptionController.getDefaultDataSubId();
         int ddsPhoneId = this.mQtiSubscriptionController.getPhoneId(ddsSubId);
-        StringBuilder sb = new StringBuilder();
-        sb.append("setDdsIfRequired: ddsSub = ");
-        sb.append(ddsSubId);
-        sb.append(" ddsPhone = ");
-        sb.append(ddsPhoneId);
-        sb.append(" force = ");
-        sb.append(forceSetDds);
-        sb.append(" needSetDds = ");
-        sb.append(this.mNeedSetDds);
-        logd(sb.toString());
+        logd("setDdsIfRequired: ddsSub = " + ddsSubId + " ddsPhone = " + ddsPhoneId + " force = " + forceSetDds + " needSetDds = " + this.mNeedSetDds);
         if (!QtiPhoneUtils.getInstance().isValidPhoneId(ddsPhoneId)) {
             return;
         }
         if (forceSetDds || this.mNeedSetDds) {
-            this.mCi[ddsPhoneId].setDataAllowed(DBG, null);
+            this.mCi[ddsPhoneId].setDataAllowed(DBG, (Message) null);
             if (this.mNeedSetDds) {
                 this.mNeedSetDds = VDBG;
             }
         }
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public boolean is7Plus7DeviceFlexMapped() {
         if (mNumPhones <= 1 || !areAllModemCapInfoReceived() || Integer.valueOf(this.mPhone[0].getModemUuId()).intValue() != 1 || this.mPhone[0].getRadioAccessFamily() != this.mPhone[1].getRadioAccessFamily() || this.mPhone[0].getRadioAccessFamily() == 0) {
             return VDBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Device is flex mapped: ");
-        sb.append(this.mPhone[0].getModemUuId());
-        sb.append(" raf = ");
-        sb.append(this.mPhone[0].getRadioAccessFamily());
-        logi(sb.toString());
+        logi("Device is flex mapped: " + this.mPhone[0].getModemUuId() + " raf = " + this.mPhone[0].getRadioAccessFamily());
         return DBG;
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public boolean isBothPhonesMappedToSameStack() {
         if (mNumPhones <= 1 || !areAllModemCapInfoReceived() || Integer.valueOf(this.mPhone[0].getModemUuId()) != Integer.valueOf(this.mPhone[1].getModemUuId())) {
             return VDBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Error: both Phones mapped same stackId: ");
-        sb.append(this.mPhone[0].getModemUuId());
-        sb.append(" raf = ");
-        sb.append(this.mPhone[0].getRadioAccessFamily());
-        loge(sb.toString());
+        loge("Error: both Phones mapped same stackId: " + this.mPhone[0].getModemUuId() + " raf = " + this.mPhone[0].getRadioAccessFamily());
         this.bothPhonesMappedToSameStack = DBG;
         return DBG;
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public boolean initNormalMappingRequest() {
         int i;
         RadioCapability[] oldRadioCapability = new RadioCapability[mNumPhones];
@@ -881,8 +742,7 @@ public class QtiRadioCapabilityController extends Handler {
                 break;
             }
             oldRadioCapability[i2] = this.mPhone[i2].getRadioCapability();
-            RadioCapability rc = new RadioCapability(i2, 0, 0, i2 == 0 ? minRaf : maxRaf, i2 == 0 ? "1" : "0", 1);
-            this.mPhone[i2].radioCapabilityUpdated(rc);
+            this.mPhone[i2].radioCapabilityUpdated(new RadioCapability(i2, 0, 0, i2 == 0 ? minRaf : maxRaf, i2 == 0 ? "1" : "0", 1));
             i2++;
         }
         RadioAccessFamily[] rafs = new RadioAccessFamily[i];

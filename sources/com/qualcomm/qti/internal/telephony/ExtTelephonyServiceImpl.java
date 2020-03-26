@@ -1,19 +1,17 @@
 package com.qualcomm.qti.internal.telephony;
 
 import android.content.Context;
-import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.PackageManager;
 import android.os.Binder;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.provider.Settings.Global;
+import android.provider.Settings;
 import android.telephony.Rlog;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
-import android.telephony.TelephonyManager.MultiSimVariants;
 import android.util.Log;
 import com.android.internal.telephony.IccCard;
-import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.uicc.UiccCard;
 import com.android.internal.telephony.uicc.UiccController;
@@ -26,11 +24,11 @@ import java.util.List;
 import org.codeaurora.internal.Client;
 import org.codeaurora.internal.IDepersoResCallback;
 import org.codeaurora.internal.IDsda;
-import org.codeaurora.internal.IExtTelephony.Stub;
+import org.codeaurora.internal.IExtTelephony;
 import org.codeaurora.internal.INetworkCallback;
 import org.codeaurora.internal.Token;
 
-public class ExtTelephonyServiceImpl extends Stub {
+public class ExtTelephonyServiceImpl extends IExtTelephony.Stub {
     private static final String CONFIG_CURRENT_PRIMARY_SUB = "config_current_primary_sub";
     private static final boolean DBG = true;
     private static final int DEFAULT_PHONE_INDEX = 0;
@@ -48,11 +46,7 @@ public class ExtTelephonyServiceImpl extends Stub {
             if (sInstance == null) {
                 sInstance = new ExtTelephonyServiceImpl();
             } else {
-                String str = LOG_TAG;
-                StringBuilder sb = new StringBuilder();
-                sb.append("init() called multiple times!  sInstance = ");
-                sb.append(sInstance);
-                Log.wtf(str, sb.toString());
+                Log.wtf(LOG_TAG, "init() called multiple times!  sInstance = " + sInstance);
             }
             extTelephonyServiceImpl = sInstance;
         }
@@ -69,9 +63,8 @@ public class ExtTelephonyServiceImpl extends Stub {
     /* JADX WARNING: type inference failed for: r2v0, types: [com.qualcomm.qti.internal.telephony.ExtTelephonyServiceImpl, android.os.IBinder] */
     private ExtTelephonyServiceImpl() {
         logd("init constructor ");
-        String str = TELEPHONY_SERVICE_NAME;
-        if (ServiceManager.getService(str) == null) {
-            ServiceManager.addService(str, this);
+        if (ServiceManager.getService(TELEPHONY_SERVICE_NAME) == null) {
+            ServiceManager.addService(TELEPHONY_SERVICE_NAME, this);
         }
         this.mQtiSmscHelper = new QtiSmscHelper(mContext);
     }
@@ -115,43 +108,25 @@ public class ExtTelephonyServiceImpl extends Stub {
     }
 
     public void setDsdaAdapter(IDsda a) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("setDsdaAdapter:");
-        sb.append(a);
-        logd(sb.toString());
+        logd("setDsdaAdapter:" + a);
         this.mDsda = a;
     }
 
     public void switchToActiveSub(int sub) {
-        StringBuilder sb = new StringBuilder();
-        String str = "switchToActiveSub:";
-        sb.append(str);
-        sb.append(sub);
-        sb.append(" mDsda:");
-        sb.append(this.mDsda);
-        logd(sb.toString());
+        logd("switchToActiveSub:" + sub + " mDsda:" + this.mDsda);
         try {
             this.mDsda.switchToActiveSub(sub);
         } catch (RemoteException ex) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append(str);
-            sb2.append(ex);
-            logd(sb2.toString());
+            logd("switchToActiveSub:" + ex);
         }
     }
 
     public int getActiveSubscription() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("getActiveSubscription mDsda:");
-        sb.append(this.mDsda);
-        logd(sb.toString());
+        logd("getActiveSubscription mDsda:" + this.mDsda);
         try {
             return this.mDsda.getActiveSubscription();
         } catch (RemoteException ex) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("getActiveSubscription:");
-            sb2.append(ex);
-            logd(sb2.toString());
+            logd("getActiveSubscription:" + ex);
             return -1;
         }
     }
@@ -223,18 +198,13 @@ public class ExtTelephonyServiceImpl extends Stub {
 
     public boolean setLocalCallHold(int subscriptionId, boolean enable) {
         int phoneId = SubscriptionManager.getPhoneId(subscriptionId);
-        Phone phone = PhoneFactory.getPhone(phoneId);
-        StringBuilder sb = new StringBuilder();
-        sb.append("setLocalCallHold:");
-        sb.append(phoneId);
-        sb.append(" enable:");
-        sb.append(enable);
-        logd(sb.toString());
-        return ((QtiGsmCdmaPhone) phone).setLocalCallHold(enable);
+        QtiGsmCdmaPhone phone = PhoneFactory.getPhone(phoneId);
+        logd("setLocalCallHold:" + phoneId + " enable:" + enable);
+        return phone.setLocalCallHold(enable);
     }
 
     public boolean isDsdaEnabled() {
-        if (TelephonyManager.getDefault().getMultiSimConfiguration() == MultiSimVariants.DSDA) {
+        if (TelephonyManager.getDefault().getMultiSimConfiguration() == TelephonyManager.MultiSimVariants.DSDA) {
             return DBG;
         }
         return false;
@@ -249,70 +219,44 @@ public class ExtTelephonyServiceImpl extends Stub {
             return -1;
         }
         for (SubscriptionInfo subInfo : subInfoList) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(String.valueOf(subInfo.getMcc()));
-            sb.append(String.valueOf(subInfo.getMnc()));
-            String mccMnc = sb.toString();
+            String mccMnc = String.valueOf(subInfo.getMcc()) + String.valueOf(subInfo.getMnc());
             int provisionStatus = getCurrentUiccCardProvisioningStatus(subInfo.getSimSlotIndex());
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("provisionStatus : ");
-            sb2.append(provisionStatus);
-            sb2.append(" slotId ");
-            sb2.append(subInfo.getSimSlotIndex());
-            logd(sb2.toString());
+            logd("provisionStatus : " + provisionStatus + " slotId " + subInfo.getSimSlotIndex());
             if (provisionStatus == 1 && isPrimaryCarrierMccMnc(mccMnc)) {
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("Found a matching combination, slotId  ");
-                sb3.append(subInfo.getSimSlotIndex());
-                logd(sb3.toString());
+                logd("Found a matching combination, slotId  " + subInfo.getSimSlotIndex());
                 slotId = subInfo.getSimSlotIndex();
                 matchingCount++;
             }
         }
-        if (matchingCount > 1) {
-            logd("Found multiple matches, returning primary slotid");
-            slotId = Global.getInt(mContext.getContentResolver(), CONFIG_CURRENT_PRIMARY_SUB, slotId);
+        if (matchingCount <= 1) {
+            return slotId;
         }
-        return slotId;
+        logd("Found multiple matches, returning primary slotid");
+        return Settings.Global.getInt(mContext.getContentResolver(), CONFIG_CURRENT_PRIMARY_SUB, slotId);
     }
 
     private boolean isPrimaryCarrierMccMnc(String mccMnc) {
         String str = mccMnc;
         for (String mccmnc : new String[]{"405840", "405854", "405855", "405856", "405857", "405858", "405859", "405860", "405861", "405862", "405863", "405864", "405865", "405866", "405867", "405868", "405869", "405870", "405871", "405872", "405873", "405874", "22201", "2221"}) {
             if (str.equals(mccmnc)) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Found a matching combination  ");
-                sb.append(str);
-                logd(sb.toString());
+                logd("Found a matching combination  " + str);
                 return DBG;
             }
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("Not found a matching combination  ");
-        sb2.append(str);
-        logd(sb2.toString());
+        logd("Not found a matching combination  " + str);
         return false;
     }
 
     public boolean isPrimaryCarrierSlotId(int slotId) {
         SubscriptionInfo subInfo = SubscriptionManager.from(mContext).getActiveSubscriptionInfoForSimSlotIndex(slotId);
         if (subInfo == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("No active subscription found on slot ");
-            sb.append(slotId);
-            loge(sb.toString());
+            loge("No active subscription found on slot " + slotId);
             return false;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append(String.valueOf(subInfo.getMcc()));
-        sb2.append(String.valueOf(subInfo.getMnc()));
-        if (!isPrimaryCarrierMccMnc(sb2.toString())) {
+        if (!isPrimaryCarrierMccMnc(String.valueOf(subInfo.getMcc()) + String.valueOf(subInfo.getMnc()))) {
             return false;
         }
-        StringBuilder sb3 = new StringBuilder();
-        sb3.append("Found a matching combination, slotId  ");
-        sb3.append(subInfo.getSimSlotIndex());
-        logd(sb3.toString());
+        logd("Found a matching combination, slotId  " + subInfo.getSimSlotIndex());
         return DBG;
     }
 
@@ -328,11 +272,8 @@ public class ExtTelephonyServiceImpl extends Stub {
         try {
             mContext.getPackageManager().getPackageInfo(packageName, 0);
             return DBG;
-        } catch (NameNotFoundException e) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Vendor apk not available for ");
-            sb.append(packageName);
-            logd(sb.toString());
+        } catch (PackageManager.NameNotFoundException e) {
+            logd("Vendor apk not available for " + packageName);
             return false;
         }
     }
@@ -430,16 +371,8 @@ public class ExtTelephonyServiceImpl extends Stub {
 
     /* access modifiers changed from: protected */
     public void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-        String str = "android.permission.DUMP";
-        if (mContext.checkCallingOrSelfPermission(str) != 0) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Permission Denial: can't dump ExtPhone from pid=");
-            sb.append(Binder.getCallingPid());
-            sb.append(", uid=");
-            sb.append(Binder.getCallingUid());
-            sb.append("without permission ");
-            sb.append(str);
-            writer.println(sb.toString());
+        if (mContext.checkCallingOrSelfPermission("android.permission.DUMP") != 0) {
+            writer.println("Permission Denial: can't dump ExtPhone from pid=" + Binder.getCallingPid() + ", uid=" + Binder.getCallingUid() + "without permission " + "android.permission.DUMP");
             writer.flush();
             return;
         }

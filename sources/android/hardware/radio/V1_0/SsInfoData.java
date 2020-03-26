@@ -13,13 +13,10 @@ public final class SsInfoData {
         if (this == otherObject) {
             return true;
         }
-        if (otherObject == null || otherObject.getClass() != SsInfoData.class) {
-            return false;
+        if (otherObject != null && otherObject.getClass() == SsInfoData.class && HidlSupport.deepEquals(this.ssInfo, ((SsInfoData) otherObject).ssInfo)) {
+            return true;
         }
-        if (!HidlSupport.deepEquals(this.ssInfo, ((SsInfoData) otherObject).ssInfo)) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     public final int hashCode() {
@@ -27,12 +24,7 @@ public final class SsInfoData {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".ssInfo = ");
-        builder.append(this.ssInfo);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".ssInfo = " + this.ssInfo + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +67,7 @@ public final class SsInfoData {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 16);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SsInfoData) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -87,7 +79,7 @@ public final class SsInfoData {
         _hidl_blob.putBool(_hidl_offset + 0 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 4);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            childBlob.putInt32((long) (_hidl_index_0 * 4), ((Integer) this.ssInfo.get(_hidl_index_0)).intValue());
+            childBlob.putInt32((long) (_hidl_index_0 * 4), this.ssInfo.get(_hidl_index_0).intValue());
         }
         _hidl_blob.putBlob(_hidl_offset + 0 + 0, childBlob);
     }

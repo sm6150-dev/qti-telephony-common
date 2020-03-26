@@ -13,13 +13,10 @@ public final class CdmaT53ClirInfoRecord {
         if (this == otherObject) {
             return true;
         }
-        if (otherObject == null || otherObject.getClass() != CdmaT53ClirInfoRecord.class) {
-            return false;
+        if (otherObject != null && otherObject.getClass() == CdmaT53ClirInfoRecord.class && this.cause == ((CdmaT53ClirInfoRecord) otherObject).cause) {
+            return true;
         }
-        if (this.cause != ((CdmaT53ClirInfoRecord) otherObject).cause) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     public final int hashCode() {
@@ -27,12 +24,7 @@ public final class CdmaT53ClirInfoRecord {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cause = ");
-        builder.append(this.cause);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cause = " + this.cause + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -70,7 +62,7 @@ public final class CdmaT53ClirInfoRecord {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 1);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaT53ClirInfoRecord) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 1));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 1));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

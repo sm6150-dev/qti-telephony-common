@@ -54,12 +54,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                 String simStatus = intent.getStringExtra("ss");
                 if ("ABSENT".equals(simStatus) && QtiSimPhoneBookAdnRecordCache.this.mPhoneId == phoneId) {
                     QtiSimPhoneBookAdnRecordCache qtiSimPhoneBookAdnRecordCache = QtiSimPhoneBookAdnRecordCache.this;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("ACTION_SIM_STATE_CHANGED intent received simStatus: ");
-                    sb.append(simStatus);
-                    sb.append("phoneId: ");
-                    sb.append(phoneId);
-                    qtiSimPhoneBookAdnRecordCache.log(sb.toString());
+                    qtiSimPhoneBookAdnRecordCache.log("ACTION_SIM_STATE_CHANGED intent received simStatus: " + simStatus + "phoneId: " + phoneId);
                     QtiSimPhoneBookAdnRecordCache.this.invalidateAdnCache();
                 }
             }
@@ -72,8 +67,8 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
         this.mPhoneId = phoneId;
         this.mContext = context;
         this.mQtiRilInterface = QtiRilInterface.getInstance(context);
-        this.mQtiRilInterface.registerForAdnInitDone(this, 1, null);
-        this.mCi.registerForIccRefresh(this, 6, null);
+        this.mQtiRilInterface.registerForAdnInitDone(this, 1, (Object) null);
+        this.mCi.registerForIccRefresh(this, 6, (Object) null);
         context.registerReceiver(this.sReceiver, new IntentFilter("android.intent.action.SIM_STATE_CHANGED"));
     }
 
@@ -102,7 +97,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
         if (arrayList != null) {
             int s = arrayList.size();
             for (int i = 0; i < s; i++) {
-                Message response = (Message) this.mAdnLoadingWaiters.get(i);
+                Message response = this.mAdnLoadingWaiters.get(i);
                 if (response != null) {
                     AsyncResult.forMessage(response).result = this.mSimPbRecords;
                     response.sendToTarget();
@@ -120,7 +115,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
         this.mAddNumCount = 0;
         this.mRefreshAdnCache = false;
         log("start to queryAdnRecord");
-        this.mQtiRilInterface.registerForAdnRecordsInfo(this, 3, null);
+        this.mQtiRilInterface.registerForAdnRecordsInfo(this, 3, (Object) null);
         this.mQtiRilInterface.getAdnRecord(obtainMessage(2), this.mPhoneId);
         try {
             this.mLock.wait();
@@ -206,7 +201,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
             while (true) {
                 if (!it.hasNext()) {
                     break;
-                } else if (oldAdn.isEqual((AdnRecord) it.next())) {
+                } else if (oldAdn.isEqual(it.next())) {
                     index = count;
                     break;
                 } else {
@@ -217,14 +212,11 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
             index = 0;
         }
         if (index == -1) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Sim PhoneBook Adn record don't exist for ");
-            sb.append(oldAdn);
-            sendErrorResponse(response, sb.toString());
+            sendErrorResponse(response, "Sim PhoneBook Adn record don't exist for " + oldAdn);
         } else if (index == 0 && this.mValidAdnCount == this.mAdnCount) {
             sendErrorResponse(response, "Sim PhoneBook Adn record is full");
         } else {
-            int recordIndex = index == 0 ? 0 : ((AdnRecord) oldAdnList.get(index - 1)).getRecordNumber();
+            int recordIndex = index == 0 ? 0 : oldAdnList.get(index - 1).getRecordNumber();
             QtiSimPhoneBookAdnRecord updateAdn = new QtiSimPhoneBookAdnRecord();
             updateAdn.mRecordIndex = recordIndex;
             updateAdn.mAlphaTag = newAdn.getAlphaTag();
@@ -247,6 +239,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
     }
 
     public void handleMessage(Message msg) {
+        QtiSimPhoneBookAdnRecord[] AdnRecordsGroup;
         AsyncResult ar = (AsyncResult) msg.obj;
         switch (msg.what) {
             case 1:
@@ -256,10 +249,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                     invalidateAdnCache();
                     return;
                 }
-                StringBuilder sb = new StringBuilder();
-                sb.append("Init ADN done Exception: ");
-                sb.append(ar2.exception);
-                log(sb.toString());
+                log("Init ADN done Exception: " + ar2.exception);
                 return;
             case 2:
                 log("Querying ADN record done");
@@ -267,13 +257,9 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                     synchronized (this.mLock) {
                         this.mLock.notify();
                     }
-                    Iterator it = this.mAdnLoadingWaiters.iterator();
+                    Iterator<Message> it = this.mAdnLoadingWaiters.iterator();
                     while (it.hasNext()) {
-                        Message response = (Message) it.next();
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("Query adn record failed");
-                        sb2.append(ar.exception);
-                        sendErrorResponse(response, sb2.toString());
+                        sendErrorResponse(it.next(), "Query adn record failed" + ar.exception);
                     }
                     this.mAdnLoadingWaiters.clear();
                     return;
@@ -288,28 +274,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                 this.mMaxNumberLen = ((int[]) ar.result)[7];
                 this.mMaxEmailLen = ((int[]) ar.result)[8];
                 this.mMaxAnrLen = ((int[]) ar.result)[9];
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("Max ADN count is: ");
-                sb3.append(this.mAdnCount);
-                sb3.append(", Valid ADN count is: ");
-                sb3.append(this.mValidAdnCount);
-                sb3.append(", Email count is: ");
-                sb3.append(this.mEmailCount);
-                sb3.append(", Valid email count is: ");
-                sb3.append(this.mValidEmailCount);
-                sb3.append(", Add number count is: ");
-                sb3.append(this.mAddNumCount);
-                sb3.append(", Valid add number count is: ");
-                sb3.append(this.mValidAddNumCount);
-                sb3.append(", Max name length is: ");
-                sb3.append(this.mMaxNameLen);
-                sb3.append(", Max number length is: ");
-                sb3.append(this.mMaxNumberLen);
-                sb3.append(", Max email length is: ");
-                sb3.append(this.mMaxEmailLen);
-                sb3.append(", Valid anr length is: ");
-                sb3.append(this.mMaxAnrLen);
-                log(sb3.toString());
+                log("Max ADN count is: " + this.mAdnCount + ", Valid ADN count is: " + this.mValidAdnCount + ", Email count is: " + this.mEmailCount + ", Valid email count is: " + this.mValidEmailCount + ", Add number count is: " + this.mAddNumCount + ", Valid add number count is: " + this.mValidAddNumCount + ", Max name length is: " + this.mMaxNameLen + ", Max number length is: " + this.mMaxNumberLen + ", Max email length is: " + this.mMaxEmailLen + ", Valid anr length is: " + this.mMaxAnrLen);
                 int i = this.mValidAdnCount;
                 if (i == 0 || this.mRecCount == i) {
                     sendMessage(obtainMessage(4));
@@ -318,21 +283,15 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                 return;
             case 3:
                 log("Loading ADN record done");
-                if (ar.exception == null) {
-                    QtiSimPhoneBookAdnRecord[] AdnRecordsGroup = (QtiSimPhoneBookAdnRecord[]) ar.result;
-                    if (AdnRecordsGroup != null) {
-                        for (int i2 = 0; i2 < AdnRecordsGroup.length; i2++) {
-                            if (AdnRecordsGroup[i2] != null) {
-                                ArrayList<AdnRecord> arrayList = this.mSimPbRecords;
-                                AdnRecord adnRecord = new AdnRecord(0, AdnRecordsGroup[i2].getRecordIndex(), AdnRecordsGroup[i2].getAlphaTag(), AdnRecordsGroup[i2].getNumber(), AdnRecordsGroup[i2].getEmails(), AdnRecordsGroup[i2].getAdNumbers());
-                                arrayList.add(adnRecord);
-                                this.mRecCount++;
-                            }
+                if (ar.exception == null && (AdnRecordsGroup = (QtiSimPhoneBookAdnRecord[]) ar.result) != null) {
+                    for (int i2 = 0; i2 < AdnRecordsGroup.length; i2++) {
+                        if (AdnRecordsGroup[i2] != null) {
+                            this.mSimPbRecords.add(new AdnRecord(0, AdnRecordsGroup[i2].getRecordIndex(), AdnRecordsGroup[i2].getAlphaTag(), AdnRecordsGroup[i2].getNumber(), AdnRecordsGroup[i2].getEmails(), AdnRecordsGroup[i2].getAdNumbers()));
+                            this.mRecCount++;
                         }
-                        if (this.mRecCount == this.mValidAdnCount) {
-                            sendMessage(obtainMessage(4));
-                            return;
-                        }
+                    }
+                    if (this.mRecCount == this.mValidAdnCount) {
+                        sendMessage(obtainMessage(4));
                         return;
                     }
                     return;
@@ -353,19 +312,13 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                     AdnRecord adn = (AdnRecord) ar.userObj;
                     int recordIndex = ((int[]) ar.result)[0];
                     if (index == 0) {
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("Record number for added ADN is ");
-                        sb4.append(recordIndex);
-                        log(sb4.toString());
+                        log("Record number for added ADN is " + recordIndex);
                         adn.setRecordNumber(recordIndex);
                         this.mSimPbRecords.add(adn);
-                        this.mValidAdnCount++;
+                        this.mValidAdnCount = this.mValidAdnCount + 1;
                     } else if (adn.isEmpty()) {
-                        int adnRecordIndex = ((AdnRecord) this.mSimPbRecords.get(index - 1)).getRecordNumber();
-                        StringBuilder sb5 = new StringBuilder();
-                        sb5.append("Record number for deleted ADN is ");
-                        sb5.append(adnRecordIndex);
-                        log(sb5.toString());
+                        int adnRecordIndex = this.mSimPbRecords.get(index - 1).getRecordNumber();
+                        log("Record number for deleted ADN is " + adnRecordIndex);
                         if (recordIndex == adnRecordIndex) {
                             this.mSimPbRecords.remove(index - 1);
                             this.mValidAdnCount--;
@@ -373,11 +326,8 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                             e = new RuntimeException("The index for deleted ADN record did not match");
                         }
                     } else {
-                        int adnRecordIndex2 = ((AdnRecord) this.mSimPbRecords.get(index - 1)).getRecordNumber();
-                        StringBuilder sb6 = new StringBuilder();
-                        sb6.append("Record number for changed ADN is ");
-                        sb6.append(adnRecordIndex2);
-                        log(sb6.toString());
+                        int adnRecordIndex2 = this.mSimPbRecords.get(index - 1).getRecordNumber();
+                        log("Record number for changed ADN is " + adnRecordIndex2);
                         if (recordIndex == adnRecordIndex2) {
                             adn.setRecordNumber(recordIndex);
                             this.mSimPbRecords.set(index - 1, adn);
@@ -390,7 +340,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                 }
                 Message message = this.mAdnUpdatingWaiter;
                 if (message != null) {
-                    AsyncResult.forMessage(message, null, e);
+                    AsyncResult.forMessage(message, (Object) null, e);
                     this.mAdnUpdatingWaiter.sendToTarget();
                     this.mAdnUpdatingWaiter = null;
                     return;
@@ -411,10 +361,7 @@ public class QtiSimPhoneBookAdnRecordCache extends Handler {
                         return;
                     }
                 } else {
-                    StringBuilder sb7 = new StringBuilder();
-                    sb7.append("SIM refresh Exception: ");
-                    sb7.append(ar3.exception);
-                    log(sb7.toString());
+                    log("SIM refresh Exception: " + ar3.exception);
                     return;
                 }
             default:

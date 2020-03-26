@@ -7,7 +7,6 @@ import android.os.HwBinder;
 import android.os.HwBlob;
 import android.os.HwParcel;
 import android.os.IHwBinder;
-import android.os.IHwBinder.DeathRecipient;
 import android.os.IHwInterface;
 import android.os.NativeHandle;
 import android.os.RemoteException;
@@ -18,6 +17,162 @@ import java.util.Objects;
 
 public interface IRadioIndication extends IBase {
     public static final String kInterfaceName = "android.hardware.radio@1.0::IRadioIndication";
+
+    IHwBinder asBinder();
+
+    void callRing(int i, boolean z, CdmaSignalInfoRecord cdmaSignalInfoRecord) throws RemoteException;
+
+    void callStateChanged(int i) throws RemoteException;
+
+    void cdmaCallWaiting(int i, CdmaCallWaiting cdmaCallWaiting) throws RemoteException;
+
+    void cdmaInfoRec(int i, CdmaInformationRecords cdmaInformationRecords) throws RemoteException;
+
+    void cdmaNewSms(int i, CdmaSmsMessage cdmaSmsMessage) throws RemoteException;
+
+    void cdmaOtaProvisionStatus(int i, int i2) throws RemoteException;
+
+    void cdmaPrlChanged(int i, int i2) throws RemoteException;
+
+    void cdmaRuimSmsStorageFull(int i) throws RemoteException;
+
+    void cdmaSubscriptionSourceChanged(int i, int i2) throws RemoteException;
+
+    void cellInfoList(int i, ArrayList<CellInfo> arrayList) throws RemoteException;
+
+    void currentSignalStrength(int i, SignalStrength signalStrength) throws RemoteException;
+
+    void dataCallListChanged(int i, ArrayList<SetupDataCallResult> arrayList) throws RemoteException;
+
+    void debug(NativeHandle nativeHandle, ArrayList<String> arrayList) throws RemoteException;
+
+    void enterEmergencyCallbackMode(int i) throws RemoteException;
+
+    void exitEmergencyCallbackMode(int i) throws RemoteException;
+
+    DebugInfo getDebugInfo() throws RemoteException;
+
+    ArrayList<byte[]> getHashChain() throws RemoteException;
+
+    void hardwareConfigChanged(int i, ArrayList<HardwareConfig> arrayList) throws RemoteException;
+
+    void imsNetworkStateChanged(int i) throws RemoteException;
+
+    void indicateRingbackTone(int i, boolean z) throws RemoteException;
+
+    ArrayList<String> interfaceChain() throws RemoteException;
+
+    String interfaceDescriptor() throws RemoteException;
+
+    void lceData(int i, LceDataInfo lceDataInfo) throws RemoteException;
+
+    boolean linkToDeath(IHwBinder.DeathRecipient deathRecipient, long j) throws RemoteException;
+
+    void modemReset(int i, String str) throws RemoteException;
+
+    void networkStateChanged(int i) throws RemoteException;
+
+    void newBroadcastSms(int i, ArrayList<Byte> arrayList) throws RemoteException;
+
+    void newSms(int i, ArrayList<Byte> arrayList) throws RemoteException;
+
+    void newSmsOnSim(int i, int i2) throws RemoteException;
+
+    void newSmsStatusReport(int i, ArrayList<Byte> arrayList) throws RemoteException;
+
+    void nitzTimeReceived(int i, String str, long j) throws RemoteException;
+
+    void notifySyspropsChanged() throws RemoteException;
+
+    void onSupplementaryServiceIndication(int i, StkCcUnsolSsResult stkCcUnsolSsResult) throws RemoteException;
+
+    void onUssd(int i, int i2, String str) throws RemoteException;
+
+    void pcoData(int i, PcoDataInfo pcoDataInfo) throws RemoteException;
+
+    void ping() throws RemoteException;
+
+    void radioCapabilityIndication(int i, RadioCapability radioCapability) throws RemoteException;
+
+    void radioStateChanged(int i, int i2) throws RemoteException;
+
+    void resendIncallMute(int i) throws RemoteException;
+
+    void restrictedStateChanged(int i, int i2) throws RemoteException;
+
+    void rilConnected(int i) throws RemoteException;
+
+    void setHALInstrumentation() throws RemoteException;
+
+    void simRefresh(int i, SimRefreshResult simRefreshResult) throws RemoteException;
+
+    void simSmsStorageFull(int i) throws RemoteException;
+
+    void simStatusChanged(int i) throws RemoteException;
+
+    void srvccStateNotify(int i, int i2) throws RemoteException;
+
+    void stkCallControlAlphaNotify(int i, String str) throws RemoteException;
+
+    void stkCallSetup(int i, long j) throws RemoteException;
+
+    void stkEventNotify(int i, String str) throws RemoteException;
+
+    void stkProactiveCommand(int i, String str) throws RemoteException;
+
+    void stkSessionEnd(int i) throws RemoteException;
+
+    void subscriptionStatusChanged(int i, boolean z) throws RemoteException;
+
+    void suppSvcNotify(int i, SuppSvcNotification suppSvcNotification) throws RemoteException;
+
+    boolean unlinkToDeath(IHwBinder.DeathRecipient deathRecipient) throws RemoteException;
+
+    void voiceRadioTechChanged(int i, int i2) throws RemoteException;
+
+    static IRadioIndication asInterface(IHwBinder binder) {
+        if (binder == null) {
+            return null;
+        }
+        IHwInterface iface = binder.queryLocalInterface(kInterfaceName);
+        if (iface != null && (iface instanceof IRadioIndication)) {
+            return (IRadioIndication) iface;
+        }
+        IRadioIndication proxy = new Proxy(binder);
+        try {
+            Iterator<String> it = proxy.interfaceChain().iterator();
+            while (it.hasNext()) {
+                if (it.next().equals(kInterfaceName)) {
+                    return proxy;
+                }
+            }
+        } catch (RemoteException e) {
+        }
+        return null;
+    }
+
+    static IRadioIndication castFrom(IHwInterface iface) {
+        if (iface == null) {
+            return null;
+        }
+        return asInterface(iface.asBinder());
+    }
+
+    static IRadioIndication getService(String serviceName, boolean retry) throws RemoteException {
+        return asInterface(HwBinder.getService(kInterfaceName, serviceName, retry));
+    }
+
+    static IRadioIndication getService(boolean retry) throws RemoteException {
+        return getService("default", retry);
+    }
+
+    static IRadioIndication getService(String serviceName) throws RemoteException {
+        return asInterface(HwBinder.getService(kInterfaceName, serviceName));
+    }
+
+    static IRadioIndication getService() throws RemoteException {
+        return getService("default");
+    }
 
     public static final class Proxy implements IRadioIndication {
         private IHwBinder mRemote;
@@ -32,10 +187,7 @@ public interface IRadioIndication extends IBase {
 
         public String toString() {
             try {
-                StringBuilder sb = new StringBuilder();
-                sb.append(interfaceDescriptor());
-                sb.append("@Proxy");
-                return sb.toString();
+                return interfaceDescriptor() + "@Proxy";
             } catch (RemoteException e) {
                 return "[class or subclass of android.hardware.radio@1.0::IRadioIndication]@Proxy";
             }
@@ -722,17 +874,17 @@ public interface IRadioIndication extends IBase {
                 this.mRemote.transact(256398152, _hidl_request, _hidl_reply, 0);
                 _hidl_reply.verifySuccess();
                 _hidl_request.releaseTemporaryStorage();
-                ArrayList arrayList = new ArrayList();
+                ArrayList<byte[]> _hidl_out_hashchain = new ArrayList<>();
                 HwBlob _hidl_blob = _hidl_reply.readBuffer(16);
                 int _hidl_vec_size = _hidl_blob.getInt32(8);
                 HwBlob childBlob = _hidl_reply.readEmbeddedBuffer((long) (_hidl_vec_size * 32), _hidl_blob.handle(), 0, true);
-                arrayList.clear();
+                _hidl_out_hashchain.clear();
                 for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
                     byte[] _hidl_vec_element = new byte[32];
                     childBlob.copyToInt8Array((long) (_hidl_index_0 * 32), _hidl_vec_element, 32);
-                    arrayList.add(_hidl_vec_element);
+                    _hidl_out_hashchain.add(_hidl_vec_element);
                 }
-                return arrayList;
+                return _hidl_out_hashchain;
             } finally {
                 _hidl_reply.release();
             }
@@ -750,7 +902,7 @@ public interface IRadioIndication extends IBase {
             }
         }
 
-        public boolean linkToDeath(DeathRecipient recipient, long cookie) throws RemoteException {
+        public boolean linkToDeath(IHwBinder.DeathRecipient recipient, long cookie) throws RemoteException {
             return this.mRemote.linkToDeath(recipient, cookie);
         }
 
@@ -795,7 +947,7 @@ public interface IRadioIndication extends IBase {
             }
         }
 
-        public boolean unlinkToDeath(DeathRecipient recipient) throws RemoteException {
+        public boolean unlinkToDeath(IHwBinder.DeathRecipient recipient) throws RemoteException {
             return this.mRemote.unlinkToDeath(recipient);
         }
     }
@@ -823,7 +975,7 @@ public interface IRadioIndication extends IBase {
         public final void setHALInstrumentation() {
         }
 
-        public final boolean linkToDeath(DeathRecipient recipient, long cookie) {
+        public final boolean linkToDeath(IHwBinder.DeathRecipient recipient, long cookie) {
             return true;
         }
 
@@ -842,7 +994,7 @@ public interface IRadioIndication extends IBase {
             HwBinder.enableInstrumentation();
         }
 
-        public final boolean unlinkToDeath(DeathRecipient recipient) {
+        public final boolean unlinkToDeath(IHwBinder.DeathRecipient recipient) {
             return true;
         }
 
@@ -858,14 +1010,10 @@ public interface IRadioIndication extends IBase {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append(interfaceDescriptor());
-            sb.append("@Stub");
-            return sb.toString();
+            return interfaceDescriptor() + "@Stub";
         }
 
         public void onTransact(int _hidl_code, HwParcel _hidl_request, HwParcel _hidl_reply, int _hidl_flags) throws RemoteException {
-            String str = IRadioIndication.kInterfaceName;
             boolean _hidl_is_oneway = false;
             boolean _hidl_is_oneway2 = true;
             switch (_hidl_code) {
@@ -878,7 +1026,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     radioStateChanged(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 2:
@@ -890,7 +1038,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     callStateChanged(_hidl_request.readInt32());
                     return;
                 case 3:
@@ -902,7 +1050,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     networkStateChanged(_hidl_request.readInt32());
                     return;
                 case 4:
@@ -914,7 +1062,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     newSms(_hidl_request.readInt32(), _hidl_request.readInt8Vector());
                     return;
                 case 5:
@@ -926,7 +1074,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     newSmsStatusReport(_hidl_request.readInt32(), _hidl_request.readInt8Vector());
                     return;
                 case 6:
@@ -938,7 +1086,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     newSmsOnSim(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 7:
@@ -950,7 +1098,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     onUssd(_hidl_request.readInt32(), _hidl_request.readInt32(), _hidl_request.readString());
                     return;
                 case 8:
@@ -962,7 +1110,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     nitzTimeReceived(_hidl_request.readInt32(), _hidl_request.readString(), _hidl_request.readInt64());
                     return;
                 case 9:
@@ -974,7 +1122,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type = _hidl_request.readInt32();
                     SignalStrength signalStrength = new SignalStrength();
                     signalStrength.readFromParcel(_hidl_request);
@@ -989,7 +1137,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     dataCallListChanged(_hidl_request.readInt32(), SetupDataCallResult.readVectorFromParcel(_hidl_request));
                     return;
                 case 11:
@@ -1001,7 +1149,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type2 = _hidl_request.readInt32();
                     SuppSvcNotification suppSvc = new SuppSvcNotification();
                     suppSvc.readFromParcel(_hidl_request);
@@ -1016,7 +1164,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     stkSessionEnd(_hidl_request.readInt32());
                     return;
                 case 13:
@@ -1028,7 +1176,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     stkProactiveCommand(_hidl_request.readInt32(), _hidl_request.readString());
                     return;
                 case 14:
@@ -1040,7 +1188,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     stkEventNotify(_hidl_request.readInt32(), _hidl_request.readString());
                     return;
                 case 15:
@@ -1052,7 +1200,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     stkCallSetup(_hidl_request.readInt32(), _hidl_request.readInt64());
                     return;
                 case 16:
@@ -1064,7 +1212,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     simSmsStorageFull(_hidl_request.readInt32());
                     return;
                 case 17:
@@ -1076,7 +1224,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type3 = _hidl_request.readInt32();
                     SimRefreshResult refreshResult = new SimRefreshResult();
                     refreshResult.readFromParcel(_hidl_request);
@@ -1091,7 +1239,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type4 = _hidl_request.readInt32();
                     boolean isGsm = _hidl_request.readBool();
                     CdmaSignalInfoRecord record = new CdmaSignalInfoRecord();
@@ -1107,7 +1255,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     simStatusChanged(_hidl_request.readInt32());
                     return;
                 case 20:
@@ -1119,7 +1267,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type5 = _hidl_request.readInt32();
                     CdmaSmsMessage msg = new CdmaSmsMessage();
                     msg.readFromParcel(_hidl_request);
@@ -1134,7 +1282,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     newBroadcastSms(_hidl_request.readInt32(), _hidl_request.readInt8Vector());
                     return;
                 case 22:
@@ -1146,7 +1294,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     cdmaRuimSmsStorageFull(_hidl_request.readInt32());
                     return;
                 case 23:
@@ -1158,7 +1306,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     restrictedStateChanged(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 24:
@@ -1170,7 +1318,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     enterEmergencyCallbackMode(_hidl_request.readInt32());
                     return;
                 case 25:
@@ -1182,7 +1330,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type6 = _hidl_request.readInt32();
                     CdmaCallWaiting callWaitingRecord = new CdmaCallWaiting();
                     callWaitingRecord.readFromParcel(_hidl_request);
@@ -1197,7 +1345,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     cdmaOtaProvisionStatus(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 27:
@@ -1209,7 +1357,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type7 = _hidl_request.readInt32();
                     CdmaInformationRecords records = new CdmaInformationRecords();
                     records.readFromParcel(_hidl_request);
@@ -1224,7 +1372,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     indicateRingbackTone(_hidl_request.readInt32(), _hidl_request.readBool());
                     return;
                 case 29:
@@ -1236,7 +1384,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     resendIncallMute(_hidl_request.readInt32());
                     return;
                 case 30:
@@ -1248,7 +1396,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     cdmaSubscriptionSourceChanged(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 31:
@@ -1260,7 +1408,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     cdmaPrlChanged(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 32:
@@ -1272,7 +1420,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     exitEmergencyCallbackMode(_hidl_request.readInt32());
                     return;
                 case 33:
@@ -1284,7 +1432,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     rilConnected(_hidl_request.readInt32());
                     return;
                 case 34:
@@ -1296,7 +1444,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     voiceRadioTechChanged(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 35:
@@ -1308,7 +1456,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     cellInfoList(_hidl_request.readInt32(), CellInfo.readVectorFromParcel(_hidl_request));
                     return;
                 case 36:
@@ -1320,7 +1468,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     imsNetworkStateChanged(_hidl_request.readInt32());
                     return;
                 case 37:
@@ -1332,7 +1480,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     subscriptionStatusChanged(_hidl_request.readInt32(), _hidl_request.readBool());
                     return;
                 case 38:
@@ -1344,7 +1492,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     srvccStateNotify(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 39:
@@ -1356,7 +1504,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     hardwareConfigChanged(_hidl_request.readInt32(), HardwareConfig.readVectorFromParcel(_hidl_request));
                     return;
                 case 40:
@@ -1368,7 +1516,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type8 = _hidl_request.readInt32();
                     RadioCapability rc = new RadioCapability();
                     rc.readFromParcel(_hidl_request);
@@ -1383,7 +1531,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type9 = _hidl_request.readInt32();
                     StkCcUnsolSsResult ss = new StkCcUnsolSsResult();
                     ss.readFromParcel(_hidl_request);
@@ -1398,7 +1546,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     stkCallControlAlphaNotify(_hidl_request.readInt32(), _hidl_request.readString());
                     return;
                 case 43:
@@ -1410,7 +1558,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type10 = _hidl_request.readInt32();
                     LceDataInfo lce = new LceDataInfo();
                     lce.readFromParcel(_hidl_request);
@@ -1425,7 +1573,7 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     int type11 = _hidl_request.readInt32();
                     PcoDataInfo pco = new PcoDataInfo();
                     pco.readFromParcel(_hidl_request);
@@ -1440,11 +1588,10 @@ public interface IRadioIndication extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(IRadioIndication.kInterfaceName);
                     modemReset(_hidl_request.readInt32(), _hidl_request.readString());
                     return;
                 default:
-                    String str2 = IBase.kInterfaceName;
                     switch (_hidl_code) {
                         case 256067662:
                             if ((_hidl_flags & 1) == 0) {
@@ -1455,7 +1602,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ArrayList<String> _hidl_out_descriptors = interfaceChain();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.writeStringVector(_hidl_out_descriptors);
@@ -1470,7 +1617,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             debug(_hidl_request.readNativeHandle(), _hidl_request.readStringVector());
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.send();
@@ -1484,7 +1631,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             String _hidl_out_descriptor = interfaceDescriptor();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.writeString(_hidl_out_descriptor);
@@ -1499,7 +1646,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ArrayList<byte[]> _hidl_out_hashchain = getHashChain();
                             _hidl_reply.writeStatus(0);
                             HwBlob _hidl_blob = new HwBlob(16);
@@ -1509,7 +1656,7 @@ public interface IRadioIndication extends IBase {
                             HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
                             for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
                                 long _hidl_array_offset_1 = (long) (_hidl_index_0 * 32);
-                                byte[] _hidl_array_item_1 = (byte[]) _hidl_out_hashchain.get(_hidl_index_0);
+                                byte[] _hidl_array_item_1 = _hidl_out_hashchain.get(_hidl_index_0);
                                 if (_hidl_array_item_1 == null || _hidl_array_item_1.length != 32) {
                                     throw new IllegalArgumentException("Array element is not of the expected length");
                                 }
@@ -1528,7 +1675,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             setHALInstrumentation();
                             return;
                         case 256660548:
@@ -1550,7 +1697,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ping();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.send();
@@ -1564,7 +1711,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             DebugInfo _hidl_out_info = getDebugInfo();
                             _hidl_reply.writeStatus(0);
                             _hidl_out_info.writeToParcel(_hidl_reply);
@@ -1579,7 +1726,7 @@ public interface IRadioIndication extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             notifySyspropsChanged();
                             return;
                         case 257250372:
@@ -1597,162 +1744,5 @@ public interface IRadioIndication extends IBase {
                     }
             }
         }
-    }
-
-    IHwBinder asBinder();
-
-    void callRing(int i, boolean z, CdmaSignalInfoRecord cdmaSignalInfoRecord) throws RemoteException;
-
-    void callStateChanged(int i) throws RemoteException;
-
-    void cdmaCallWaiting(int i, CdmaCallWaiting cdmaCallWaiting) throws RemoteException;
-
-    void cdmaInfoRec(int i, CdmaInformationRecords cdmaInformationRecords) throws RemoteException;
-
-    void cdmaNewSms(int i, CdmaSmsMessage cdmaSmsMessage) throws RemoteException;
-
-    void cdmaOtaProvisionStatus(int i, int i2) throws RemoteException;
-
-    void cdmaPrlChanged(int i, int i2) throws RemoteException;
-
-    void cdmaRuimSmsStorageFull(int i) throws RemoteException;
-
-    void cdmaSubscriptionSourceChanged(int i, int i2) throws RemoteException;
-
-    void cellInfoList(int i, ArrayList<CellInfo> arrayList) throws RemoteException;
-
-    void currentSignalStrength(int i, SignalStrength signalStrength) throws RemoteException;
-
-    void dataCallListChanged(int i, ArrayList<SetupDataCallResult> arrayList) throws RemoteException;
-
-    void debug(NativeHandle nativeHandle, ArrayList<String> arrayList) throws RemoteException;
-
-    void enterEmergencyCallbackMode(int i) throws RemoteException;
-
-    void exitEmergencyCallbackMode(int i) throws RemoteException;
-
-    DebugInfo getDebugInfo() throws RemoteException;
-
-    ArrayList<byte[]> getHashChain() throws RemoteException;
-
-    void hardwareConfigChanged(int i, ArrayList<HardwareConfig> arrayList) throws RemoteException;
-
-    void imsNetworkStateChanged(int i) throws RemoteException;
-
-    void indicateRingbackTone(int i, boolean z) throws RemoteException;
-
-    ArrayList<String> interfaceChain() throws RemoteException;
-
-    String interfaceDescriptor() throws RemoteException;
-
-    void lceData(int i, LceDataInfo lceDataInfo) throws RemoteException;
-
-    boolean linkToDeath(DeathRecipient deathRecipient, long j) throws RemoteException;
-
-    void modemReset(int i, String str) throws RemoteException;
-
-    void networkStateChanged(int i) throws RemoteException;
-
-    void newBroadcastSms(int i, ArrayList<Byte> arrayList) throws RemoteException;
-
-    void newSms(int i, ArrayList<Byte> arrayList) throws RemoteException;
-
-    void newSmsOnSim(int i, int i2) throws RemoteException;
-
-    void newSmsStatusReport(int i, ArrayList<Byte> arrayList) throws RemoteException;
-
-    void nitzTimeReceived(int i, String str, long j) throws RemoteException;
-
-    void notifySyspropsChanged() throws RemoteException;
-
-    void onSupplementaryServiceIndication(int i, StkCcUnsolSsResult stkCcUnsolSsResult) throws RemoteException;
-
-    void onUssd(int i, int i2, String str) throws RemoteException;
-
-    void pcoData(int i, PcoDataInfo pcoDataInfo) throws RemoteException;
-
-    void ping() throws RemoteException;
-
-    void radioCapabilityIndication(int i, RadioCapability radioCapability) throws RemoteException;
-
-    void radioStateChanged(int i, int i2) throws RemoteException;
-
-    void resendIncallMute(int i) throws RemoteException;
-
-    void restrictedStateChanged(int i, int i2) throws RemoteException;
-
-    void rilConnected(int i) throws RemoteException;
-
-    void setHALInstrumentation() throws RemoteException;
-
-    void simRefresh(int i, SimRefreshResult simRefreshResult) throws RemoteException;
-
-    void simSmsStorageFull(int i) throws RemoteException;
-
-    void simStatusChanged(int i) throws RemoteException;
-
-    void srvccStateNotify(int i, int i2) throws RemoteException;
-
-    void stkCallControlAlphaNotify(int i, String str) throws RemoteException;
-
-    void stkCallSetup(int i, long j) throws RemoteException;
-
-    void stkEventNotify(int i, String str) throws RemoteException;
-
-    void stkProactiveCommand(int i, String str) throws RemoteException;
-
-    void stkSessionEnd(int i) throws RemoteException;
-
-    void subscriptionStatusChanged(int i, boolean z) throws RemoteException;
-
-    void suppSvcNotify(int i, SuppSvcNotification suppSvcNotification) throws RemoteException;
-
-    boolean unlinkToDeath(DeathRecipient deathRecipient) throws RemoteException;
-
-    void voiceRadioTechChanged(int i, int i2) throws RemoteException;
-
-    static IRadioIndication asInterface(IHwBinder binder) {
-        if (binder == null) {
-            return null;
-        }
-        String str = kInterfaceName;
-        IHwInterface iface = binder.queryLocalInterface(str);
-        if (iface != null && (iface instanceof IRadioIndication)) {
-            return (IRadioIndication) iface;
-        }
-        IRadioIndication proxy = new Proxy(binder);
-        try {
-            Iterator it = proxy.interfaceChain().iterator();
-            while (it.hasNext()) {
-                if (((String) it.next()).equals(str)) {
-                    return proxy;
-                }
-            }
-        } catch (RemoteException e) {
-        }
-        return null;
-    }
-
-    static IRadioIndication castFrom(IHwInterface iface) {
-        if (iface == null) {
-            return null;
-        }
-        return asInterface(iface.asBinder());
-    }
-
-    static IRadioIndication getService(String serviceName, boolean retry) throws RemoteException {
-        return asInterface(HwBinder.getService(kInterfaceName, serviceName, retry));
-    }
-
-    static IRadioIndication getService(boolean retry) throws RemoteException {
-        return getService("default", retry);
-    }
-
-    static IRadioIndication getService(String serviceName) throws RemoteException {
-        return asInterface(HwBinder.getService(kInterfaceName, serviceName));
-    }
-
-    static IRadioIndication getService() throws RemoteException {
-        return getService("default");
     }
 }

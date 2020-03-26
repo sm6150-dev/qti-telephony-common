@@ -7,7 +7,6 @@ import android.os.HwBinder;
 import android.os.HwBlob;
 import android.os.HwParcel;
 import android.os.IHwBinder;
-import android.os.IHwBinder.DeathRecipient;
 import android.os.IHwInterface;
 import android.os.NativeHandle;
 import android.os.RemoteException;
@@ -18,6 +17,94 @@ import java.util.Objects;
 
 public interface ISapCallback extends IBase {
     public static final String kInterfaceName = "android.hardware.radio@1.0::ISapCallback";
+
+    void apduResponse(int i, int i2, ArrayList<Byte> arrayList) throws RemoteException;
+
+    IHwBinder asBinder();
+
+    void connectResponse(int i, int i2, int i3) throws RemoteException;
+
+    void debug(NativeHandle nativeHandle, ArrayList<String> arrayList) throws RemoteException;
+
+    void disconnectIndication(int i, int i2) throws RemoteException;
+
+    void disconnectResponse(int i) throws RemoteException;
+
+    void errorResponse(int i) throws RemoteException;
+
+    DebugInfo getDebugInfo() throws RemoteException;
+
+    ArrayList<byte[]> getHashChain() throws RemoteException;
+
+    ArrayList<String> interfaceChain() throws RemoteException;
+
+    String interfaceDescriptor() throws RemoteException;
+
+    boolean linkToDeath(IHwBinder.DeathRecipient deathRecipient, long j) throws RemoteException;
+
+    void notifySyspropsChanged() throws RemoteException;
+
+    void ping() throws RemoteException;
+
+    void powerResponse(int i, int i2) throws RemoteException;
+
+    void resetSimResponse(int i, int i2) throws RemoteException;
+
+    void setHALInstrumentation() throws RemoteException;
+
+    void statusIndication(int i, int i2) throws RemoteException;
+
+    void transferAtrResponse(int i, int i2, ArrayList<Byte> arrayList) throws RemoteException;
+
+    void transferCardReaderStatusResponse(int i, int i2, int i3) throws RemoteException;
+
+    void transferProtocolResponse(int i, int i2) throws RemoteException;
+
+    boolean unlinkToDeath(IHwBinder.DeathRecipient deathRecipient) throws RemoteException;
+
+    static ISapCallback asInterface(IHwBinder binder) {
+        if (binder == null) {
+            return null;
+        }
+        IHwInterface iface = binder.queryLocalInterface(kInterfaceName);
+        if (iface != null && (iface instanceof ISapCallback)) {
+            return (ISapCallback) iface;
+        }
+        ISapCallback proxy = new Proxy(binder);
+        try {
+            Iterator<String> it = proxy.interfaceChain().iterator();
+            while (it.hasNext()) {
+                if (it.next().equals(kInterfaceName)) {
+                    return proxy;
+                }
+            }
+        } catch (RemoteException e) {
+        }
+        return null;
+    }
+
+    static ISapCallback castFrom(IHwInterface iface) {
+        if (iface == null) {
+            return null;
+        }
+        return asInterface(iface.asBinder());
+    }
+
+    static ISapCallback getService(String serviceName, boolean retry) throws RemoteException {
+        return asInterface(HwBinder.getService(kInterfaceName, serviceName, retry));
+    }
+
+    static ISapCallback getService(boolean retry) throws RemoteException {
+        return getService("default", retry);
+    }
+
+    static ISapCallback getService(String serviceName) throws RemoteException {
+        return asInterface(HwBinder.getService(kInterfaceName, serviceName));
+    }
+
+    static ISapCallback getService() throws RemoteException {
+        return getService("default");
+    }
 
     public static final class Proxy implements ISapCallback {
         private IHwBinder mRemote;
@@ -32,10 +119,7 @@ public interface ISapCallback extends IBase {
 
         public String toString() {
             try {
-                StringBuilder sb = new StringBuilder();
-                sb.append(interfaceDescriptor());
-                sb.append("@Proxy");
-                return sb.toString();
+                return interfaceDescriptor() + "@Proxy";
             } catch (RemoteException e) {
                 return "[class or subclass of android.hardware.radio@1.0::ISapCallback]@Proxy";
             }
@@ -256,17 +340,17 @@ public interface ISapCallback extends IBase {
                 this.mRemote.transact(256398152, _hidl_request, _hidl_reply, 0);
                 _hidl_reply.verifySuccess();
                 _hidl_request.releaseTemporaryStorage();
-                ArrayList arrayList = new ArrayList();
+                ArrayList<byte[]> _hidl_out_hashchain = new ArrayList<>();
                 HwBlob _hidl_blob = _hidl_reply.readBuffer(16);
                 int _hidl_vec_size = _hidl_blob.getInt32(8);
                 HwBlob childBlob = _hidl_reply.readEmbeddedBuffer((long) (_hidl_vec_size * 32), _hidl_blob.handle(), 0, true);
-                arrayList.clear();
+                _hidl_out_hashchain.clear();
                 for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
                     byte[] _hidl_vec_element = new byte[32];
                     childBlob.copyToInt8Array((long) (_hidl_index_0 * 32), _hidl_vec_element, 32);
-                    arrayList.add(_hidl_vec_element);
+                    _hidl_out_hashchain.add(_hidl_vec_element);
                 }
-                return arrayList;
+                return _hidl_out_hashchain;
             } finally {
                 _hidl_reply.release();
             }
@@ -284,7 +368,7 @@ public interface ISapCallback extends IBase {
             }
         }
 
-        public boolean linkToDeath(DeathRecipient recipient, long cookie) throws RemoteException {
+        public boolean linkToDeath(IHwBinder.DeathRecipient recipient, long cookie) throws RemoteException {
             return this.mRemote.linkToDeath(recipient, cookie);
         }
 
@@ -329,7 +413,7 @@ public interface ISapCallback extends IBase {
             }
         }
 
-        public boolean unlinkToDeath(DeathRecipient recipient) throws RemoteException {
+        public boolean unlinkToDeath(IHwBinder.DeathRecipient recipient) throws RemoteException {
             return this.mRemote.unlinkToDeath(recipient);
         }
     }
@@ -357,7 +441,7 @@ public interface ISapCallback extends IBase {
         public final void setHALInstrumentation() {
         }
 
-        public final boolean linkToDeath(DeathRecipient recipient, long cookie) {
+        public final boolean linkToDeath(IHwBinder.DeathRecipient recipient, long cookie) {
             return true;
         }
 
@@ -376,7 +460,7 @@ public interface ISapCallback extends IBase {
             HwBinder.enableInstrumentation();
         }
 
-        public final boolean unlinkToDeath(DeathRecipient recipient) {
+        public final boolean unlinkToDeath(IHwBinder.DeathRecipient recipient) {
             return true;
         }
 
@@ -392,14 +476,10 @@ public interface ISapCallback extends IBase {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append(interfaceDescriptor());
-            sb.append("@Stub");
-            return sb.toString();
+            return interfaceDescriptor() + "@Stub";
         }
 
         public void onTransact(int _hidl_code, HwParcel _hidl_request, HwParcel _hidl_reply, int _hidl_flags) throws RemoteException {
-            String str = ISapCallback.kInterfaceName;
             boolean _hidl_is_oneway = false;
             boolean _hidl_is_oneway2 = true;
             switch (_hidl_code) {
@@ -412,7 +492,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     connectResponse(_hidl_request.readInt32(), _hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 2:
@@ -424,7 +504,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     disconnectResponse(_hidl_request.readInt32());
                     return;
                 case 3:
@@ -436,7 +516,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     disconnectIndication(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 4:
@@ -448,7 +528,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     apduResponse(_hidl_request.readInt32(), _hidl_request.readInt32(), _hidl_request.readInt8Vector());
                     return;
                 case 5:
@@ -460,7 +540,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     transferAtrResponse(_hidl_request.readInt32(), _hidl_request.readInt32(), _hidl_request.readInt8Vector());
                     return;
                 case 6:
@@ -472,7 +552,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     powerResponse(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 7:
@@ -484,7 +564,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     resetSimResponse(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 8:
@@ -496,7 +576,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     statusIndication(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 9:
@@ -508,7 +588,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     transferCardReaderStatusResponse(_hidl_request.readInt32(), _hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 case 10:
@@ -520,7 +600,7 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     errorResponse(_hidl_request.readInt32());
                     return;
                 case 11:
@@ -532,11 +612,10 @@ public interface ISapCallback extends IBase {
                         _hidl_reply.send();
                         return;
                     }
-                    _hidl_request.enforceInterface(str);
+                    _hidl_request.enforceInterface(ISapCallback.kInterfaceName);
                     transferProtocolResponse(_hidl_request.readInt32(), _hidl_request.readInt32());
                     return;
                 default:
-                    String str2 = IBase.kInterfaceName;
                     switch (_hidl_code) {
                         case 256067662:
                             if ((_hidl_flags & 1) == 0) {
@@ -547,7 +626,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ArrayList<String> _hidl_out_descriptors = interfaceChain();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.writeStringVector(_hidl_out_descriptors);
@@ -562,7 +641,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             debug(_hidl_request.readNativeHandle(), _hidl_request.readStringVector());
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.send();
@@ -576,7 +655,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             String _hidl_out_descriptor = interfaceDescriptor();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.writeString(_hidl_out_descriptor);
@@ -591,7 +670,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ArrayList<byte[]> _hidl_out_hashchain = getHashChain();
                             _hidl_reply.writeStatus(0);
                             HwBlob _hidl_blob = new HwBlob(16);
@@ -601,7 +680,7 @@ public interface ISapCallback extends IBase {
                             HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
                             for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
                                 long _hidl_array_offset_1 = (long) (_hidl_index_0 * 32);
-                                byte[] _hidl_array_item_1 = (byte[]) _hidl_out_hashchain.get(_hidl_index_0);
+                                byte[] _hidl_array_item_1 = _hidl_out_hashchain.get(_hidl_index_0);
                                 if (_hidl_array_item_1 == null || _hidl_array_item_1.length != 32) {
                                     throw new IllegalArgumentException("Array element is not of the expected length");
                                 }
@@ -620,7 +699,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             setHALInstrumentation();
                             return;
                         case 256660548:
@@ -642,7 +721,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             ping();
                             _hidl_reply.writeStatus(0);
                             _hidl_reply.send();
@@ -656,7 +735,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             DebugInfo _hidl_out_info = getDebugInfo();
                             _hidl_reply.writeStatus(0);
                             _hidl_out_info.writeToParcel(_hidl_reply);
@@ -671,7 +750,7 @@ public interface ISapCallback extends IBase {
                                 _hidl_reply.send();
                                 return;
                             }
-                            _hidl_request.enforceInterface(str2);
+                            _hidl_request.enforceInterface(IBase.kInterfaceName);
                             notifySyspropsChanged();
                             return;
                         case 257250372:
@@ -689,94 +768,5 @@ public interface ISapCallback extends IBase {
                     }
             }
         }
-    }
-
-    void apduResponse(int i, int i2, ArrayList<Byte> arrayList) throws RemoteException;
-
-    IHwBinder asBinder();
-
-    void connectResponse(int i, int i2, int i3) throws RemoteException;
-
-    void debug(NativeHandle nativeHandle, ArrayList<String> arrayList) throws RemoteException;
-
-    void disconnectIndication(int i, int i2) throws RemoteException;
-
-    void disconnectResponse(int i) throws RemoteException;
-
-    void errorResponse(int i) throws RemoteException;
-
-    DebugInfo getDebugInfo() throws RemoteException;
-
-    ArrayList<byte[]> getHashChain() throws RemoteException;
-
-    ArrayList<String> interfaceChain() throws RemoteException;
-
-    String interfaceDescriptor() throws RemoteException;
-
-    boolean linkToDeath(DeathRecipient deathRecipient, long j) throws RemoteException;
-
-    void notifySyspropsChanged() throws RemoteException;
-
-    void ping() throws RemoteException;
-
-    void powerResponse(int i, int i2) throws RemoteException;
-
-    void resetSimResponse(int i, int i2) throws RemoteException;
-
-    void setHALInstrumentation() throws RemoteException;
-
-    void statusIndication(int i, int i2) throws RemoteException;
-
-    void transferAtrResponse(int i, int i2, ArrayList<Byte> arrayList) throws RemoteException;
-
-    void transferCardReaderStatusResponse(int i, int i2, int i3) throws RemoteException;
-
-    void transferProtocolResponse(int i, int i2) throws RemoteException;
-
-    boolean unlinkToDeath(DeathRecipient deathRecipient) throws RemoteException;
-
-    static ISapCallback asInterface(IHwBinder binder) {
-        if (binder == null) {
-            return null;
-        }
-        String str = kInterfaceName;
-        IHwInterface iface = binder.queryLocalInterface(str);
-        if (iface != null && (iface instanceof ISapCallback)) {
-            return (ISapCallback) iface;
-        }
-        ISapCallback proxy = new Proxy(binder);
-        try {
-            Iterator it = proxy.interfaceChain().iterator();
-            while (it.hasNext()) {
-                if (((String) it.next()).equals(str)) {
-                    return proxy;
-                }
-            }
-        } catch (RemoteException e) {
-        }
-        return null;
-    }
-
-    static ISapCallback castFrom(IHwInterface iface) {
-        if (iface == null) {
-            return null;
-        }
-        return asInterface(iface.asBinder());
-    }
-
-    static ISapCallback getService(String serviceName, boolean retry) throws RemoteException {
-        return asInterface(HwBinder.getService(kInterfaceName, serviceName, retry));
-    }
-
-    static ISapCallback getService(boolean retry) throws RemoteException {
-        return getService("default", retry);
-    }
-
-    static ISapCallback getService(String serviceName) throws RemoteException {
-        return asInterface(HwBinder.getService(kInterfaceName, serviceName));
-    }
-
-    static ISapCallback getService() throws RemoteException {
-        return getService("default");
     }
 }

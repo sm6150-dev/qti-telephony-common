@@ -32,18 +32,7 @@ public final class ActivityStatsInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".sleepModeTimeMs = ");
-        builder.append(this.sleepModeTimeMs);
-        builder.append(", .idleModeTimeMs = ");
-        builder.append(this.idleModeTimeMs);
-        builder.append(", .txmModetimeMs = ");
-        builder.append(Arrays.toString(this.txmModetimeMs));
-        builder.append(", .rxModeTimeMs = ");
-        builder.append(this.rxModeTimeMs);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".sleepModeTimeMs = " + this.sleepModeTimeMs + ", .idleModeTimeMs = " + this.idleModeTimeMs + ", .txmModetimeMs = " + Arrays.toString(this.txmModetimeMs) + ", .rxModeTimeMs = " + this.rxModeTimeMs + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -84,7 +73,7 @@ public final class ActivityStatsInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((ActivityStatsInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

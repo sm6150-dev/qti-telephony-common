@@ -36,28 +36,7 @@ public final class CellInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cellInfoType = ");
-        builder.append(CellInfoType.toString(this.cellInfoType));
-        builder.append(", .registered = ");
-        builder.append(this.registered);
-        builder.append(", .timeStampType = ");
-        builder.append(TimeStampType.toString(this.timeStampType));
-        builder.append(", .timeStamp = ");
-        builder.append(this.timeStamp);
-        builder.append(", .gsm = ");
-        builder.append(this.gsm);
-        builder.append(", .cdma = ");
-        builder.append(this.cdma);
-        builder.append(", .lte = ");
-        builder.append(this.lte);
-        builder.append(", .wcdma = ");
-        builder.append(this.wcdma);
-        builder.append(", .tdscdma = ");
-        builder.append(this.tdscdma);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cellInfoType = " + CellInfoType.toString(this.cellInfoType) + ", .registered = " + this.registered + ", .timeStampType = " + TimeStampType.toString(this.timeStampType) + ", .timeStamp = " + this.timeStamp + ", .gsm = " + this.gsm + ", .cdma = " + this.cdma + ", .lte = " + this.lte + ", .wcdma = " + this.wcdma + ", .tdscdma = " + this.tdscdma + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -140,7 +119,7 @@ public final class CellInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 104);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 104));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 104));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -157,7 +136,7 @@ public final class CellInfo {
         hwBlob.putBool(_hidl_offset + 24 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 64);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellInfoGsm) this.gsm.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
+            this.gsm.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
         }
         hwBlob.putBlob(_hidl_offset + 24 + 0, childBlob);
         int _hidl_vec_size2 = this.cdma.size();
@@ -165,7 +144,7 @@ public final class CellInfo {
         hwBlob.putBool(_hidl_offset + 40 + 12, false);
         HwBlob childBlob2 = new HwBlob(_hidl_vec_size2 * 40);
         for (int _hidl_index_02 = 0; _hidl_index_02 < _hidl_vec_size2; _hidl_index_02++) {
-            ((CellInfoCdma) this.cdma.get(_hidl_index_02)).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 40));
+            this.cdma.get(_hidl_index_02).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 40));
         }
         hwBlob.putBlob(_hidl_offset + 40 + 0, childBlob2);
         int _hidl_vec_size3 = this.lte.size();
@@ -173,7 +152,7 @@ public final class CellInfo {
         hwBlob.putBool(_hidl_offset + 56 + 12, false);
         HwBlob childBlob3 = new HwBlob(_hidl_vec_size3 * 72);
         for (int _hidl_index_03 = 0; _hidl_index_03 < _hidl_vec_size3; _hidl_index_03++) {
-            ((CellInfoLte) this.lte.get(_hidl_index_03)).writeEmbeddedToBlob(childBlob3, (long) (_hidl_index_03 * 72));
+            this.lte.get(_hidl_index_03).writeEmbeddedToBlob(childBlob3, (long) (_hidl_index_03 * 72));
         }
         hwBlob.putBlob(_hidl_offset + 56 + 0, childBlob3);
         int _hidl_vec_size4 = this.wcdma.size();
@@ -181,7 +160,7 @@ public final class CellInfo {
         hwBlob.putBool(_hidl_offset + 72 + 12, false);
         HwBlob childBlob4 = new HwBlob(_hidl_vec_size4 * 56);
         for (int _hidl_index_04 = 0; _hidl_index_04 < _hidl_vec_size4; _hidl_index_04++) {
-            ((CellInfoWcdma) this.wcdma.get(_hidl_index_04)).writeEmbeddedToBlob(childBlob4, (long) (_hidl_index_04 * 56));
+            this.wcdma.get(_hidl_index_04).writeEmbeddedToBlob(childBlob4, (long) (_hidl_index_04 * 56));
         }
         hwBlob.putBlob(_hidl_offset + 72 + 0, childBlob4);
         int _hidl_vec_size5 = this.tdscdma.size();
@@ -189,7 +168,7 @@ public final class CellInfo {
         hwBlob.putBool(_hidl_offset + 88 + 12, false);
         HwBlob childBlob5 = new HwBlob(_hidl_vec_size5 * 56);
         for (int _hidl_index_05 = 0; _hidl_index_05 < _hidl_vec_size5; _hidl_index_05++) {
-            ((CellInfoTdscdma) this.tdscdma.get(_hidl_index_05)).writeEmbeddedToBlob(childBlob5, (long) (_hidl_index_05 * 56));
+            this.tdscdma.get(_hidl_index_05).writeEmbeddedToBlob(childBlob5, (long) (_hidl_index_05 * 56));
         }
         hwBlob.putBlob(_hidl_offset + 88 + 0, childBlob5);
     }

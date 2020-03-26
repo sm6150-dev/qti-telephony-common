@@ -7,6 +7,27 @@ import java.security.InvalidParameterException;
 public class BaseQmiTypes {
     public static final short DEFAULT_NAM = 0;
 
+    public static abstract class QmiBase {
+        public static final ByteOrder QMI_BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
+        public static final String QMI_CHARSET = "US-ASCII";
+        public static final int TLV_LENGTH_SIZE = 2;
+        public static final int TLV_TYPE_SIZE = 1;
+
+        public abstract String toString();
+
+        public static ByteBuffer createByteBuffer(int size) {
+            ByteBuffer buf = ByteBuffer.allocate(size);
+            buf.order(QMI_BYTE_ORDER);
+            return buf;
+        }
+
+        public static ByteBuffer createByteBuffer(byte[] bytes) {
+            ByteBuffer buf = ByteBuffer.wrap(bytes);
+            buf.order(QMI_BYTE_ORDER);
+            return buf;
+        }
+    }
+
     public static abstract class BaseQmiItemType extends QmiBase {
         public abstract int getSize();
 
@@ -50,45 +71,17 @@ public class BaseQmiTypes {
         }
 
         public String toString() {
-            BaseQmiItemType[] items;
             String temp = "";
             boolean isFirstItem = true;
             for (BaseQmiItemType i : getItems()) {
                 if (isFirstItem) {
                     isFirstItem = false;
                 } else {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(temp);
-                    sb.append(", ");
-                    temp = sb.toString();
+                    temp = temp + ", ";
                 }
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append(temp);
-                sb2.append(i.toString());
-                temp = sb2.toString();
+                temp = temp + i.toString();
             }
             return temp;
-        }
-    }
-
-    public static abstract class QmiBase {
-        public static final ByteOrder QMI_BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
-        public static final String QMI_CHARSET = "US-ASCII";
-        public static final int TLV_LENGTH_SIZE = 2;
-        public static final int TLV_TYPE_SIZE = 1;
-
-        public abstract String toString();
-
-        public static ByteBuffer createByteBuffer(int size) {
-            ByteBuffer buf = ByteBuffer.allocate(size);
-            buf.order(QMI_BYTE_ORDER);
-            return buf;
-        }
-
-        public static ByteBuffer createByteBuffer(byte[] bytes) {
-            ByteBuffer buf = ByteBuffer.wrap(bytes);
-            buf.order(QMI_BYTE_ORDER);
-            return buf;
         }
     }
 }

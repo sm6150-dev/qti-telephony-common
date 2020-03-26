@@ -31,18 +31,7 @@ public final class PcoDataInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cid = ");
-        builder.append(this.cid);
-        builder.append(", .bearerProto = ");
-        builder.append(this.bearerProto);
-        builder.append(", .pcoId = ");
-        builder.append(this.pcoId);
-        builder.append(", .contents = ");
-        builder.append(this.contents);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cid = " + this.cid + ", .bearerProto = " + this.bearerProto + ", .pcoId = " + this.pcoId + ", .contents = " + this.contents + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -90,7 +79,7 @@ public final class PcoDataInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 48);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((PcoDataInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -105,7 +94,7 @@ public final class PcoDataInfo {
         _hidl_blob.putBool(_hidl_offset + 32 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 1);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            childBlob.putInt8((long) (_hidl_index_0 * 1), ((Byte) this.contents.get(_hidl_index_0)).byteValue());
+            childBlob.putInt8((long) (_hidl_index_0 * 1), this.contents.get(_hidl_index_0).byteValue());
         }
         _hidl_blob.putBlob(32 + _hidl_offset + 0, childBlob);
     }

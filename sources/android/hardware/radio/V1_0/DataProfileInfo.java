@@ -44,44 +44,7 @@ public final class DataProfileInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".profileId = ");
-        builder.append(DataProfileId.toString(this.profileId));
-        builder.append(", .apn = ");
-        builder.append(this.apn);
-        builder.append(", .protocol = ");
-        builder.append(this.protocol);
-        builder.append(", .roamingProtocol = ");
-        builder.append(this.roamingProtocol);
-        builder.append(", .authType = ");
-        builder.append(ApnAuthType.toString(this.authType));
-        builder.append(", .user = ");
-        builder.append(this.user);
-        builder.append(", .password = ");
-        builder.append(this.password);
-        builder.append(", .type = ");
-        builder.append(DataProfileInfoType.toString(this.type));
-        builder.append(", .maxConnsTime = ");
-        builder.append(this.maxConnsTime);
-        builder.append(", .maxConns = ");
-        builder.append(this.maxConns);
-        builder.append(", .waitTime = ");
-        builder.append(this.waitTime);
-        builder.append(", .enabled = ");
-        builder.append(this.enabled);
-        builder.append(", .supportedApnTypesBitmap = ");
-        builder.append(ApnTypes.dumpBitfield(this.supportedApnTypesBitmap));
-        builder.append(", .bearerBitmap = ");
-        builder.append(RadioAccessFamily.dumpBitfield(this.bearerBitmap));
-        builder.append(", .mtu = ");
-        builder.append(this.mtu);
-        builder.append(", .mvnoType = ");
-        builder.append(MvnoType.toString(this.mvnoType));
-        builder.append(", .mvnoMatchData = ");
-        builder.append(this.mvnoMatchData);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".profileId = " + DataProfileId.toString(this.profileId) + ", .apn = " + this.apn + ", .protocol = " + this.protocol + ", .roamingProtocol = " + this.roamingProtocol + ", .authType = " + ApnAuthType.toString(this.authType) + ", .user = " + this.user + ", .password = " + this.password + ", .type = " + DataProfileInfoType.toString(this.type) + ", .maxConnsTime = " + this.maxConnsTime + ", .maxConns = " + this.maxConns + ", .waitTime = " + this.waitTime + ", .enabled = " + this.enabled + ", .supportedApnTypesBitmap = " + ApnTypes.dumpBitfield(this.supportedApnTypesBitmap) + ", .bearerBitmap = " + RadioAccessFamily.dumpBitfield(this.bearerBitmap) + ", .mtu = " + this.mtu + ", .mvnoType = " + MvnoType.toString(this.mvnoType) + ", .mvnoMatchData = " + this.mvnoMatchData + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -142,7 +105,7 @@ public final class DataProfileInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 152);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((DataProfileInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 152));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 152));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

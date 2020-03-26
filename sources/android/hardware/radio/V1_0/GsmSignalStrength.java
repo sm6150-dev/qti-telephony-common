@@ -30,16 +30,7 @@ public final class GsmSignalStrength {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".signalStrength = ");
-        builder.append(this.signalStrength);
-        builder.append(", .bitErrorRate = ");
-        builder.append(this.bitErrorRate);
-        builder.append(", .timingAdvance = ");
-        builder.append(this.timingAdvance);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".signalStrength = " + this.signalStrength + ", .bitErrorRate = " + this.bitErrorRate + ", .timingAdvance = " + this.timingAdvance + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -79,7 +70,7 @@ public final class GsmSignalStrength {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 12);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((GsmSignalStrength) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

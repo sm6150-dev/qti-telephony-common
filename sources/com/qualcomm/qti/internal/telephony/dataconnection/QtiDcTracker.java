@@ -21,10 +21,7 @@ public final class QtiDcTracker extends DcTracker {
         sb.append("-");
         sb.append(transportType == 1 ? "C" : "I");
         this.LOG_TAG = sb.toString();
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append(this.LOG_TAG);
-        sb2.append(".constructor");
-        log(sb2.toString());
+        log(this.LOG_TAG + ".constructor");
         fillIccIdSet();
     }
 
@@ -55,12 +52,13 @@ public final class QtiDcTracker extends DcTracker {
     public boolean allowInitialAttachForOperator() {
         IccRecords r = (IccRecords) this.mIccRecords.get();
         String iccId = r != null ? r.getIccId() : "";
-        if (iccId != null) {
-            Iterator<String> itr = this.mIccidSet.iterator();
-            while (itr.hasNext()) {
-                if (iccId.contains((CharSequence) itr.next())) {
-                    return false;
-                }
+        if (iccId == null) {
+            return true;
+        }
+        Iterator<String> itr = this.mIccidSet.iterator();
+        while (itr.hasNext()) {
+            if (iccId.contains(itr.next())) {
+                return false;
             }
         }
         return true;
@@ -85,12 +83,7 @@ public final class QtiDcTracker extends DcTracker {
     /* access modifiers changed from: protected */
     public void log(String s) {
         String str = this.LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        sb.append(this.mPhone.getPhoneId());
-        sb.append("]");
-        sb.append(s);
-        Rlog.d(str, sb.toString());
+        Rlog.d(str, "[" + this.mPhone.getPhoneId() + "]" + s);
     }
 
     /* access modifiers changed from: protected */
@@ -99,12 +92,7 @@ public final class QtiDcTracker extends DcTracker {
         int id = this.mUniqueIdGenerator.getAndIncrement();
         DataConnection conn = QtiDataConnection.makeDataConnection(this.mPhone, id, this, this.mDataServiceManager, this.mDcTesterFailBringUpAll, this.mDcc);
         this.mDataConnections.put(Integer.valueOf(id), conn);
-        StringBuilder sb = new StringBuilder();
-        sb.append("createDataConnection() X id=");
-        sb.append(id);
-        sb.append(" dc=");
-        sb.append(conn);
-        log(sb.toString());
+        log("createDataConnection() X id=" + id + " dc=" + conn);
         return conn;
     }
 

@@ -32,20 +32,7 @@ public final class HardwareConfig {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".type = ");
-        builder.append(HardwareConfigType.toString(this.type));
-        builder.append(", .uuid = ");
-        builder.append(this.uuid);
-        builder.append(", .state = ");
-        builder.append(HardwareConfigState.toString(this.state));
-        builder.append(", .modem = ");
-        builder.append(this.modem);
-        builder.append(", .sim = ");
-        builder.append(this.sim);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".type = " + HardwareConfigType.toString(this.type) + ", .uuid = " + this.uuid + ", .state = " + HardwareConfigState.toString(this.state) + ", .modem = " + this.modem + ", .sim = " + this.sim + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -104,7 +91,7 @@ public final class HardwareConfig {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 64);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((HardwareConfig) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -120,7 +107,7 @@ public final class HardwareConfig {
         hwBlob.putBool(_hidl_offset + 32 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 20);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((HardwareConfigModem) this.modem.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
+            this.modem.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
         }
         hwBlob.putBlob(_hidl_offset + 32 + 0, childBlob);
         int _hidl_vec_size2 = this.sim.size();
@@ -128,7 +115,7 @@ public final class HardwareConfig {
         hwBlob.putBool(_hidl_offset + 48 + 12, false);
         HwBlob childBlob2 = new HwBlob(_hidl_vec_size2 * 16);
         for (int _hidl_index_02 = 0; _hidl_index_02 < _hidl_vec_size2; _hidl_index_02++) {
-            ((HardwareConfigSim) this.sim.get(_hidl_index_02)).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 16));
+            this.sim.get(_hidl_index_02).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 16));
         }
         hwBlob.putBlob(_hidl_offset + 48 + 0, childBlob2);
     }

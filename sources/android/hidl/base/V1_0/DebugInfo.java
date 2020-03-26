@@ -26,10 +26,7 @@ public final class DebugInfo {
             if (o == 2) {
                 return "IS_32BIT";
             }
-            StringBuilder sb = new StringBuilder();
-            sb.append("0x");
-            sb.append(Integer.toHexString(o));
-            return sb.toString();
+            return "0x" + Integer.toHexString(o);
         }
 
         public static final String dumpBitfield(int o) {
@@ -45,10 +42,7 @@ public final class DebugInfo {
                 flipped |= 2;
             }
             if (o != flipped) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("0x");
-                sb.append(Integer.toHexString((~flipped) & o));
-                list.add(sb.toString());
+                list.add("0x" + Integer.toHexString((~flipped) & o));
             }
             return String.join(" | ", list);
         }
@@ -73,16 +67,7 @@ public final class DebugInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".pid = ");
-        builder.append(this.pid);
-        builder.append(", .ptr = ");
-        builder.append(this.ptr);
-        builder.append(", .arch = ");
-        builder.append(Architecture.toString(this.arch));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".pid = " + this.pid + ", .ptr = " + this.ptr + ", .arch = " + Architecture.toString(this.arch) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -122,7 +107,7 @@ public final class DebugInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((DebugInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

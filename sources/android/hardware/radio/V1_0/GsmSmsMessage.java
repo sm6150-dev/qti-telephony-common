@@ -29,14 +29,7 @@ public final class GsmSmsMessage {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".smscPdu = ");
-        builder.append(this.smscPdu);
-        builder.append(", .pdu = ");
-        builder.append(this.pdu);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".smscPdu = " + this.smscPdu + ", .pdu = " + this.pdu + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -78,7 +71,7 @@ public final class GsmSmsMessage {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((GsmSmsMessage) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

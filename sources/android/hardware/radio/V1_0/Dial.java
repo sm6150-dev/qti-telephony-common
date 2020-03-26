@@ -30,16 +30,7 @@ public final class Dial {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".address = ");
-        builder.append(this.address);
-        builder.append(", .clir = ");
-        builder.append(Clir.toString(this.clir));
-        builder.append(", .uusInfo = ");
-        builder.append(this.uusInfo);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".address = " + this.address + ", .clir = " + Clir.toString(this.clir) + ", .uusInfo = " + this.uusInfo + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -89,7 +80,7 @@ public final class Dial {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 40);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((Dial) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -103,7 +94,7 @@ public final class Dial {
         _hidl_blob.putBool(_hidl_offset + 24 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((UusInfo) this.uusInfo.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            this.uusInfo.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(24 + _hidl_offset + 0, childBlob);
     }

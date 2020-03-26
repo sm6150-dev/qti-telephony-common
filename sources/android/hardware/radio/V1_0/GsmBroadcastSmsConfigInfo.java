@@ -32,20 +32,7 @@ public final class GsmBroadcastSmsConfigInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".fromServiceId = ");
-        builder.append(this.fromServiceId);
-        builder.append(", .toServiceId = ");
-        builder.append(this.toServiceId);
-        builder.append(", .fromCodeScheme = ");
-        builder.append(this.fromCodeScheme);
-        builder.append(", .toCodeScheme = ");
-        builder.append(this.toCodeScheme);
-        builder.append(", .selected = ");
-        builder.append(this.selected);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".fromServiceId = " + this.fromServiceId + ", .toServiceId = " + this.toServiceId + ", .fromCodeScheme = " + this.fromCodeScheme + ", .toCodeScheme = " + this.toCodeScheme + ", .selected = " + this.selected + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -87,7 +74,7 @@ public final class GsmBroadcastSmsConfigInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 20);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((GsmBroadcastSmsConfigInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

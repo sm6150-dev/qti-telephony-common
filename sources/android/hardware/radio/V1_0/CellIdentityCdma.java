@@ -32,20 +32,7 @@ public final class CellIdentityCdma {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".networkId = ");
-        builder.append(this.networkId);
-        builder.append(", .systemId = ");
-        builder.append(this.systemId);
-        builder.append(", .baseStationId = ");
-        builder.append(this.baseStationId);
-        builder.append(", .longitude = ");
-        builder.append(this.longitude);
-        builder.append(", .latitude = ");
-        builder.append(this.latitude);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".networkId = " + this.networkId + ", .systemId = " + this.systemId + ", .baseStationId = " + this.baseStationId + ", .longitude = " + this.longitude + ", .latitude = " + this.latitude + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -87,7 +74,7 @@ public final class CellIdentityCdma {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 20);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellIdentityCdma) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

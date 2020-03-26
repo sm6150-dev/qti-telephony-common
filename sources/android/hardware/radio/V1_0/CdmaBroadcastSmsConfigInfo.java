@@ -30,16 +30,7 @@ public final class CdmaBroadcastSmsConfigInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".serviceCategory = ");
-        builder.append(this.serviceCategory);
-        builder.append(", .language = ");
-        builder.append(this.language);
-        builder.append(", .selected = ");
-        builder.append(this.selected);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".serviceCategory = " + this.serviceCategory + ", .language = " + this.language + ", .selected = " + this.selected + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -79,7 +70,7 @@ public final class CdmaBroadcastSmsConfigInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 12);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaBroadcastSmsConfigInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 12));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

@@ -22,11 +22,7 @@ public class SimulatedQtiRilInterface implements BaseRilInterface {
             if (sInstance == null) {
                 sInstance = new SimulatedQtiRilInterface(context);
             } else {
-                String str = LOG_TAG;
-                StringBuilder sb = new StringBuilder();
-                sb.append("instance = ");
-                sb.append(sInstance);
-                Log.wtf(str, sb.toString());
+                Log.wtf(LOG_TAG, "instance = " + sInstance);
             }
             simulatedQtiRilInterface = sInstance;
         }
@@ -38,12 +34,7 @@ public class SimulatedQtiRilInterface implements BaseRilInterface {
     }
 
     public void sendPhoneStatus(int isReady, int phoneId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("sendPhoneStatus, isReady: ");
-        sb.append(isReady);
-        sb.append(", phoneId: ");
-        sb.append(phoneId);
-        logd(sb.toString());
+        logd("sendPhoneStatus, isReady: " + isReady + ", phoneId: " + phoneId);
     }
 
     public boolean isServiceReady() {
@@ -54,7 +45,7 @@ public class SimulatedQtiRilInterface implements BaseRilInterface {
         Registrant r = new Registrant(h, what, obj);
         this.mServiceReadyRegistrantList.add(r);
         if (isServiceReady()) {
-            r.notifyRegistrant(new AsyncResult(null, Boolean.valueOf(mIsServiceReady), null));
+            r.notifyRegistrant(new AsyncResult((Object) null, Boolean.valueOf(mIsServiceReady), (Throwable) null));
         }
     }
 

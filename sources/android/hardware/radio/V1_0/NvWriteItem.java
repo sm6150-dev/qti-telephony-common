@@ -29,14 +29,7 @@ public final class NvWriteItem {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".itemId = ");
-        builder.append(NvItem.toString(this.itemId));
-        builder.append(", .value = ");
-        builder.append(this.value);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".itemId = " + NvItem.toString(this.itemId) + ", .value = " + this.value + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -77,7 +70,7 @@ public final class NvWriteItem {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((NvWriteItem) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

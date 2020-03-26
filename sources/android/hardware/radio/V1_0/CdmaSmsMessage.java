@@ -33,22 +33,7 @@ public final class CdmaSmsMessage {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".teleserviceId = ");
-        builder.append(this.teleserviceId);
-        builder.append(", .isServicePresent = ");
-        builder.append(this.isServicePresent);
-        builder.append(", .serviceCategory = ");
-        builder.append(this.serviceCategory);
-        builder.append(", .address = ");
-        builder.append(this.address);
-        builder.append(", .subAddress = ");
-        builder.append(this.subAddress);
-        builder.append(", .bearerData = ");
-        builder.append(this.bearerData);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".teleserviceId = " + this.teleserviceId + ", .isServicePresent = " + this.isServicePresent + ", .serviceCategory = " + this.serviceCategory + ", .address = " + this.address + ", .subAddress = " + this.subAddress + ", .bearerData = " + this.bearerData + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -98,7 +83,7 @@ public final class CdmaSmsMessage {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 88);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaSmsMessage) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -115,7 +100,7 @@ public final class CdmaSmsMessage {
         _hidl_blob.putBool(_hidl_offset + 72 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 1);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            childBlob.putInt8((long) (_hidl_index_0 * 1), ((Byte) this.bearerData.get(_hidl_index_0)).byteValue());
+            childBlob.putInt8((long) (_hidl_index_0 * 1), this.bearerData.get(_hidl_index_0).byteValue());
         }
         _hidl_blob.putBlob(72 + _hidl_offset + 0, childBlob);
     }

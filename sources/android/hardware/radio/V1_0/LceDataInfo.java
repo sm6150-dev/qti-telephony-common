@@ -30,16 +30,7 @@ public final class LceDataInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".lastHopCapacityKbps = ");
-        builder.append(this.lastHopCapacityKbps);
-        builder.append(", .confidenceLevel = ");
-        builder.append(this.confidenceLevel);
-        builder.append(", .lceSuspended = ");
-        builder.append(this.lceSuspended);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".lastHopCapacityKbps = " + this.lastHopCapacityKbps + ", .confidenceLevel = " + this.confidenceLevel + ", .lceSuspended = " + this.lceSuspended + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -79,7 +70,7 @@ public final class LceDataInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 8);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((LceDataInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

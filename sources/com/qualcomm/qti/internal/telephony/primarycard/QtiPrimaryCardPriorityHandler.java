@@ -5,7 +5,7 @@ import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.telephony.Rlog;
 import com.android.internal.util.XmlUtils;
-import com.qualcomm.qti.internal.telephony.primarycard.QtiCardInfoManager.CardInfo;
+import com.qualcomm.qti.internal.telephony.primarycard.QtiCardInfoManager;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
@@ -36,21 +36,7 @@ public class QtiPrimaryCardPriorityHandler {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("PriorityConfig: [priority = ");
-            sb.append(this.priority);
-            sb.append(", pattern = ");
-            sb.append(this.pattern);
-            sb.append(", cardType = ");
-            sb.append(this.cardType);
-            sb.append(", mccmnc = ");
-            sb.append(this.mccmnc);
-            sb.append(", network1 = ");
-            sb.append(this.network1);
-            sb.append(", network2 = ");
-            sb.append(this.network2);
-            sb.append("]");
-            return sb.toString();
+            return "PriorityConfig: [priority = " + this.priority + ", pattern = " + this.pattern + ", cardType = " + this.cardType + ", mccmnc = " + this.mccmnc + ", network1 = " + this.network1 + ", network2 = " + this.network2 + "]";
         }
     }
 
@@ -80,12 +66,7 @@ public class QtiPrimaryCardPriorityHandler {
         if (getNumSlotsWithCdma(prefNwModes) > 1) {
             logd("getNwModesFromConfig: More than one slot has CDMA nwMode set non-primary card nwModes to default nwMode");
             for (int i3 = 0; i3 < QtiPrimaryCardUtils.PHONE_COUNT; i3++) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("getNwModesFromConfig: nwMode from config on slot [");
-                sb.append(i3);
-                sb.append("] is:");
-                sb.append(prefNwModes[i3]);
-                logi(sb.toString());
+                logi("getNwModesFromConfig: nwMode from config on slot [" + i3 + "] is:" + prefNwModes[i3]);
                 if (i3 != primarySlotId) {
                     prefNwModes[i3] = QtiPrimaryCardUtils.getDefaultNwMode();
                 }
@@ -111,9 +92,7 @@ public class QtiPrimaryCardPriorityHandler {
     public void loadCurrentPriorityConfigs(boolean override) {
         if (!this.mLoadingConfigCompleted) {
             logd("getPrefPrimarySlot: All Config Loading not done. EXIT!!!");
-            return;
-        }
-        if (override || !this.mLoadingCurrentConfigsDone) {
+        } else if (override || !this.mLoadingCurrentConfigsDone) {
             for (int i = 0; i < QtiPrimaryCardUtils.PHONE_COUNT; i++) {
                 this.mCurrPriorityConfigs[i] = getPriorityConfig(i);
             }
@@ -133,10 +112,7 @@ public class QtiPrimaryCardPriorityHandler {
         } else {
             this.mPrefPrimarySlot = getMaxPrioritySlot();
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getPrefPrimarySlot: return mPrefPrimarySlot: ");
-        sb.append(this.mPrefPrimarySlot);
-        logd(sb.toString());
+        logd("getPrefPrimarySlot: return mPrefPrimarySlot: " + this.mPrefPrimarySlot);
         return this.mPrefPrimarySlot;
     }
 
@@ -150,12 +126,7 @@ public class QtiPrimaryCardPriorityHandler {
                 tempMaxPriority = this.mCurrPriorityConfigs[i].priority;
             }
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("maxPriority: ");
-        sb.append(tempMaxPriority);
-        sb.append(", maxPrioritySlot:");
-        sb.append(slotId);
-        logd(sb.toString());
+        logd("maxPriority: " + tempMaxPriority + ", maxPrioritySlot:" + slotId);
         return slotId;
     }
 
@@ -171,68 +142,35 @@ public class QtiPrimaryCardPriorityHandler {
 
     private PriorityConfig getPriorityConfig(int slotId) {
         int priorityConfigComparator = QtiPrimaryCardUtils.getPriorityConfigComparator();
-        CardInfo cardInfo = QtiCardInfoManager.getInstance().getCardInfo(slotId);
-        String str = "getPriorityConfig: for slot:";
+        QtiCardInfoManager.CardInfo cardInfo = QtiCardInfoManager.getInstance().getCardInfo(slotId);
         if (cardInfo.getIccId() == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(str);
-            sb.append(slotId);
-            sb.append(": iccid is null, EXIT!!!");
-            logd(sb.toString());
+            logd("getPriorityConfig: for slot:" + slotId + ": iccid is null, EXIT!!!");
             return null;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append(str);
-        sb2.append(slotId);
-        sb2.append(" mcc-mnc ");
-        sb2.append(cardInfo.getMccMnc());
-        sb2.append(", Start!!!");
-        logd(sb2.toString());
+        logd("getPriorityConfig: for slot:" + slotId + " mcc-mnc " + cardInfo.getMccMnc() + ", Start!!!");
         int i = 0;
         while (i < this.mPriorityCount) {
             try {
-                PriorityConfig pConfig = (PriorityConfig) this.mAllPriorityConfigs.get(Integer.valueOf(i));
-                String str2 = ", ";
-                String str3 = "getPriorityConfig: Found for slot:";
+                PriorityConfig pConfig = this.mAllPriorityConfigs.get(Integer.valueOf(i));
                 if (priorityConfigComparator != 1) {
                     if (priorityConfigComparator != 2) {
                         if (priorityConfigComparator != 3) {
                             continue;
                         } else if (cardInfo.getMccMnc() != null && pConfig.pattern.matcher(cardInfo.getMccMnc()).find() && cardInfo.isCardTypeSame(pConfig.cardType)) {
-                            StringBuilder sb3 = new StringBuilder();
-                            sb3.append(str3);
-                            sb3.append(slotId);
-                            sb3.append(str2);
-                            sb3.append(pConfig);
-                            loge(sb3.toString());
+                            loge("getPriorityConfig: Found for slot:" + slotId + ", " + pConfig);
                             return pConfig;
                         }
                     } else if (cardInfo.isCardTypeSame(pConfig.cardType)) {
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append(str3);
-                        sb4.append(slotId);
-                        sb4.append(str2);
-                        sb4.append(pConfig);
-                        logd(sb4.toString());
+                        logd("getPriorityConfig: Found for slot:" + slotId + ", " + pConfig);
                         return pConfig;
                     }
                 } else if (pConfig.pattern.matcher(cardInfo.getIccId()).find() && cardInfo.isCardTypeSame(pConfig.cardType)) {
-                    StringBuilder sb5 = new StringBuilder();
-                    sb5.append(str3);
-                    sb5.append(slotId);
-                    sb5.append(str2);
-                    sb5.append(pConfig);
-                    logd(sb5.toString());
+                    logd("getPriorityConfig: Found for slot:" + slotId + ", " + pConfig);
                     return pConfig;
                 }
                 i++;
             } catch (Exception e) {
-                StringBuilder sb6 = new StringBuilder();
-                sb6.append("getPriorityConfig:Exception:[");
-                sb6.append(slotId);
-                sb6.append("] ");
-                sb6.append(e.getMessage());
-                Rlog.e(LOG_TAG, sb6.toString(), e);
+                Rlog.e(LOG_TAG, "getPriorityConfig:Exception:[" + slotId + "] " + e.getMessage(), e);
             }
         }
         return null;
@@ -244,7 +182,6 @@ public class QtiPrimaryCardPriorityHandler {
     }
 
     private void readPriorityConfigFromXml() {
-        String str = "mAllPriorityConfigs: ";
         XmlResourceParser parser = null;
         try {
             Resources res = this.mContext.getPackageManager().getResourcesForApplication(packageName);
@@ -261,29 +198,16 @@ public class QtiPrimaryCardPriorityHandler {
                 XmlUtils.nextElement(parser);
             }
             this.mLoadingConfigCompleted = DBG;
-            StringBuilder sb = new StringBuilder();
-            sb.append(str);
-            sb.append(this.mAllPriorityConfigs);
-            logi(sb.toString());
+            logi("mAllPriorityConfigs: " + this.mAllPriorityConfigs);
         } catch (Exception e) {
-            String str2 = LOG_TAG;
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("Exception while reading priority configs: ");
-            sb2.append(e.getMessage());
-            Rlog.e(str2, sb2.toString(), e);
+            Rlog.e(LOG_TAG, "Exception while reading priority configs: " + e.getMessage(), e);
             this.mLoadingConfigCompleted = VDBG;
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append(str);
-            sb3.append(this.mAllPriorityConfigs);
-            logi(sb3.toString());
+            logi("mAllPriorityConfigs: " + this.mAllPriorityConfigs);
             if (parser == null) {
                 return;
             }
         } catch (Throwable th) {
-            StringBuilder sb4 = new StringBuilder();
-            sb4.append(str);
-            sb4.append(this.mAllPriorityConfigs);
-            logi(sb4.toString());
+            logi("mAllPriorityConfigs: " + this.mAllPriorityConfigs);
             if (parser != null) {
                 parser.close();
             }
@@ -294,24 +218,19 @@ public class QtiPrimaryCardPriorityHandler {
 
     private void savePriorityConfig(XmlResourceParser parser) throws Exception {
         PriorityConfig pConfig = new PriorityConfig();
-        pConfig.priority = Integer.parseInt(parser.getAttributeValue(null, "priority"));
+        pConfig.priority = Integer.parseInt(parser.getAttributeValue((String) null, "priority"));
         pConfig.pattern = getPattern(parser);
-        pConfig.cardType = parser.getAttributeValue(null, "card_type");
-        pConfig.mccmnc = parser.getAttributeValue(null, "mccmnc");
-        pConfig.network1 = Integer.parseInt(parser.getAttributeValue(null, "network1"));
-        pConfig.network2 = Integer.parseInt(parser.getAttributeValue(null, "network2"));
+        pConfig.cardType = parser.getAttributeValue((String) null, "card_type");
+        pConfig.mccmnc = parser.getAttributeValue((String) null, "mccmnc");
+        pConfig.network1 = Integer.parseInt(parser.getAttributeValue((String) null, "network1"));
+        pConfig.network2 = Integer.parseInt(parser.getAttributeValue((String) null, "network2"));
         this.mAllPriorityConfigs.put(Integer.valueOf(this.mPriorityCount), pConfig);
-        StringBuilder sb = new StringBuilder();
-        sb.append("Added to mAllPriorityConfigs[");
-        sb.append(this.mPriorityCount);
-        sb.append("], ");
-        sb.append(pConfig);
-        logd(sb.toString());
-        this.mPriorityCount++;
+        logd("Added to mAllPriorityConfigs[" + this.mPriorityCount + "], " + pConfig);
+        this.mPriorityCount = this.mPriorityCount + 1;
     }
 
     private Pattern getPattern(XmlResourceParser parser) throws Exception {
-        String regEx = parser.getAttributeValue(null, "iin_pattern");
+        String regEx = parser.getAttributeValue((String) null, "iin_pattern");
         if (regEx != null) {
             return Pattern.compile(regEx);
         }

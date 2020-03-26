@@ -19,21 +19,14 @@ public class QtiDataResetEventTracker {
     private QtiDataConnection mDc;
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
-            if (msg.what == 270377) {
-                Pair<Integer, Integer> result = (Pair) ((AsyncResult) msg.obj).result;
-                if (result != null) {
-                    if (QtiDataResetEventTracker.this.mPreviousRAT > 0 && ((Integer) result.second).intValue() > 0 && QtiDataResetEventTracker.this.mPreviousRAT != ((Integer) result.second).intValue()) {
-                        QtiDataResetEventTracker qtiDataResetEventTracker = QtiDataResetEventTracker.this;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("RAT CHANGED, ");
-                        sb.append(QtiDataResetEventTracker.this.mPreviousRAT);
-                        sb.append("->");
-                        sb.append(result.second);
-                        qtiDataResetEventTracker.log(sb.toString());
-                        QtiDataResetEventTracker.this.notifyResetEvent();
-                    }
-                    QtiDataResetEventTracker.this.mPreviousRAT = ((Integer) result.second).intValue();
+            Pair<Integer, Integer> result;
+            if (msg.what == 270377 && (result = (Pair) ((AsyncResult) msg.obj).result) != null) {
+                if (QtiDataResetEventTracker.this.mPreviousRAT > 0 && ((Integer) result.second).intValue() > 0 && QtiDataResetEventTracker.this.mPreviousRAT != ((Integer) result.second).intValue()) {
+                    QtiDataResetEventTracker qtiDataResetEventTracker = QtiDataResetEventTracker.this;
+                    qtiDataResetEventTracker.log("RAT CHANGED, " + QtiDataResetEventTracker.this.mPreviousRAT + "->" + result.second);
+                    QtiDataResetEventTracker.this.notifyResetEvent();
                 }
+                int unused = QtiDataResetEventTracker.this.mPreviousRAT = ((Integer) result.second).intValue();
             }
         }
     };
@@ -53,10 +46,7 @@ public class QtiDataResetEventTracker {
 
     public QtiDataResetEventTracker(int transportType, Phone phone, QtiDataConnection dc, ResetEventListener listener) {
         this.mDc = dc;
-        StringBuilder sb = new StringBuilder();
-        sb.append("QtiDataResetEventTracker constructor: ");
-        sb.append(this);
-        log(sb.toString());
+        log("QtiDataResetEventTracker constructor: " + this);
         this.mPhone = phone;
         this.mContext = this.mPhone.getContext();
         this.mListener = listener;
@@ -67,30 +57,24 @@ public class QtiDataResetEventTracker {
     public void startResetEventTracker() {
         log("startResetEventTracker");
         stopResetEventTracker();
-        this.mPhone.getServiceStateTracker().registerForDataRegStateOrRatChanged(this.mTransportType, this.mHandler, 270377, null);
+        this.mPhone.getServiceStateTracker().registerForDataRegStateOrRatChanged(this.mTransportType, this.mHandler, 270377, (Object) null);
         if (this.mPhone.getCellLocation() instanceof GsmCellLocation) {
             this.mPreviousLocation = (GsmCellLocation) this.mPhone.getCellLocation();
-            StringBuilder sb = new StringBuilder();
-            sb.append("DataConnection mPreviousLocation : ");
-            sb.append(this.mPreviousLocation);
-            log(sb.toString());
+            log("DataConnection mPreviousLocation : " + this.mPreviousLocation);
         }
         int ddsSubId = SubscriptionManager.getDefaultDataSubscriptionId();
         if (this.mPhoneStateListener == null) {
             this.mPhoneStateListener = new PhoneStateListener() {
                 public void onCellLocationChanged(CellLocation location) {
                     QtiDataResetEventTracker qtiDataResetEventTracker = QtiDataResetEventTracker.this;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("DataConnection onCellLocationChanged : ");
-                    sb.append(location);
-                    qtiDataResetEventTracker.log(sb.toString());
+                    qtiDataResetEventTracker.log("DataConnection onCellLocationChanged : " + location);
                     if (location instanceof GsmCellLocation) {
                         GsmCellLocation currentLocation = (GsmCellLocation) location;
                         if (!(QtiDataResetEventTracker.this.mPreviousLocation == null || currentLocation == null || (QtiDataResetEventTracker.this.mPreviousLocation.getCid() == currentLocation.getCid() && QtiDataResetEventTracker.this.mPreviousLocation.getLac() == currentLocation.getLac()))) {
                             QtiDataResetEventTracker.this.log("DataConnection location updated");
                             QtiDataResetEventTracker.this.notifyResetEvent();
                         }
-                        QtiDataResetEventTracker.this.mPreviousLocation = currentLocation;
+                        GsmCellLocation unused = QtiDataResetEventTracker.this.mPreviousLocation = currentLocation;
                     }
                 }
             };
@@ -108,10 +92,7 @@ public class QtiDataResetEventTracker {
             }
             this.mPhone.getServiceStateTracker().unregisterForDataRegStateOrRatChanged(this.mTransportType, this.mHandler);
         } catch (Exception e) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("error:");
-            sb.append(e.getMessage());
-            log(sb.toString());
+            log("error:" + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -133,9 +114,6 @@ public class QtiDataResetEventTracker {
 
     /* access modifiers changed from: private */
     public void log(String log) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(this.mDc.getName());
-        sb.append("[DRET]");
-        Rlog.d(sb.toString(), log);
+        Rlog.d(this.mDc.getName() + "[DRET]", log);
     }
 }

@@ -34,24 +34,7 @@ public final class StkCcUnsolSsResult {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".serviceType = ");
-        builder.append(SsServiceType.toString(this.serviceType));
-        builder.append(", .requestType = ");
-        builder.append(SsRequestType.toString(this.requestType));
-        builder.append(", .teleserviceType = ");
-        builder.append(SsTeleserviceType.toString(this.teleserviceType));
-        builder.append(", .serviceClass = ");
-        builder.append(SuppServiceClass.dumpBitfield(this.serviceClass));
-        builder.append(", .result = ");
-        builder.append(RadioError.toString(this.result));
-        builder.append(", .ssInfo = ");
-        builder.append(this.ssInfo);
-        builder.append(", .cfData = ");
-        builder.append(this.cfData);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".serviceType = " + SsServiceType.toString(this.serviceType) + ", .requestType = " + SsRequestType.toString(this.requestType) + ", .teleserviceType = " + SsTeleserviceType.toString(this.teleserviceType) + ", .serviceClass = " + SuppServiceClass.dumpBitfield(this.serviceClass) + ", .result = " + RadioError.toString(this.result) + ", .ssInfo = " + this.ssInfo + ", .cfData = " + this.cfData + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -111,7 +94,7 @@ public final class StkCcUnsolSsResult {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 56);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((StkCcUnsolSsResult) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -129,7 +112,7 @@ public final class StkCcUnsolSsResult {
         hwBlob.putBool(_hidl_offset + 24 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 16);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SsInfoData) this.ssInfo.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
+            this.ssInfo.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
         }
         hwBlob.putBlob(_hidl_offset + 24 + 0, childBlob);
         int _hidl_vec_size2 = this.cfData.size();
@@ -137,7 +120,7 @@ public final class StkCcUnsolSsResult {
         hwBlob.putBool(_hidl_offset + 40 + 12, false);
         HwBlob childBlob2 = new HwBlob(_hidl_vec_size2 * 16);
         for (int _hidl_index_02 = 0; _hidl_index_02 < _hidl_vec_size2; _hidl_index_02++) {
-            ((CfData) this.cfData.get(_hidl_index_02)).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 16));
+            this.cfData.get(_hidl_index_02).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 16));
         }
         hwBlob.putBlob(_hidl_offset + 40 + 0, childBlob2);
     }

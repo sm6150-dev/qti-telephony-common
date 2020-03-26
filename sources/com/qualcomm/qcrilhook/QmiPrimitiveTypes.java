@@ -1,7 +1,6 @@
 package com.qualcomm.qcrilhook;
 
-import com.qualcomm.qcrilhook.BaseQmiTypes.BaseQmiItemType;
-import com.qualcomm.qcrilhook.BaseQmiTypes.QmiBase;
+import com.qualcomm.qcrilhook.BaseQmiTypes;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -15,7 +14,129 @@ public class QmiPrimitiveTypes {
     public static final int SIZE_OF_LONG = 8;
     public static final int SIZE_OF_SHORT = 2;
 
-    public static class QmiArray<T extends BaseQmiItemType> extends BaseQmiItemType {
+    public static class QmiNull extends BaseQmiTypes.BaseQmiItemType {
+        public int getSize() {
+            return 0;
+        }
+
+        public byte[] toByteArray() {
+            return new byte[0];
+        }
+
+        public String toString() {
+            return "val=null";
+        }
+
+        public byte[] toTlv(short type) {
+            return new byte[0];
+        }
+    }
+
+    public static class QmiByte extends BaseQmiTypes.BaseQmiItemType {
+        private byte mVal;
+
+        public QmiByte() {
+            this.mVal = 0;
+        }
+
+        public QmiByte(byte val) {
+            this.mVal = val;
+        }
+
+        public QmiByte(short val) throws InvalidParameterException {
+            try {
+                this.mVal = PrimitiveParser.parseByte(val);
+            } catch (NumberFormatException e) {
+                throw new InvalidParameterException(e.toString());
+            }
+        }
+
+        public QmiByte(int val) throws InvalidParameterException {
+            try {
+                this.mVal = PrimitiveParser.parseByte(val);
+            } catch (NumberFormatException e) {
+                throw new InvalidParameterException(e.toString());
+            }
+        }
+
+        public QmiByte(char val) throws InvalidParameterException {
+            try {
+                this.mVal = PrimitiveParser.parseByte(val);
+            } catch (NumberFormatException e) {
+                throw new InvalidParameterException(e.toString());
+            }
+        }
+
+        public QmiByte(byte[] bArray) throws InvalidParameterException {
+            if (bArray.length >= 1) {
+                this.mVal = createByteBuffer(bArray).get();
+                return;
+            }
+            throw new InvalidParameterException();
+        }
+
+        public short toShort() {
+            return PrimitiveParser.toUnsigned(this.mVal);
+        }
+
+        public int getSize() {
+            return 1;
+        }
+
+        public String toString() {
+            return String.format("val=%d", new Object[]{Byte.valueOf(this.mVal)});
+        }
+
+        public byte[] toByteArray() {
+            ByteBuffer buf = createByteBuffer(getSize());
+            buf.put(this.mVal);
+            return buf.array();
+        }
+    }
+
+    public static class QmiShort extends BaseQmiTypes.BaseQmiItemType {
+        private short mVal;
+
+        public QmiShort() {
+            this.mVal = 0;
+        }
+
+        public QmiShort(int val) throws InvalidParameterException {
+            try {
+                this.mVal = PrimitiveParser.parseShort(val);
+            } catch (NumberFormatException e) {
+                throw new InvalidParameterException(e.toString());
+            }
+        }
+
+        public QmiShort(byte[] bArray) throws InvalidParameterException {
+            if (bArray.length >= 2) {
+                this.mVal = createByteBuffer(bArray).getShort();
+                return;
+            }
+            throw new InvalidParameterException();
+        }
+
+        public int toInt() {
+            return PrimitiveParser.toUnsigned(this.mVal);
+        }
+
+        public int getSize() {
+            return 2;
+        }
+
+        public String toString() {
+            return String.format("val=%d", new Object[]{Short.valueOf(this.mVal)});
+        }
+
+        public byte[] toByteArray() {
+            ByteBuffer buf = createByteBuffer(getSize());
+            buf.putShort(this.mVal);
+            return buf.array();
+        }
+    }
+
+    public static class QmiArray<T extends BaseQmiTypes.BaseQmiItemType> extends BaseQmiTypes.BaseQmiItemType {
         private short mArrayLength;
         private short mNumOfElements = 0;
         private T[] mVal;
@@ -93,69 +214,7 @@ public class QmiPrimitiveTypes {
         }
     }
 
-    public static class QmiByte extends BaseQmiItemType {
-        private byte mVal;
-
-        public QmiByte() {
-            this.mVal = 0;
-        }
-
-        public QmiByte(byte val) {
-            this.mVal = val;
-        }
-
-        public QmiByte(short val) throws InvalidParameterException {
-            try {
-                this.mVal = PrimitiveParser.parseByte(val);
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException(e.toString());
-            }
-        }
-
-        public QmiByte(int val) throws InvalidParameterException {
-            try {
-                this.mVal = PrimitiveParser.parseByte(val);
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException(e.toString());
-            }
-        }
-
-        public QmiByte(char val) throws InvalidParameterException {
-            try {
-                this.mVal = PrimitiveParser.parseByte(val);
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException(e.toString());
-            }
-        }
-
-        public QmiByte(byte[] bArray) throws InvalidParameterException {
-            if (bArray.length >= 1) {
-                this.mVal = createByteBuffer(bArray).get();
-                return;
-            }
-            throw new InvalidParameterException();
-        }
-
-        public short toShort() {
-            return PrimitiveParser.toUnsigned(this.mVal);
-        }
-
-        public int getSize() {
-            return 1;
-        }
-
-        public String toString() {
-            return String.format("val=%d", new Object[]{Byte.valueOf(this.mVal)});
-        }
-
-        public byte[] toByteArray() {
-            ByteBuffer buf = createByteBuffer(getSize());
-            buf.put(this.mVal);
-            return buf.array();
-        }
-    }
-
-    public static class QmiEnum extends BaseQmiItemType {
+    public static class QmiEnum extends BaseQmiTypes.BaseQmiItemType {
         private short mVal;
 
         public QmiEnum(int val, int[] allowedValues) throws InvalidParameterException {
@@ -181,7 +240,7 @@ public class QmiPrimitiveTypes {
         }
     }
 
-    public static class QmiInteger extends BaseQmiItemType {
+    public static class QmiInteger extends BaseQmiTypes.BaseQmiItemType {
         private int mVal;
 
         public QmiInteger() {
@@ -223,7 +282,7 @@ public class QmiPrimitiveTypes {
         }
     }
 
-    public static class QmiLong extends BaseQmiItemType {
+    public static class QmiLong extends BaseQmiTypes.BaseQmiItemType {
         private long mVal;
 
         public QmiLong() {
@@ -268,74 +327,11 @@ public class QmiPrimitiveTypes {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("val=");
-            sb.append(this.mVal);
-            return sb.toString();
+            return "val=" + this.mVal;
         }
     }
 
-    public static class QmiNull extends BaseQmiItemType {
-        public int getSize() {
-            return 0;
-        }
-
-        public byte[] toByteArray() {
-            return new byte[0];
-        }
-
-        public String toString() {
-            return "val=null";
-        }
-
-        public byte[] toTlv(short type) {
-            return new byte[0];
-        }
-    }
-
-    public static class QmiShort extends BaseQmiItemType {
-        private short mVal;
-
-        public QmiShort() {
-            this.mVal = 0;
-        }
-
-        public QmiShort(int val) throws InvalidParameterException {
-            try {
-                this.mVal = PrimitiveParser.parseShort(val);
-            } catch (NumberFormatException e) {
-                throw new InvalidParameterException(e.toString());
-            }
-        }
-
-        public QmiShort(byte[] bArray) throws InvalidParameterException {
-            if (bArray.length >= 2) {
-                this.mVal = createByteBuffer(bArray).getShort();
-                return;
-            }
-            throw new InvalidParameterException();
-        }
-
-        public int toInt() {
-            return PrimitiveParser.toUnsigned(this.mVal);
-        }
-
-        public int getSize() {
-            return 2;
-        }
-
-        public String toString() {
-            return String.format("val=%d", new Object[]{Short.valueOf(this.mVal)});
-        }
-
-        public byte[] toByteArray() {
-            ByteBuffer buf = createByteBuffer(getSize());
-            buf.putShort(this.mVal);
-            return buf.array();
-        }
-    }
-
-    public static class QmiString extends BaseQmiItemType {
+    public static class QmiString extends BaseQmiTypes.BaseQmiItemType {
         public static final int LENGTH_SIZE = 1;
         private String mVal;
 
@@ -353,7 +349,7 @@ public class QmiPrimitiveTypes {
 
         public QmiString(byte[] bArray) throws InvalidParameterException {
             try {
-                this.mVal = new String(bArray, QmiBase.QMI_CHARSET);
+                this.mVal = new String(bArray, BaseQmiTypes.QmiBase.QMI_CHARSET);
             } catch (UnsupportedEncodingException e) {
                 throw new InvalidParameterException(e.toString());
             }
@@ -376,10 +372,7 @@ public class QmiPrimitiveTypes {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("val=");
-            sb.append(this.mVal);
-            return sb.toString();
+            return "val=" + this.mVal;
         }
     }
 }

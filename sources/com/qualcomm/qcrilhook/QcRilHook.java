@@ -12,7 +12,6 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 import com.qualcomm.qcrilmsgtunnel.IQcrilMsgTunnel;
-import com.qualcomm.qcrilmsgtunnel.IQcrilMsgTunnel.Stub;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -54,13 +53,12 @@ public class QcRilHook implements IQcRilHook {
 
     @Deprecated
     public QcRilHook(Context context) {
-        this(context, null);
+        this(context, (QcRilHookCallback) null);
     }
 
     public QcRilHook(Context context, QcRilHookCallback cb) {
-        String str = QmiOemHookConstants.OEM_IDENTIFIER;
-        this.mOemIdentifier = str;
-        this.mHeaderSize = str.length() + 8;
+        this.mOemIdentifier = QmiOemHookConstants.OEM_IDENTIFIER;
+        this.mHeaderSize = QmiOemHookConstants.OEM_IDENTIFIER.length() + 8;
         this.mService = null;
         this.mBound = VDBG;
         this.mQcrilHookCb = null;
@@ -68,68 +66,52 @@ public class QcRilHook implements IQcRilHook {
         this.mIntentReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                boolean equals = action.equals(QcRilHook.ACTION_UNSOL_RESPONSE_OEM_HOOK_RAW);
-                String str = QcRilHook.LOG_TAG;
-                if (equals) {
+                if (action.equals(QcRilHook.ACTION_UNSOL_RESPONSE_OEM_HOOK_RAW)) {
                     QcRilHook.this.logd("Received Broadcast Intent ACTION_UNSOL_RESPONSE_OEM_HOOK_RAW");
                     byte[] payload = intent.getByteArrayExtra("payload");
                     int instanceId = intent.getIntExtra(QmiOemHookConstants.INSTANCE_ID, 0);
-                    if (payload != null) {
-                        if (payload.length < QcRilHook.this.mHeaderSize) {
-                            Log.e(str, "UNSOL_RESPONSE_OEM_HOOK_RAW incomplete header");
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("Expected ");
-                            sb.append(QcRilHook.this.mHeaderSize);
-                            sb.append(" bytes. Received ");
-                            sb.append(payload.length);
-                            sb.append(" bytes.");
-                            Log.e(str, sb.toString());
-                            return;
-                        }
-                        ByteBuffer response = QcRilHook.createBufferWithNativeByteOrder(payload);
-                        String str2 = QmiOemHookConstants.OEM_IDENTIFIER;
-                        byte[] oem_id_bytes = new byte[str2.length()];
-                        response.get(oem_id_bytes);
-                        String oem_id_str = new String(oem_id_bytes);
-                        QcRilHook qcRilHook = QcRilHook.this;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("Oem ID in QCRILHOOK UNSOL RESP is ");
-                        sb2.append(oem_id_str);
-                        qcRilHook.logd(sb2.toString());
-                        if (!oem_id_str.equals(str2)) {
-                            StringBuilder sb3 = new StringBuilder();
-                            sb3.append("Incorrect Oem ID in QCRILHOOK UNSOL RESP. Expected QOEMHOOK. Received ");
-                            sb3.append(oem_id_str);
-                            Log.w(str, sb3.toString());
-                            return;
-                        }
-                        int remainingSize = payload.length - str2.length();
-                        if (remainingSize > 0) {
-                            byte[] remainingPayload = new byte[remainingSize];
-                            response.get(remainingPayload);
-                            Message msg = Message.obtain();
-                            msg.obj = remainingPayload;
-                            msg.arg1 = instanceId;
-                            QcRilHook.notifyRegistrants(new AsyncResult(null, msg, null));
-                        }
+                    if (payload == null) {
+                        return;
                     }
-                } else {
-                    StringBuilder sb4 = new StringBuilder();
-                    sb4.append("Received Unknown Intent: action = ");
-                    sb4.append(action);
-                    Log.w(str, sb4.toString());
+                    if (payload.length < QcRilHook.this.mHeaderSize) {
+                        Log.e(QcRilHook.LOG_TAG, "UNSOL_RESPONSE_OEM_HOOK_RAW incomplete header");
+                        Log.e(QcRilHook.LOG_TAG, "Expected " + QcRilHook.this.mHeaderSize + " bytes. Received " + payload.length + " bytes.");
+                        return;
+                    }
+                    ByteBuffer response = QcRilHook.createBufferWithNativeByteOrder(payload);
+                    byte[] oem_id_bytes = new byte[QmiOemHookConstants.OEM_IDENTIFIER.length()];
+                    response.get(oem_id_bytes);
+                    String oem_id_str = new String(oem_id_bytes);
+                    QcRilHook qcRilHook = QcRilHook.this;
+                    qcRilHook.logd("Oem ID in QCRILHOOK UNSOL RESP is " + oem_id_str);
+                    if (!oem_id_str.equals(QmiOemHookConstants.OEM_IDENTIFIER)) {
+                        Log.w(QcRilHook.LOG_TAG, "Incorrect Oem ID in QCRILHOOK UNSOL RESP. Expected QOEMHOOK. Received " + oem_id_str);
+                        return;
+                    }
+                    int remainingSize = payload.length - QmiOemHookConstants.OEM_IDENTIFIER.length();
+                    if (remainingSize > 0) {
+                        byte[] remainingPayload = new byte[remainingSize];
+                        response.get(remainingPayload);
+                        Message msg = Message.obtain();
+                        msg.obj = remainingPayload;
+                        msg.arg1 = instanceId;
+                        QcRilHook.notifyRegistrants(new AsyncResult((Object) null, msg, (Throwable) null));
+                        return;
+                    }
+                    return;
                 }
+                Log.w(QcRilHook.LOG_TAG, "Received Unknown Intent: action = " + action);
             }
         };
         this.mQcrilMsgTunnelConnection = new ServiceConnection() {
             public void onServiceConnected(ComponentName name, IBinder service) {
-                QcRilHook.this.mService = Stub.asInterface(service);
+                IQcrilMsgTunnel unused = QcRilHook.this.mService = IQcrilMsgTunnel.Stub.asInterface(service);
                 if (QcRilHook.this.mService == null) {
                     Log.e(QcRilHook.LOG_TAG, "QcrilMsgTunnelService Connect Failed (onServiceConnected)");
                 } else {
                     QcRilHook.this.logd("QcrilMsgTunnelService Connected Successfully (onServiceConnected)");
                 }
-                QcRilHook.this.mBound = QcRilHook.DBG;
+                boolean unused2 = QcRilHook.this.mBound = QcRilHook.DBG;
                 if (QcRilHook.this.mQcrilHookCb != null) {
                     QcRilHook.this.logd("Calling onQcRilHookReady callback");
                     QcRilHook.this.mQcrilHookCb.onQcRilHookReady();
@@ -138,8 +120,8 @@ public class QcRilHook implements IQcRilHook {
 
             public void onServiceDisconnected(ComponentName name) {
                 QcRilHook.this.logd("The connection to the service got disconnected unexpectedly!");
-                QcRilHook.this.mService = null;
-                QcRilHook.this.mBound = QcRilHook.VDBG;
+                IQcrilMsgTunnel unused = QcRilHook.this.mService = null;
+                boolean unused2 = QcRilHook.this.mBound = QcRilHook.VDBG;
                 if (QcRilHook.this.mQcrilHookCb != null) {
                     QcRilHook.this.logd("Calling onQcRilHookDisconnected callback");
                     QcRilHook.this.mQcrilHookCb.onQcRilHookDisconnected();
@@ -155,20 +137,14 @@ public class QcRilHook implements IQcRilHook {
             logd("Starting QcrilMsgTunnel Service");
             this.mContext.startService(intent);
             boolean status = this.mContext.bindService(intent, this.mQcrilMsgTunnelConnection, 1);
-            StringBuilder sb = new StringBuilder();
-            sb.append("Attempt to bind service returned with: ");
-            sb.append(status);
-            logd(sb.toString());
+            logd("Attempt to bind service returned with: " + status);
             try {
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(ACTION_UNSOL_RESPONSE_OEM_HOOK_RAW);
                 this.mContext.registerReceiver(this.mIntentReceiver, filter);
                 logd("Registering for intent ACTION_UNSOL_RESPONSE_OEM_HOOK_RAW");
             } catch (Exception e) {
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("Uncaught Exception while while registering ACTION_UNSOL_RESPONSE_OEM_HOOK_RAW intent. Reason: ");
-                sb2.append(e);
-                Log.e(LOG_TAG, sb2.toString());
+                Log.e(LOG_TAG, "Uncaught Exception while while registering ACTION_UNSOL_RESPONSE_OEM_HOOK_RAW intent. Reason: " + e);
             }
         } else {
             throw new IllegalArgumentException("Context is null");
@@ -218,18 +194,11 @@ public class QcRilHook implements IQcRilHook {
     }
 
     private AsyncResult sendRilOemHookMsg(int requestId, byte[] request, int phoneId) {
-        String str = LOG_TAG;
         byte[] response = new byte[2048];
-        StringBuilder sb = new StringBuilder();
-        sb.append("sendRilOemHookMsg: Outgoing Data is ");
-        sb.append(EmbmsOemHook.bytesToHexString(request));
-        logv(sb.toString());
+        logv("sendRilOemHookMsg: Outgoing Data is " + EmbmsOemHook.bytesToHexString(request));
         try {
             int retVal = this.mService.sendOemRilRequestRaw(request, response, phoneId);
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("sendOemRilRequestRaw returns value = ");
-            sb2.append(retVal);
-            logd(sb2.toString());
+            logd("sendOemRilRequestRaw returns value = " + retVal);
             if (retVal < 0) {
                 return new AsyncResult(request, Arrays.copyOf(response, response.length), CommandException.fromRilErrno(retVal * -1));
             }
@@ -237,44 +206,24 @@ public class QcRilHook implements IQcRilHook {
             if (retVal > 0) {
                 validResponseBytes = Arrays.copyOf(response, retVal);
             }
-            return new AsyncResult(Integer.valueOf(retVal), validResponseBytes, null);
+            return new AsyncResult(Integer.valueOf(retVal), validResponseBytes, (Throwable) null);
         } catch (RemoteException e) {
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append("sendOemRilRequestRaw RequestID = ");
-            sb3.append(requestId);
-            sb3.append(" exception, unable to send RIL request from this application");
-            Log.e(str, sb3.toString(), e);
-            return new AsyncResult(Integer.valueOf(requestId), null, e);
+            Log.e(LOG_TAG, "sendOemRilRequestRaw RequestID = " + requestId + " exception, unable to send RIL request from this application", e);
+            return new AsyncResult(Integer.valueOf(requestId), (Object) null, e);
         } catch (NullPointerException e2) {
-            StringBuilder sb4 = new StringBuilder();
-            sb4.append("NullPointerException caught at sendOemRilRequestRaw.RequestID = ");
-            sb4.append(requestId);
-            sb4.append(". Return Error");
-            Log.e(str, sb4.toString());
-            return new AsyncResult(Integer.valueOf(requestId), null, e2);
+            Log.e(LOG_TAG, "NullPointerException caught at sendOemRilRequestRaw.RequestID = " + requestId + ". Return Error");
+            return new AsyncResult(Integer.valueOf(requestId), (Object) null, e2);
         }
     }
 
     private void sendRilOemHookMsgAsync(int requestId, byte[] request, IOemHookCallback oemHookCb, int phoneId) throws NullPointerException {
-        String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("sendRilOemHookMsgAsync: Outgoing Data is ");
-        sb.append(EmbmsOemHook.bytesToHexString(request));
-        logv(sb.toString());
+        logv("sendRilOemHookMsgAsync: Outgoing Data is " + EmbmsOemHook.bytesToHexString(request));
         try {
             this.mService.sendOemRilRequestRawAsync(request, oemHookCb, phoneId);
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("sendOemRilRequestRawAsync RequestID = ");
-            sb2.append(requestId);
-            sb2.append(" exception, unable to send RIL request from this application");
-            Log.e(str, sb2.toString(), e);
+            Log.e(LOG_TAG, "sendOemRilRequestRawAsync RequestID = " + requestId + " exception, unable to send RIL request from this application", e);
         } catch (NullPointerException e2) {
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append("NullPointerException caught at sendOemRilRequestRawAsync.RequestID = ");
-            sb3.append(requestId);
-            sb3.append(". Throw to the caller");
-            Log.e(str, sb3.toString());
+            Log.e(LOG_TAG, "NullPointerException caught at sendOemRilRequestRawAsync.RequestID = " + requestId + ". Throw to the caller");
             throw e2;
         }
     }
@@ -290,12 +239,7 @@ public class QcRilHook implements IQcRilHook {
             }
             status = z;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getLpluslSupportStatus: ");
-        sb.append(status);
-        sb.append(" exception: ");
-        sb.append(ar.exception);
-        logd(sb.toString());
+        logd("getLpluslSupportStatus: " + status + " exception: " + ar.exception);
         return status;
     }
 
@@ -307,24 +251,16 @@ public class QcRilHook implements IQcRilHook {
         reqBuffer.put((byte) phoneId);
         reqBuffer.putInt(mbnType);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_CONFIG, payload);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL_EVT_HOOK_GET_CONFIG failed w/ ");
-            sb.append(ar.exception);
-            Log.w(str, sb.toString());
+        if (ar.exception != null) {
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_CONFIG failed w/ " + ar.exception);
             return null;
         } else if (ar.result == null) {
-            Log.w(str, "QCRIL_EVT_HOOK_GET_CONFIG failed w/ null result");
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_CONFIG failed w/ null result");
             return null;
         } else {
             try {
                 String result = new String((byte[]) ar.result, "ISO-8859-1");
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("QCRIL_EVT_HOOK_GET_CONFIG returned w/ ");
-                sb2.append(result);
-                logv(sb2.toString());
+                logv("QCRIL_EVT_HOOK_GET_CONFIG returned w/ " + result);
                 return result;
             } catch (UnsupportedEncodingException e) {
                 logd("unsupport ISO-8859-1");
@@ -347,13 +283,8 @@ public class QcRilHook implements IQcRilHook {
 
     public boolean qcRilSetConfig(String file, String config, int subMask, int mbnType) {
         validateInternalState();
-        boolean isEmpty = config.isEmpty();
-        String str = LOG_TAG;
-        if (isEmpty || config.length() > MAX_PDC_ID_LEN || file.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("set with incorrect config id: ");
-            sb.append(config);
-            Log.e(str, sb.toString());
+        if (config.isEmpty() || config.length() > MAX_PDC_ID_LEN || file.isEmpty()) {
+            Log.e(LOG_TAG, "set with incorrect config id: " + config);
             return VDBG;
         }
         byte[] payload = new byte[(this.mHeaderSize + 3 + 4 + file.length() + config.length())];
@@ -362,18 +293,15 @@ public class QcRilHook implements IQcRilHook {
         buf.put((byte) subMask);
         buf.putInt(mbnType);
         buf.put(file.getBytes());
-        buf.put(0);
+        buf.put((byte) 0);
         try {
             buf.put(config.getBytes("ISO-8859-1"));
-            buf.put(0);
+            buf.put((byte) 0);
             AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_SET_CONFIG, payload);
             if (ar.exception == null) {
                 return DBG;
             }
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("QCRIL_EVT_HOOK_SET_CONFIG failed w/ ");
-            sb2.append(ar.exception);
-            Log.e(str, sb2.toString());
+            Log.e(LOG_TAG, "QCRIL_EVT_HOOK_SET_CONFIG failed w/ " + ar.exception);
             return VDBG;
         } catch (UnsupportedEncodingException e) {
             logd("unsupport ISO-8859-1");
@@ -399,22 +327,14 @@ public class QcRilHook implements IQcRilHook {
         addQcRilHookHeader(buf, IQcRilHook.QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE, file.getBytes().length);
         buf.put(file.getBytes());
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE, payload);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE failed w/ ");
-            sb.append(ar.exception);
-            Log.w(str, sb.toString());
+        if (ar.exception != null) {
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE failed w/ " + ar.exception);
             return null;
         } else if (ar.result == null) {
-            Log.w(str, "QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE failed w/ null result");
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE failed w/ null result");
             return null;
         } else {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE returned w/ ");
-            sb2.append((byte[]) ar.result);
-            logv(sb2.toString());
+            logv("QCRIL_EVT_HOOK_GET_QC_VERSION_OF_FILE returned w/ " + ((byte[]) ar.result));
             return (byte[]) ar.result;
         }
     }
@@ -429,32 +349,22 @@ public class QcRilHook implements IQcRilHook {
         addQcRilHookHeader(buf, IQcRilHook.QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE, file.getBytes().length);
         buf.put(file.getBytes());
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE, payload);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE failed w/ ");
-            sb.append(ar.exception);
-            Log.w(str, sb.toString());
+        if (ar.exception != null) {
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE failed w/ " + ar.exception);
             return null;
         } else if (ar.result == null) {
-            Log.w(str, "QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE failed w/ null result");
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE failed w/ null result");
             return null;
         } else {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE returned w/ ");
-            sb2.append((byte[]) ar.result);
-            logv(sb2.toString());
+            logv("QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_FILE returned w/ " + ((byte[]) ar.result));
             return (byte[]) ar.result;
         }
     }
 
     public byte[] qcRilGetQcVersionOfID(String configId) {
         validateInternalState();
-        boolean isEmpty = configId.isEmpty();
-        String str = LOG_TAG;
-        if (isEmpty || configId.length() > MAX_PDC_ID_LEN) {
-            Log.w(str, "invalid config id");
+        if (configId.isEmpty() || configId.length() > MAX_PDC_ID_LEN) {
+            Log.w(LOG_TAG, "invalid config id");
             return null;
         }
         byte[] payload = new byte[(this.mHeaderSize + configId.length())];
@@ -464,19 +374,13 @@ public class QcRilHook implements IQcRilHook {
             buf.put(configId.getBytes("ISO-8859-1"));
             AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_QC_VERSION_OF_ID, payload);
             if (ar.exception != null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("QCRIL_EVT_HOOK_GET_QC_VERSION_OF_ID failed w/ ");
-                sb.append(ar.exception);
-                Log.w(str, sb.toString());
+                Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_QC_VERSION_OF_ID failed w/ " + ar.exception);
                 return null;
             } else if (ar.result == null) {
-                Log.w(str, "QCRIL_EVT_HOOK_GET_QC_VERSION_OF_ID failed w/ null result");
+                Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_QC_VERSION_OF_ID failed w/ null result");
                 return null;
             } else {
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("QCRIL_EVT_HOOK_GET_QC_VERSION_OF_ID returned w/ ");
-                sb2.append((byte[]) ar.result);
-                logv(sb2.toString());
+                logv("QCRIL_EVT_HOOK_GET_QC_VERSION_OF_ID returned w/ " + ((byte[]) ar.result));
                 return (byte[]) ar.result;
             }
         } catch (UnsupportedEncodingException e) {
@@ -487,10 +391,8 @@ public class QcRilHook implements IQcRilHook {
 
     public byte[] qcRilGetOemVersionOfID(String config_id) {
         validateInternalState();
-        boolean isEmpty = config_id.isEmpty();
-        String str = LOG_TAG;
-        if (isEmpty || config_id.length() > MAX_PDC_ID_LEN) {
-            Log.w(str, "invalid config_id");
+        if (config_id.isEmpty() || config_id.length() > MAX_PDC_ID_LEN) {
+            Log.w(LOG_TAG, "invalid config_id");
             return null;
         }
         byte[] payload = new byte[(this.mHeaderSize + config_id.length())];
@@ -500,19 +402,13 @@ public class QcRilHook implements IQcRilHook {
             buf.put(config_id.getBytes("ISO-8859-1"));
             AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_ID, payload);
             if (ar.exception != null) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_ID failed w/ ");
-                sb.append(ar.exception);
-                Log.w(str, sb.toString());
+                Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_ID failed w/ " + ar.exception);
                 return null;
             } else if (ar.result == null) {
-                Log.w(str, "QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_ID failed w/ null result");
+                Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_ID failed w/ null result");
                 return null;
             } else {
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_ID returned w/ ");
-                sb2.append((byte[]) ar.result);
-                logv(sb2.toString());
+                logv("QCRIL_EVT_HOOK_GET_OEM_VERSION_OF_ID returned w/ " + ((byte[]) ar.result));
                 return (byte[]) ar.result;
             }
         } catch (UnsupportedEncodingException e) {
@@ -536,19 +432,14 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL_EVT_HOOK_ACT_CONFIGS failed w/ ");
-        sb.append(ar.exception);
-        Log.w(LOG_TAG, sb.toString());
+        Log.w(LOG_TAG, "QCRIL_EVT_HOOK_ACT_CONFIGS failed w/ " + ar.exception);
         return VDBG;
     }
 
     public boolean qcRilValidateConfig(String configId, int phoneId) {
         validateInternalState();
-        boolean isEmpty = configId.isEmpty();
-        String str = LOG_TAG;
-        if (isEmpty || configId.length() > MAX_PDC_ID_LEN) {
-            Log.w(str, "invalid config id");
+        if (configId.isEmpty() || configId.length() > MAX_PDC_ID_LEN) {
+            Log.w(LOG_TAG, "invalid config id");
             return VDBG;
         }
         byte[] payload = new byte[(this.mHeaderSize + 2 + configId.length())];
@@ -557,15 +448,12 @@ public class QcRilHook implements IQcRilHook {
         buf.put((byte) phoneId);
         try {
             buf.put(configId.getBytes("ISO-8859-1"));
-            buf.put(0);
+            buf.put((byte) 0);
             AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_META_INFO, payload);
             if (ar.exception == null) {
                 return DBG;
             }
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL_EVT_HOOK_VALIDATE_CONFIG failed w/ ");
-            sb.append(ar.exception);
-            Log.w(str, sb.toString());
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_VALIDATE_CONFIG failed w/ " + ar.exception);
             return VDBG;
         } catch (UnsupportedEncodingException e) {
             logd("unsupport ISO-8859-1");
@@ -583,10 +471,7 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL_EVT_HOOK_ENABLE_MODEM_UPDATE failed w/ ");
-        sb.append(ar.exception);
-        Log.w(LOG_TAG, sb.toString());
+        Log.w(LOG_TAG, "QCRIL_EVT_HOOK_ENABLE_MODEM_UPDATE failed w/ " + ar.exception);
         return VDBG;
     }
 
@@ -601,10 +486,7 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL_EVT_HOOK_GET_AVAILABLE_CONFIGS failed w/ ");
-        sb.append(ar.exception);
-        Log.w(LOG_TAG, sb.toString());
+        Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_AVAILABLE_CONFIGS failed w/ " + ar.exception);
         return VDBG;
     }
 
@@ -613,10 +495,7 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL_EVT_HOOK_DELETE_ALL_CONFIGS failed w/ ");
-        sb.append(ar.exception);
-        Log.e(LOG_TAG, sb.toString());
+        Log.e(LOG_TAG, "QCRIL_EVT_HOOK_DELETE_ALL_CONFIGS failed w/ " + ar.exception);
         return VDBG;
     }
 
@@ -634,10 +513,7 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL_EVT_HOOK_DEACT_CONFIGS failed w/ ");
-        sb.append(ar.exception);
-        Log.e(LOG_TAG, sb.toString());
+        Log.e(LOG_TAG, "QCRIL_EVT_HOOK_DEACT_CONFIGS failed w/ " + ar.exception);
         return VDBG;
     }
 
@@ -646,32 +522,23 @@ public class QcRilHook implements IQcRilHook {
     }
 
     public boolean qcRilSelectConfig(String config, int subMask, int mbnType) {
-        String str = "ISO-8859-1";
         validateInternalState();
-        boolean isEmpty = config.isEmpty();
-        String str2 = LOG_TAG;
-        if (isEmpty || config.length() > MAX_PDC_ID_LEN) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("select with incorrect config id: ");
-            sb.append(config);
-            Log.e(str2, sb.toString());
+        if (config.isEmpty() || config.length() > MAX_PDC_ID_LEN) {
+            Log.e(LOG_TAG, "select with incorrect config id: " + config);
             return VDBG;
         }
         try {
-            byte[] payload = new byte[(this.mHeaderSize + 1 + 4 + config.getBytes(str).length)];
+            byte[] payload = new byte[(this.mHeaderSize + 1 + 4 + config.getBytes("ISO-8859-1").length)];
             ByteBuffer buf = createBufferWithNativeByteOrder(payload);
-            addQcRilHookHeader(buf, IQcRilHook.QCRIL_EVT_HOOK_SEL_CONFIG, config.getBytes(str).length + 5);
+            addQcRilHookHeader(buf, IQcRilHook.QCRIL_EVT_HOOK_SEL_CONFIG, config.getBytes("ISO-8859-1").length + 5);
             buf.put((byte) subMask);
             buf.putInt(mbnType);
-            buf.put(config.getBytes(str));
+            buf.put(config.getBytes("ISO-8859-1"));
             AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_SEL_CONFIG, payload);
             if (ar.exception == null) {
                 return DBG;
             }
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("QCRIL_EVT_HOOK_SEL_CONFIG failed w/ ");
-            sb2.append(ar.exception);
-            Log.e(str2, sb2.toString());
+            Log.e(LOG_TAG, "QCRIL_EVT_HOOK_SEL_CONFIG failed w/ " + ar.exception);
             return VDBG;
         } catch (UnsupportedEncodingException e) {
             logd("unsupport ISO-8859-1");
@@ -684,52 +551,38 @@ public class QcRilHook implements IQcRilHook {
     }
 
     public String qcRilGetMetaInfoForConfig(String config, int mbnType) {
-        String str = "unsupport ISO-8859-1";
-        String str2 = "ISO-8859-1";
         validateInternalState();
-        String result = null;
-        boolean isEmpty = config.isEmpty();
-        String str3 = LOG_TAG;
-        if (isEmpty || config.length() > MAX_PDC_ID_LEN) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("get meta info with incorrect config id: ");
-            sb.append(config);
-            Log.e(str3, sb.toString());
-        } else {
-            try {
-                byte[] payload = new byte[(this.mHeaderSize + 4 + config.getBytes(str2).length)];
-                ByteBuffer buf = createBufferWithNativeByteOrder(payload);
-                addQcRilHookHeader(buf, IQcRilHook.QCRIL_EVT_HOOK_GET_META_INFO, config.getBytes(str2).length + 4);
-                buf.putInt(mbnType);
-                buf.put(config.getBytes(str2));
-                ByteBuffer buf2 = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_META_INFO, payload);
-                if (buf2.exception != null) {
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("QCRIL_EVT_HOOK_GET_META_INFO failed w/ ");
-                    sb2.append(buf2.exception);
-                    Log.w(str3, sb2.toString());
-                    return null;
-                } else if (buf2.result == null) {
-                    Log.w(str3, "QCRIL_EVT_HOOK_GET_META_INFO failed w/ null result");
-                    return null;
-                } else {
-                    try {
-                        result = new String((byte[]) buf2.result, str2);
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("QCRIL_EVT_HOOK_GET_META_INFO returned w/ ");
-                        sb3.append(result);
-                        logv(sb3.toString());
-                    } catch (UnsupportedEncodingException e) {
-                        logd(str);
-                        return null;
-                    }
-                }
-            } catch (UnsupportedEncodingException e2) {
-                logd(str);
-                return null;
-            }
+        if (config.isEmpty() || config.length() > MAX_PDC_ID_LEN) {
+            Log.e(LOG_TAG, "get meta info with incorrect config id: " + config);
+            return null;
         }
-        return result;
+        try {
+            byte[] payload = new byte[(this.mHeaderSize + 4 + config.getBytes("ISO-8859-1").length)];
+            ByteBuffer buf = createBufferWithNativeByteOrder(payload);
+            addQcRilHookHeader(buf, IQcRilHook.QCRIL_EVT_HOOK_GET_META_INFO, config.getBytes("ISO-8859-1").length + 4);
+            buf.putInt(mbnType);
+            buf.put(config.getBytes("ISO-8859-1"));
+            ByteBuffer buf2 = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_META_INFO, payload);
+            if (buf2.exception != null) {
+                Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_META_INFO failed w/ " + buf2.exception);
+                return null;
+            } else if (buf2.result == null) {
+                Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_META_INFO failed w/ null result");
+                return null;
+            } else {
+                try {
+                    String result = new String((byte[]) buf2.result, "ISO-8859-1");
+                    logv("QCRIL_EVT_HOOK_GET_META_INFO returned w/ " + result);
+                    return result;
+                } catch (UnsupportedEncodingException e) {
+                    logd("unsupport ISO-8859-1");
+                    return null;
+                }
+            }
+        } catch (UnsupportedEncodingException e2) {
+            logd("unsupport ISO-8859-1");
+            return null;
+        }
     }
 
     public boolean qcRilGoDormant(String interfaceName) {
@@ -737,26 +590,15 @@ public class QcRilHook implements IQcRilHook {
         if (result.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Go Dormant Command returned Exception: ");
-        sb.append(result.exception);
-        Log.w(LOG_TAG, sb.toString());
+        Log.w(LOG_TAG, "Go Dormant Command returned Exception: " + result.exception);
         return VDBG;
     }
 
     public boolean qcRilSetCdmaSubSrcWithSpc(int cdmaSubscription, String spc) {
         validateInternalState();
-        StringBuilder sb = new StringBuilder();
-        sb.append("qcRilSetCdmaSubSrcWithSpc: Set Cdma Subscription to ");
-        sb.append(cdmaSubscription);
-        logv(sb.toString());
-        boolean isEmpty = spc.isEmpty();
-        String str = LOG_TAG;
-        if (isEmpty || spc.length() > 6) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("QCRIL Set Cdma Subscription Source Command incorrect SPC: ");
-            sb2.append(spc);
-            Log.e(str, sb2.toString());
+        logv("qcRilSetCdmaSubSrcWithSpc: Set Cdma Subscription to " + cdmaSubscription);
+        if (spc.isEmpty() || spc.length() > 6) {
+            Log.e(LOG_TAG, "QCRIL Set Cdma Subscription Source Command incorrect SPC: " + spc);
             return VDBG;
         }
         byte[] payload = new byte[(spc.length() + 1)];
@@ -765,19 +607,16 @@ public class QcRilHook implements IQcRilHook {
         buf.put(spc.getBytes());
         AsyncResult ar = sendQcRilHookMsg((int) IQcRilHook.QCRIL_EVT_HOOK_SET_CDMA_SUB_SRC_WITH_SPC, payload);
         if (ar.exception != null) {
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append("QCRIL Set Cdma Subscription Source Command returned Exception: ");
-            sb3.append(ar.exception);
-            Log.e(str, sb3.toString());
+            Log.e(LOG_TAG, "QCRIL Set Cdma Subscription Source Command returned Exception: " + ar.exception);
             return VDBG;
         } else if (ar.result == null) {
             return VDBG;
         } else {
             byte succeed = ByteBuffer.wrap((byte[]) ar.result).get();
-            StringBuilder sb4 = new StringBuilder();
-            sb4.append("QCRIL Set Cdma Subscription Source Command ");
-            sb4.append(succeed == 1 ? "Succeed." : "Failed.");
-            logv(sb4.toString());
+            StringBuilder sb = new StringBuilder();
+            sb.append("QCRIL Set Cdma Subscription Source Command ");
+            sb.append(succeed == 1 ? "Succeed." : "Failed.");
+            logv(sb.toString());
             if (succeed == 1) {
                 return DBG;
             }
@@ -786,150 +625,97 @@ public class QcRilHook implements IQcRilHook {
     }
 
     public byte[] qcRilSendProtocolBufferMessage(byte[] protocolBuffer, int phoneId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("qcRilSendProtoBufMessage: protocolBuffer");
-        sb.append(protocolBuffer.toString());
-        logv(sb.toString());
+        logv("qcRilSendProtoBufMessage: protocolBuffer" + protocolBuffer.toString());
         AsyncResult ar = sendQcRilHookMsg((int) IQcRilHook.QCRIL_EVT_HOOK_PROTOBUF_MSG, protocolBuffer, phoneId);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("qcRilSendProtoBufMessage: Exception ");
-            sb2.append(ar.exception);
-            Log.e(str, sb2.toString());
+        if (ar.exception != null) {
+            Log.e(LOG_TAG, "qcRilSendProtoBufMessage: Exception " + ar.exception);
             return null;
         } else if (ar.result != null) {
             return (byte[]) ar.result;
         } else {
-            Log.e(str, "QCRIL_EVT_HOOK_PROTOBUF_MSG returned null");
+            Log.e(LOG_TAG, "QCRIL_EVT_HOOK_PROTOBUF_MSG returned null");
             return null;
         }
     }
 
     public boolean qcRilSetTuneAway(boolean tuneAway) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("qcRilSetTuneAway: tuneAway Value to be set to ");
-        sb.append(tuneAway);
-        logd(sb.toString());
+        logd("qcRilSetTuneAway: tuneAway Value to be set to " + tuneAway);
         byte payload = 0;
         if (tuneAway) {
             payload = 1;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("qcRilSetTuneAway: tuneAway payload ");
-        sb2.append(payload);
-        logv(sb2.toString());
+        logv("qcRilSetTuneAway: tuneAway payload " + payload);
         AsyncResult ar = sendQcRilHookMsg((int) IQcRilHook.QCRIL_EVT_HOOK_SET_TUNEAWAY, payload);
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb3 = new StringBuilder();
-        sb3.append("qcRilSetTuneAway: Exception ");
-        sb3.append(ar.exception);
-        Log.e(LOG_TAG, sb3.toString());
+        Log.e(LOG_TAG, "qcRilSetTuneAway: Exception " + ar.exception);
         return VDBG;
     }
 
     public boolean qcRilGetTuneAway() {
         AsyncResult ar = sendQcRilHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_TUNEAWAY);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("qcRilGetTuneAway: Exception ");
-            sb.append(ar.exception);
-            Log.e(str, sb.toString());
+        if (ar.exception != null) {
+            Log.e(LOG_TAG, "qcRilGetTuneAway: Exception " + ar.exception);
             return VDBG;
         } else if (ar.result != null) {
             byte tuneAwayValue = ByteBuffer.wrap((byte[]) ar.result).get();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("qcRilGetTuneAway: tuneAwayValue ");
-            sb2.append(tuneAwayValue);
-            logd(sb2.toString());
+            logd("qcRilGetTuneAway: tuneAwayValue " + tuneAwayValue);
             if (tuneAwayValue == 1) {
                 return DBG;
             }
             return VDBG;
         } else {
-            Log.e(str, "qcRilGetTuneAway: Null Response");
+            Log.e(LOG_TAG, "qcRilGetTuneAway: Null Response");
             return VDBG;
         }
     }
 
     public boolean qcRilSetPrioritySubscription(int priorityIndex) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("qcRilSetPrioritySubscription: PrioritySubscription to be set to");
-        sb.append(priorityIndex);
-        logv(sb.toString());
+        logv("qcRilSetPrioritySubscription: PrioritySubscription to be set to" + priorityIndex);
         byte payload = (byte) priorityIndex;
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("qcRilSetPrioritySubscription: PrioritySubscription payload ");
-        sb2.append(payload);
-        logv(sb2.toString());
+        logv("qcRilSetPrioritySubscription: PrioritySubscription payload " + payload);
         AsyncResult ar = sendQcRilHookMsg((int) IQcRilHook.QCRIL_EVT_HOOK_SET_PAGING_PRIORITY, payload);
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb3 = new StringBuilder();
-        sb3.append("qcRilSetPrioritySubscription: Exception ");
-        sb3.append(ar.exception);
-        Log.e(LOG_TAG, sb3.toString());
+        Log.e(LOG_TAG, "qcRilSetPrioritySubscription: Exception " + ar.exception);
         return VDBG;
     }
 
     public int qcRilGetCsgId() {
         AsyncResult ar = sendQcRilHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_CSG_ID);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("qcRilGetCsgId: Exception ");
-            sb.append(ar.exception);
-            Log.e(str, sb.toString());
+        if (ar.exception != null) {
+            Log.e(LOG_TAG, "qcRilGetCsgId: Exception " + ar.exception);
             return -1;
         } else if (ar.result != null) {
             int csgId = ByteBuffer.wrap((byte[]) ar.result).get();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("qcRilGetCsgId: csg Id ");
-            sb2.append(csgId);
-            logd(sb2.toString());
+            logd("qcRilGetCsgId: csg Id " + csgId);
             return csgId;
         } else {
-            Log.e(str, "qcRilGetCsgId: Null Response");
+            Log.e(LOG_TAG, "qcRilGetCsgId: Null Response");
             return -1;
         }
     }
 
     public int qcRilGetPrioritySubscription() {
         AsyncResult ar = sendQcRilHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_PAGING_PRIORITY);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("qcRilGetPrioritySubscription: Exception ");
-            sb.append(ar.exception);
-            Log.e(str, sb.toString());
+        if (ar.exception != null) {
+            Log.e(LOG_TAG, "qcRilGetPrioritySubscription: Exception " + ar.exception);
             return 0;
         } else if (ar.result != null) {
             int subscriptionIndex = ByteBuffer.wrap((byte[]) ar.result).get();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("qcRilGetPrioritySubscription: subscriptionIndex ");
-            sb2.append(subscriptionIndex);
-            logv(sb2.toString());
+            logv("qcRilGetPrioritySubscription: subscriptionIndex " + subscriptionIndex);
             return subscriptionIndex;
         } else {
-            Log.e(str, "qcRilGetPrioritySubscription: Null Response");
+            Log.e(LOG_TAG, "qcRilGetPrioritySubscription: Null Response");
             return 0;
         }
     }
 
     public boolean qcRilInformShutDown(int phoneId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL Inform shutdown for phoneId ");
-        sb.append(phoneId);
-        logd(sb.toString());
-        sendQcRilHookMsgAsync(IQcRilHook.QCRIL_EVT_HOOK_INFORM_SHUTDOWN, null, new OemHookCallback(null) {
+        logd("QCRIL Inform shutdown for phoneId " + phoneId);
+        sendQcRilHookMsgAsync(IQcRilHook.QCRIL_EVT_HOOK_INFORM_SHUTDOWN, (byte[]) null, new OemHookCallback((Message) null) {
             public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
                 QcRilHook.this.logd("QCRIL Inform shutdown DONE!");
             }
@@ -942,10 +728,7 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL Avoid the current cdma network Command returned Exception: ");
-        sb.append(ar.exception);
-        Log.e(LOG_TAG, sb.toString());
+        Log.e(LOG_TAG, "QCRIL Avoid the current cdma network Command returned Exception: " + ar.exception);
         return VDBG;
     }
 
@@ -956,20 +739,12 @@ public class QcRilHook implements IQcRilHook {
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_HOOK_ENABLE_ENGINEER_MODE, 0);
         reqBuffer.putInt(ratType);
         reqBuffer.putInt(enable);
-        StringBuilder sb = new StringBuilder();
-        sb.append("enable = ");
-        sb.append(enable);
-        sb.append("ratType =");
-        sb.append(ratType);
-        logd(sb.toString());
+        logd("enable = " + enable + "ratType =" + ratType);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_ENABLE_ENGINEER_MODE, request, phoneId);
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("QCRIL enable engineer mode cmd returned exception: ");
-        sb2.append(ar.exception);
-        Log.e(LOG_TAG, sb2.toString());
+        Log.e(LOG_TAG, "QCRIL enable engineer mode cmd returned exception: " + ar.exception);
         return VDBG;
     }
 
@@ -978,35 +753,24 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL Clear the cdma avoidance list Command returned Exception: ");
-        sb.append(ar.exception);
-        Log.e(LOG_TAG, sb.toString());
+        Log.e(LOG_TAG, "QCRIL Clear the cdma avoidance list Command returned Exception: " + ar.exception);
         return VDBG;
     }
 
     public byte[] qcRilCdmaGetAvoidanceList() {
         AsyncResult ar = sendQcRilHookMsg(IQcRilHook.QCRIL_EVT_HOOK_CDMA_GET_AVOIDANCE_LIST);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL Get the cdma avoidance list Command returned Exception: ");
-            sb.append(ar.exception);
-            Log.e(str, sb.toString());
+        if (ar.exception != null) {
+            Log.e(LOG_TAG, "QCRIL Get the cdma avoidance list Command returned Exception: " + ar.exception);
             return null;
         } else if (ar.result != null) {
             byte[] result = (byte[]) ar.result;
             if (result.length == AVOIDANCE_BUFF_LEN) {
                 return result;
             }
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("QCRIL Get unexpected cdma avoidance list buffer length: ");
-            sb2.append(result.length);
-            Log.e(str, sb2.toString());
+            Log.e(LOG_TAG, "QCRIL Get unexpected cdma avoidance list buffer length: " + result.length);
             return null;
         } else {
-            Log.e(str, "QCRIL Get cdma avoidance list command returned a null result.");
+            Log.e(LOG_TAG, "QCRIL Get cdma avoidance list command returned a null result.");
             return null;
         }
     }
@@ -1019,10 +783,7 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL perform incr manual scan returned exception ");
-        sb.append(ar.exception);
-        Log.e(LOG_TAG, sb.toString());
+        Log.e(LOG_TAG, "QCRIL perform incr manual scan returned exception " + ar.exception);
         return VDBG;
     }
 
@@ -1034,19 +795,14 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("QCRIL cancel ongoing nw scan returned exception ");
-        sb.append(ar.exception);
-        Log.e(LOG_TAG, sb.toString());
+        Log.e(LOG_TAG, "QCRIL cancel ongoing nw scan returned exception " + ar.exception);
         return VDBG;
     }
 
     public boolean qcrilSetBuiltInPLMNList(byte[] payload, int phoneId) {
         validateInternalState();
-        boolean retval = VDBG;
-        String str = LOG_TAG;
         if (payload == null) {
-            Log.e(str, "payload is null");
+            Log.e(LOG_TAG, "payload is null");
             return VDBG;
         }
         byte[] request = new byte[(this.mHeaderSize + payload.length)];
@@ -1055,34 +811,24 @@ public class QcRilHook implements IQcRilHook {
         reqBuffer.put(payload);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_SET_BUILTIN_PLMN_LIST, request, phoneId);
         if (ar.exception == null) {
-            retval = DBG;
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL set builtin PLMN list returned exception: ");
-            sb.append(ar.exception);
-            Log.e(str, sb.toString());
+            return DBG;
         }
-        return retval;
+        Log.e(LOG_TAG, "QCRIL set builtin PLMN list returned exception: " + ar.exception);
+        return VDBG;
     }
 
     public boolean qcRilSetPreferredNetworkAcqOrder(int acqOrder, int phoneId) {
         validateInternalState();
         byte[] request = new byte[(this.mHeaderSize + 4)];
         ByteBuffer reqBuffer = createBufferWithNativeByteOrder(request);
-        StringBuilder sb = new StringBuilder();
-        sb.append("acq order: ");
-        sb.append(acqOrder);
-        logd(sb.toString());
+        logd("acq order: " + acqOrder);
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_HOOK_SET_PREFERRED_NETWORK_ACQ_ORDER, 4);
         reqBuffer.putInt(acqOrder);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_SET_PREFERRED_NETWORK_ACQ_ORDER, request, phoneId);
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("QCRIL set acq order cmd returned exception: ");
-        sb2.append(ar.exception);
-        Log.e(LOG_TAG, sb2.toString());
+        Log.e(LOG_TAG, "QCRIL set acq order cmd returned exception: " + ar.exception);
         return VDBG;
     }
 
@@ -1091,52 +837,37 @@ public class QcRilHook implements IQcRilHook {
         byte[] request = new byte[this.mHeaderSize];
         addQcRilHookHeader(createBufferWithNativeByteOrder(request), IQcRilHook.QCRIL_EVT_HOOK_GET_PREFERRED_NETWORK_ACQ_ORDER, 4);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_PREFERRED_NETWORK_ACQ_ORDER, request, phoneId);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL set acq order cmd returned exception: ");
-            sb.append(ar.exception);
-            Log.e(str, sb.toString());
+        if (ar.exception != null) {
+            Log.e(LOG_TAG, "QCRIL set acq order cmd returned exception: " + ar.exception);
             return 0;
         } else if (ar.result != null) {
             byte acq_order = ByteBuffer.wrap((byte[]) ar.result).get();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("acq order is ");
-            sb2.append(acq_order);
-            logd(sb2.toString());
+            logd("acq order is " + acq_order);
             return acq_order;
         } else {
-            Log.e(str, "no acq order result return");
+            Log.e(LOG_TAG, "no acq order result return");
             return 0;
         }
     }
 
     public boolean qcRilSetLteTuneaway(boolean enable, int phoneId) {
         validateInternalState();
-        boolean z = enable;
         byte[] request = new byte[(this.mHeaderSize + 1)];
         ByteBuffer reqBuffer = createBufferWithNativeByteOrder(request);
-        StringBuilder sb = new StringBuilder();
-        sb.append("qcRilSetLteTuneaway enable :");
-        sb.append(enable);
-        logd(sb.toString());
+        logd("qcRilSetLteTuneaway enable :" + enable);
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_HOOK_SET_LTE_TUNE_AWAY, 1);
-        reqBuffer.put(z ? (byte) 1 : 0);
+        reqBuffer.put((byte) enable);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_SET_LTE_TUNE_AWAY, request, phoneId);
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("QCRIL set lte tune away returned exception: ");
-        sb2.append(ar.exception);
-        Log.e(LOG_TAG, sb2.toString());
+        Log.e(LOG_TAG, "QCRIL set lte tune away returned exception: " + ar.exception);
         return VDBG;
     }
 
     public void qcRilSendDataEnableStatus(int enable, int phoneId) {
         validateInternalState();
-        OemHookCallback oemHookCb = new OemHookCallback(null) {
+        OemHookCallback oemHookCb = new OemHookCallback((Message) null) {
             public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
                 QcRilHook.this.logd("QCRIL send data enable status DONE!");
             }
@@ -1150,7 +881,7 @@ public class QcRilHook implements IQcRilHook {
 
     public void qcRilSendDataRoamingEnableStatus(int enable, int phoneId) {
         validateInternalState();
-        OemHookCallback oemHookCb = new OemHookCallback(null) {
+        OemHookCallback oemHookCb = new OemHookCallback((Message) null) {
             public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
                 QcRilHook.this.logd("QCRIL send data roaming enable status DONE!");
             }
@@ -1164,7 +895,7 @@ public class QcRilHook implements IQcRilHook {
 
     public void qcRilSendApnInfo(String type, String apn, int isValid, int phoneId) {
         validateInternalState();
-        OemHookCallback oemHookCb = new OemHookCallback(null) {
+        OemHookCallback oemHookCb = new OemHookCallback((Message) null) {
             public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
                 QcRilHook.this.logd("QCRIL send apn info DONE!");
             }
@@ -1179,10 +910,10 @@ public class QcRilHook implements IQcRilHook {
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_HOOK_SET_APN_INFO, payloadSize);
         reqBuffer.putInt(type.getBytes().length + 1);
         reqBuffer.put(type.getBytes());
-        reqBuffer.put(0);
+        reqBuffer.put((byte) 0);
         reqBuffer.putInt(apn.getBytes().length + 1);
         reqBuffer.put(apn.getBytes());
-        reqBuffer.put(0);
+        reqBuffer.put((byte) 0);
         reqBuffer.putInt(isValid);
         sendRilOemHookMsgAsync(IQcRilHook.QCRIL_EVT_HOOK_SET_APN_INFO, request, oemHookCb, phoneId);
     }
@@ -1191,12 +922,7 @@ public class QcRilHook implements IQcRilHook {
         validateInternalState();
         byte[] request = new byte[(this.mHeaderSize + 8)];
         ByteBuffer reqBuffer = createBufferWithNativeByteOrder(request);
-        StringBuilder sb = new StringBuilder();
-        sb.append("dds phoneId: ");
-        sb.append(dds);
-        sb.append(" reason: ");
-        sb.append(reason);
-        logd(sb.toString());
+        logd("dds phoneId: " + dds + " reason: " + reason);
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_HOOK_SET_DATA_SUBSCRIPTION, 8);
         reqBuffer.putInt(dds);
         reqBuffer.putInt(reason);
@@ -1204,35 +930,23 @@ public class QcRilHook implements IQcRilHook {
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("QCRIL send dds sub info returned exception: ");
-        sb2.append(ar.exception);
-        Log.e(LOG_TAG, sb2.toString());
+        Log.e(LOG_TAG, "QCRIL send dds sub info returned exception: " + ar.exception);
         return VDBG;
     }
 
     public boolean setLocalCallHold(int phoneId, boolean enable) {
         validateInternalState();
-        boolean z = enable;
         byte[] request = new byte[(this.mHeaderSize + 1)];
         ByteBuffer reqBuffer = createBufferWithNativeByteOrder(request);
-        StringBuilder sb = new StringBuilder();
-        sb.append("setLocalCallHold: ");
-        sb.append(phoneId);
-        sb.append(" ");
-        sb.append(enable);
-        logd(sb.toString());
+        logd("setLocalCallHold: " + phoneId + " " + enable);
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_SET_LOCAL_CALL_HOLD, 1);
-        reqBuffer.put(z ? (byte) 1 : 0);
+        reqBuffer.put((byte) enable);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_SET_LOCAL_CALL_HOLD, request, phoneId);
         if (ar.exception == null) {
             logd("setLocalCallHold success");
             return DBG;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("QCRIL setLocalCallHold returned exception: ");
-        sb2.append(ar.exception);
-        Log.e(LOG_TAG, sb2.toString());
+        Log.e(LOG_TAG, "QCRIL setLocalCallHold returned exception: " + ar.exception);
         return VDBG;
     }
 
@@ -1240,20 +954,14 @@ public class QcRilHook implements IQcRilHook {
         validateInternalState();
         byte[] request = new byte[(this.mHeaderSize + 4)];
         ByteBuffer reqBuffer = createBufferWithNativeByteOrder(request);
-        StringBuilder sb = new StringBuilder();
-        sb.append("band pref: ");
-        sb.append(bandPref);
-        logd(sb.toString());
+        logd("band pref: " + bandPref);
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_HOOK_SET_PREFERRED_NETWORK_BAND_PREF, 4);
         reqBuffer.putInt(bandPref);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_SET_PREFERRED_NETWORK_BAND_PREF, request, phoneId);
         if (ar.exception == null) {
             return DBG;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("QCRIL set band pref cmd returned exception: ");
-        sb2.append(ar.exception);
-        Log.e(LOG_TAG, sb2.toString());
+        Log.e(LOG_TAG, "QCRIL set band pref cmd returned exception: " + ar.exception);
         return VDBG;
     }
 
@@ -1264,45 +972,29 @@ public class QcRilHook implements IQcRilHook {
         addQcRilHookHeader(reqBuffer, IQcRilHook.QCRIL_EVT_HOOK_GET_PREFERRED_NETWORK_BAND_PREF, 4);
         reqBuffer.putInt(bandType);
         AsyncResult ar = sendRilOemHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_PREFERRED_NETWORK_BAND_PREF, request, phoneId);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL get band perf cmd returned exception: ");
-            sb.append(ar.exception);
-            Log.e(str, sb.toString());
+        if (ar.exception != null) {
+            Log.e(LOG_TAG, "QCRIL get band perf cmd returned exception: " + ar.exception);
             return 0;
         } else if (ar.result != null) {
             byte band_pref = ByteBuffer.wrap((byte[]) ar.result).get();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("band pref is ");
-            sb2.append(band_pref);
-            logd(sb2.toString());
+            logd("band pref is " + band_pref);
             return band_pref;
         } else {
-            Log.e(str, "no band pref result return");
+            Log.e(LOG_TAG, "no band pref result return");
             return 0;
         }
     }
 
     public byte[] qcRilGetSlotStatus() {
         AsyncResult ar = sendQcRilHookMsg(IQcRilHook.QCRIL_EVT_HOOK_GET_SLOTS_STATUS_REQ);
-        Throwable th = ar.exception;
-        String str = LOG_TAG;
-        if (th != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QCRIL_EVT_HOOK_GET_SLOTS_STATUS_REQ failed w/ ");
-            sb.append(ar.exception);
-            Log.w(str, sb.toString());
+        if (ar.exception != null) {
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_SLOTS_STATUS_REQ failed w/ " + ar.exception);
             return null;
         } else if (ar.result == null) {
-            Log.w(str, "QCRIL_EVT_HOOK_GET_SLOTS_STATUS_REQ failed w/ null result");
+            Log.w(LOG_TAG, "QCRIL_EVT_HOOK_GET_SLOTS_STATUS_REQ failed w/ null result");
             return null;
         } else {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("QCRIL_EVT_HOOK_GET_SLOTS_STATUS_REQ returned w/ ");
-            sb2.append((byte[]) ar.result);
-            logv(sb2.toString());
+            logv("QCRIL_EVT_HOOK_GET_SLOTS_STATUS_REQ returned w/ " + ((byte[]) ar.result));
             return (byte[]) ar.result;
         }
     }

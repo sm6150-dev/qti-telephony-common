@@ -7,7 +7,7 @@ import android.hardware.radio.V1_0.SendSmsResult;
 import android.hidl.manager.V1_0.IServiceManager;
 import android.hidl.manager.V1_0.IServiceNotification;
 import android.os.AsyncResult;
-import android.os.IHwBinder.DeathRecipient;
+import android.os.IHwBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemProperties;
@@ -21,13 +21,13 @@ import vendor.qti.hardware.radio.qtiradio.V1_0.QtiRadioResponseInfo;
 import vendor.qti.hardware.radio.qtiradio.V2_0.DcParam;
 import vendor.qti.hardware.radio.qtiradio.V2_0.SignalStrength;
 import vendor.qti.hardware.radio.qtiradio.V2_1.UpperLayerIndInfo;
-import vendor.qti.hardware.radio.qtiradio.V2_2.IQtiRadioIndication.Stub;
+import vendor.qti.hardware.radio.qtiradio.V2_2.IQtiRadioIndication;
 import vendor.qti.hardware.radio.qtiradio.V2_3.IQtiRadioResponse;
 
 public final class QtiRIL extends RIL {
     static final String[] QTI_HIDL_SERVICE_NAME = {"slot1", "slot2", "slot3"};
     static final String TAG = "QTIRILJ";
-    Stub mClientRadioIndicationCb;
+    IQtiRadioIndication.Stub mClientRadioIndicationCb;
     IQtiRadioResponse.Stub mClientRadioResponseCb;
     final QtiRadioProxyDeathRecipient mDeathRecipient;
     int mQtiPhoneId;
@@ -37,461 +37,13 @@ public final class QtiRIL extends RIL {
     QtiRadioResponse mQtiRadioResponse;
     private final QtiRadioServiceNotification mServiceNotification;
 
-    public class QtiRadioIndication extends Stub {
-        static final String TAG = "QtiRadioIndication";
-        int mSlotId;
-
-        public QtiRadioIndication(int slotId) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            sb.append(slotId);
-            sb.append("]Constructor: ");
-            Rlog.d(TAG, sb.toString());
-            this.mSlotId = slotId;
-        }
-
-        public void on5gStatusChange(int enableStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("on5gStatusChange: slotId = ");
-            sb.append(this.mSlotId);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.on5gStatusChange(enableStatus);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrDcParamChange(DcParam dcParam) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrDcParamChange: slotId = ");
-            sb.append(this.mSlotId);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.onNrDcParamChange(dcParam);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrBearerAllocationChange_2_1(int bearerStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrBearerAllocationChange_2_1: slotId = ");
-            sb.append(this.mSlotId);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.onNrBearerAllocationChange_2_1(bearerStatus);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrBearerAllocationChange(int bearerStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrBearerAllocationChange: slotId = ");
-            sb.append(this.mSlotId);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.onNrBearerAllocationChange(bearerStatus);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onUpperLayerIndInfoChange(UpperLayerIndInfo uliInfo) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onUpperLayerIndInfoChange: UpperLayerIndInfo = ");
-            sb.append(uliInfo);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.onUpperLayerIndInfoChange(uliInfo);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void on5gConfigInfoChange(int confType) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("on5gConfigInfoChange: ConfigType = ");
-            sb.append(confType);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.on5gConfigInfoChange(confType);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrIconTypeChange(int iconType) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrIconTypeChange: iconType = ");
-            sb.append(iconType);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.onNrIconTypeChange(iconType);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onSignalStrengthChange(SignalStrength signalStrength) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onSignalStrengthChange: slotId = ");
-            sb.append(this.mSlotId);
-            Rlog.d(TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioIndicationCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioIndicationCb.onSignalStrengthChange(signalStrength);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void qtiRadioIndication(int value) {
-            Rlog.d(TAG, "qtiRadioIndication: NOP!!");
-        }
-    }
-
-    final class QtiRadioProxyDeathRecipient implements DeathRecipient {
+    final class QtiRadioProxyDeathRecipient implements IHwBinder.DeathRecipient {
         QtiRadioProxyDeathRecipient() {
         }
 
         public void serviceDied(long cookie) {
             Rlog.d(QtiRIL.TAG, "serviceDied");
             QtiRIL.this.resetServiceAndRequestList();
-        }
-    }
-
-    public class QtiRadioResponse extends IQtiRadioResponse.Stub {
-        static final String QTI_RILJ_LOG_TAG = "QtiRadioResponse";
-        QtiRIL mRil;
-
-        public QtiRadioResponse(QtiRIL ril) {
-            this.mRil = ril;
-        }
-
-        /* access modifiers changed from: 0000 */
-        public void sendMessageResponse(Message msg, Object ret) {
-            if (msg != null) {
-                AsyncResult.forMessage(msg, ret, null);
-                msg.sendToTarget();
-            }
-        }
-
-        /* access modifiers changed from: 0000 */
-        public RadioResponseInfo toRadioResponseInfo(QtiRadioResponseInfo qtiResponseInfo) {
-            RadioResponseInfo responseInfo = new RadioResponseInfo();
-            responseInfo.type = qtiResponseInfo.type;
-            responseInfo.serial = qtiResponseInfo.serial;
-            responseInfo.error = qtiResponseInfo.error;
-            return responseInfo;
-        }
-
-        private void responseString(RadioResponseInfo responseInfo, String str) {
-            Object request = this.mRil.qtiProcessResponse(responseInfo);
-            Message result = this.mRil.qtiGetMessageFromRequest(request);
-            if (result != null) {
-                if (responseInfo.error == 0) {
-                    sendMessageResponse(result, str);
-                }
-                this.mRil.qtiProcessResponseDone(request, responseInfo, str);
-            }
-        }
-
-        public void getAtrResponse(QtiRadioResponseInfo qtiResponseInfo, String atr) {
-            Rlog.d(QTI_RILJ_LOG_TAG, "getAtrResponse");
-            responseString(toRadioResponseInfo(qtiResponseInfo), atr);
-        }
-
-        public void onEnable5gResponse(int serial, int errorCode, int status) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onEnable5gResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" status = ");
-            sb.append(status);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onEnable5gResponse(serial, errorCode, status);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onDisable5gResponse(int serial, int errorCode, int status) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onDisable5gResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" status = ");
-            sb.append(status);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onDisable5gResponse(serial, errorCode, status);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onEnable5gOnlyResponse(int serial, int errorCode, int status) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onEnable5gOnlyResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" status = ");
-            sb.append(status);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onEnable5gOnlyResponse(serial, errorCode, status);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void on5gStatusResponse(int serial, int errorCode, int enabled) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("on5gStatusResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" enabled = ");
-            sb.append(enabled);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.on5gStatusResponse(serial, errorCode, enabled);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrDcParamResponse(int serial, int errorCode, DcParam dcParam) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrDcParamResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" dcParam = ");
-            sb.append(dcParam);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onNrDcParamResponse(serial, errorCode, dcParam);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrBearerAllocationResponse_2_1(int serial, int errorCode, int bearerStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrBearerAllocationResponse_2_1: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" bearerStatus = ");
-            sb.append(bearerStatus);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onNrBearerAllocationResponse_2_1(serial, errorCode, bearerStatus);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrBearerAllocationResponse(int serial, int errorCode, int bearerStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrBearerAllocationResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" bearerStatus = ");
-            sb.append(bearerStatus);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onNrBearerAllocationResponse(serial, errorCode, bearerStatus);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onUpperLayerIndInfoResponse(int serial, int errorCode, UpperLayerIndInfo uliInfo) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("UpperLayerIndInfoResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" UpperLayerIndInfo = ");
-            sb.append(uliInfo);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onUpperLayerIndInfoResponse(serial, errorCode, uliInfo);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void on5gConfigInfoResponse(int serial, int errorCode, int confType) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("on5gConfigInfoResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" ConfigType = ");
-            sb.append(confType);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.on5gConfigInfoResponse(serial, errorCode, confType);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onSignalStrengthResponse(int serial, int errorCode, SignalStrength signalStrength) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onSignalStrengthResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" signalStrength = ");
-            sb.append(signalStrength);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onSignalStrengthResponse(serial, errorCode, signalStrength);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onNrIconTypeResponse(int serial, int errorCode, int iconType) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrIconTypeResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" iconType = ");
-            sb.append(iconType);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onNrIconTypeResponse(serial, errorCode, iconType);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onEnableEndcResponse(int serial, int errorCode, int status) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onEnableEndcResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" status = ");
-            sb.append(status);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onEnableEndcResponse(serial, errorCode, status);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void onEndcStatusResponse(int serial, int errorCode, int endcStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onEndcStatusResponse: serial = ");
-            sb.append(serial);
-            sb.append(" errorCode = ");
-            sb.append(errorCode);
-            sb.append(" endcStatus = ");
-            sb.append(endcStatus);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (QtiRIL.this.mClientRadioResponseCb != null) {
-                try {
-                    QtiRIL.this.mClientRadioResponseCb.onEndcStatusResponse(serial, errorCode, endcStatus);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        private void responseSms(RadioResponseInfo responseInfo, SendSmsResult sms) {
-            Object request = this.mRil.qtiProcessResponse(responseInfo);
-            if (request != null) {
-                Message result = this.mRil.qtiGetMessageFromRequest(request);
-                SmsResponse ret = new SmsResponse(sms.messageRef, sms.ackPDU, sms.errorCode);
-                if (responseInfo.error == 0) {
-                    sendMessageResponse(result, ret);
-                }
-                this.mRil.qtiProcessResponseDone(request, responseInfo, ret);
-            }
-        }
-
-        public void sendCdmaSmsResponse(QtiRadioResponseInfo qtiResponseInfo, SendSmsResult sms) {
-            Rlog.d(QtiRIL.TAG, "sendCdmaSmsResponse");
-            RadioResponseInfo responseInfo = toRadioResponseInfo(qtiResponseInfo);
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            sb.append(qtiResponseInfo.serial);
-            sb.append("] < RIL_REQUEST_CDMA_SEND_SMS ");
-            Rlog.d(QTI_RILJ_LOG_TAG, sb.toString());
-            responseSms(responseInfo, sms);
-        }
-    }
-
-    final class QtiRadioServiceNotification extends IServiceNotification.Stub {
-        QtiRadioServiceNotification() {
-        }
-
-        public void onRegistration(String fqName, String name, boolean preexisting) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("QtiRadio interface service started ");
-            sb.append(fqName);
-            sb.append(" ");
-            sb.append(name);
-            sb.append(" preexisting =");
-            sb.append(preexisting);
-            Rlog.d(QtiRIL.TAG, sb.toString());
-            if (!QtiRIL.this.isQtiRadioServiceConnected()) {
-                QtiRIL.this.initQtiRadio();
-            }
         }
     }
 
@@ -509,17 +61,25 @@ public final class QtiRIL extends RIL {
         return this.mQtiRadio != null;
     }
 
+    final class QtiRadioServiceNotification extends IServiceNotification.Stub {
+        QtiRadioServiceNotification() {
+        }
+
+        public void onRegistration(String fqName, String name, boolean preexisting) {
+            Rlog.d(QtiRIL.TAG, "QtiRadio interface service started " + fqName + " " + name + " preexisting =" + preexisting);
+            if (!QtiRIL.this.isQtiRadioServiceConnected()) {
+                QtiRIL.this.initQtiRadio();
+            }
+        }
+    }
+
     private void registerForQtiRadioServiceNotification() {
-        String str = TAG;
         try {
             if (!IServiceManager.getService().registerForNotifications(IQtiRadio.kInterfaceName, QTI_HIDL_SERVICE_NAME[this.mQtiPhoneId], this.mServiceNotification)) {
-                Rlog.e(str, "Failed to register for service start notifications");
+                Rlog.e(TAG, "Failed to register for service start notifications");
             }
         } catch (RemoteException ex) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Failed to register for service start notifications. Exception ");
-            sb.append(ex);
-            Rlog.e(str, sb.toString());
+            Rlog.e(TAG, "Failed to register for service start notifications. Exception " + ex);
         }
     }
 
@@ -531,28 +91,20 @@ public final class QtiRIL extends RIL {
                 Rlog.e(TAG, "initQtiRadio: mQtiRadio is null. Return");
                 return;
             }
-            String str = TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("initQtiRadio: mQtiRadio");
-            sb.append(this.mQtiRadio);
-            Rlog.d(str, sb.toString());
+            Rlog.d(TAG, "initQtiRadio: mQtiRadio" + this.mQtiRadio);
             this.mQtiRadio.linkToDeath(this.mDeathRecipient, this.mQtiRadioProxyCookie.incrementAndGet());
             this.mQtiRadioResponse = new QtiRadioResponse(this);
             this.mQtiRadioIndication = new QtiRadioIndication(this.mQtiPhoneId);
             this.mQtiRadio.setCallback(this.mQtiRadioResponse, this.mQtiRadioIndication);
         } catch (Exception ex) {
-            String str2 = TAG;
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("initQtiRadio: Exception: ");
-            sb2.append(ex);
-            Rlog.e(str2, sb2.toString());
+            Rlog.e(TAG, "initQtiRadio: Exception: " + ex);
             resetServiceAndRequestList();
         }
         return;
     }
 
     public QtiRIL(Context context, int preferredNetworkType, int cdmaSubscription) {
-        this(context, preferredNetworkType, cdmaSubscription, null);
+        this(context, preferredNetworkType, cdmaSubscription, (Integer) null);
     }
 
     public QtiRIL(Context context, int preferredNetworkType, int cdmaSubscription, Integer instanceId) {
@@ -567,20 +119,18 @@ public final class QtiRIL extends RIL {
     }
 
     public IQtiRadio getQtiRadioProxy(Message result) {
-        boolean z = this.mIsMobileNetworkSupported;
-        String str = TAG;
-        if (!z) {
-            Rlog.d(str, "getQtiRadioProxy: Not calling getService(): wifi-only");
+        if (!this.mIsMobileNetworkSupported) {
+            Rlog.d(TAG, "getQtiRadioProxy: Not calling getService(): wifi-only");
             if (result != null) {
-                AsyncResult.forMessage(result, null, CommandException.fromRilErrno(1));
+                AsyncResult.forMessage(result, (Object) null, CommandException.fromRilErrno(1));
                 result.sendToTarget();
             }
             return null;
         }
         if (this.mQtiRadio == null) {
-            Rlog.d(str, "getQtiRadioProxy: mRadioProxy == null");
+            Rlog.d(TAG, "getQtiRadioProxy: mRadioProxy == null");
             if (result != null) {
-                AsyncResult.forMessage(result, null, CommandException.fromRilErrno(1));
+                AsyncResult.forMessage(result, (Object) null, CommandException.fromRilErrno(1));
                 result.sendToTarget();
             }
         }
@@ -749,22 +299,15 @@ public final class QtiRIL extends RIL {
     }
 
     public void sendCdmaSms(byte[] pdu, Message result, boolean expectMore) {
-        boolean equals = SystemProperties.get("persist.radio.feature").equals("CDMA_SMS");
-        String str = TAG;
-        if (!equals) {
-            Rlog.d(str, "Feature not enabled, fall back to default sendCdmaSms");
+        if (!SystemProperties.get("persist.radio.feature").equals("CDMA_SMS")) {
+            Rlog.d(TAG, "Feature not enabled, fall back to default sendCdmaSms");
             QtiRIL.super.sendCdmaSms(pdu, result);
             return;
         }
-        vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadio radioProxy2_0 = vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadio.castFrom(getQtiRadioProxy(null));
+        vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadio radioProxy2_0 = vendor.qti.hardware.radio.qtiradio.V2_0.IQtiRadio.castFrom(getQtiRadioProxy((Message) null));
         if (radioProxy2_0 != null) {
             int serial = obtainRequestSerial(87, result, this.mRILDefaultWorkSource);
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            sb.append(serial);
-            sb.append("] >  RIL_REQUEST_CDMA_SEND_SMS expectMore=");
-            sb.append(expectMore);
-            Rlog.d(str, sb.toString());
+            Rlog.d(TAG, "[" + serial + "] >  RIL_REQUEST_CDMA_SEND_SMS expectMore=" + expectMore);
             CdmaSmsMessage msg = new CdmaSmsMessage();
             constructCdmaSendSmsRilRequest(msg, pdu);
             try {
@@ -774,28 +317,334 @@ public final class QtiRIL extends RIL {
                 resetServiceAndRequestList();
             }
         } else {
-            Rlog.d(str, "fall back to default sendCdmaSms");
+            Rlog.d(TAG, "fall back to default sendCdmaSms");
             QtiRIL.super.sendCdmaSms(pdu, result);
         }
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public Message qtiGetMessageFromRequest(Object request) {
         return getMessageFromRequest(request);
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public Object qtiProcessResponse(RadioResponseInfo responseInfo) {
         return processResponse(responseInfo);
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public void qtiProcessResponseDone(Object ret, RadioResponseInfo responseInfo, Object str) {
         processResponseDone(ret, responseInfo, str);
     }
 
-    public void setCallbacks(IQtiRadioResponse.Stub qtiRadioResponse, Stub qtiRadioIndication) {
+    public void setCallbacks(IQtiRadioResponse.Stub qtiRadioResponse, IQtiRadioIndication.Stub qtiRadioIndication) {
         this.mClientRadioResponseCb = qtiRadioResponse;
         this.mClientRadioIndicationCb = qtiRadioIndication;
+    }
+
+    public class QtiRadioResponse extends IQtiRadioResponse.Stub {
+        static final String QTI_RILJ_LOG_TAG = "QtiRadioResponse";
+        QtiRIL mRil;
+
+        public QtiRadioResponse(QtiRIL ril) {
+            this.mRil = ril;
+        }
+
+        /* access modifiers changed from: package-private */
+        public void sendMessageResponse(Message msg, Object ret) {
+            if (msg != null) {
+                AsyncResult.forMessage(msg, ret, (Throwable) null);
+                msg.sendToTarget();
+            }
+        }
+
+        /* access modifiers changed from: package-private */
+        public RadioResponseInfo toRadioResponseInfo(QtiRadioResponseInfo qtiResponseInfo) {
+            RadioResponseInfo responseInfo = new RadioResponseInfo();
+            responseInfo.type = qtiResponseInfo.type;
+            responseInfo.serial = qtiResponseInfo.serial;
+            responseInfo.error = qtiResponseInfo.error;
+            return responseInfo;
+        }
+
+        private void responseString(RadioResponseInfo responseInfo, String str) {
+            Object request = this.mRil.qtiProcessResponse(responseInfo);
+            Message result = this.mRil.qtiGetMessageFromRequest(request);
+            if (result != null) {
+                if (responseInfo.error == 0) {
+                    sendMessageResponse(result, str);
+                }
+                this.mRil.qtiProcessResponseDone(request, responseInfo, str);
+            }
+        }
+
+        public void getAtrResponse(QtiRadioResponseInfo qtiResponseInfo, String atr) {
+            Rlog.d(QTI_RILJ_LOG_TAG, "getAtrResponse");
+            responseString(toRadioResponseInfo(qtiResponseInfo), atr);
+        }
+
+        public void onEnable5gResponse(int serial, int errorCode, int status) {
+            Rlog.d(QtiRIL.TAG, "onEnable5gResponse: serial = " + serial + " errorCode = " + errorCode + " status = " + status);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onEnable5gResponse(serial, errorCode, status);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onDisable5gResponse(int serial, int errorCode, int status) {
+            Rlog.d(QtiRIL.TAG, "onDisable5gResponse: serial = " + serial + " errorCode = " + errorCode + " status = " + status);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onDisable5gResponse(serial, errorCode, status);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onEnable5gOnlyResponse(int serial, int errorCode, int status) {
+            Rlog.d(QtiRIL.TAG, "onEnable5gOnlyResponse: serial = " + serial + " errorCode = " + errorCode + " status = " + status);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onEnable5gOnlyResponse(serial, errorCode, status);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void on5gStatusResponse(int serial, int errorCode, int enabled) {
+            Rlog.d(QtiRIL.TAG, "on5gStatusResponse: serial = " + serial + " errorCode = " + errorCode + " enabled = " + enabled);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.on5gStatusResponse(serial, errorCode, enabled);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrDcParamResponse(int serial, int errorCode, DcParam dcParam) {
+            Rlog.d(QtiRIL.TAG, "onNrDcParamResponse: serial = " + serial + " errorCode = " + errorCode + " dcParam = " + dcParam);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onNrDcParamResponse(serial, errorCode, dcParam);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrBearerAllocationResponse_2_1(int serial, int errorCode, int bearerStatus) {
+            Rlog.d(QtiRIL.TAG, "onNrBearerAllocationResponse_2_1: serial = " + serial + " errorCode = " + errorCode + " bearerStatus = " + bearerStatus);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onNrBearerAllocationResponse_2_1(serial, errorCode, bearerStatus);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrBearerAllocationResponse(int serial, int errorCode, int bearerStatus) {
+            Rlog.d(QtiRIL.TAG, "onNrBearerAllocationResponse: serial = " + serial + " errorCode = " + errorCode + " bearerStatus = " + bearerStatus);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onNrBearerAllocationResponse(serial, errorCode, bearerStatus);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onUpperLayerIndInfoResponse(int serial, int errorCode, UpperLayerIndInfo uliInfo) {
+            Rlog.d(QtiRIL.TAG, "UpperLayerIndInfoResponse: serial = " + serial + " errorCode = " + errorCode + " UpperLayerIndInfo = " + uliInfo);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onUpperLayerIndInfoResponse(serial, errorCode, uliInfo);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void on5gConfigInfoResponse(int serial, int errorCode, int confType) {
+            Rlog.d(QtiRIL.TAG, "on5gConfigInfoResponse: serial = " + serial + " errorCode = " + errorCode + " ConfigType = " + confType);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.on5gConfigInfoResponse(serial, errorCode, confType);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onSignalStrengthResponse(int serial, int errorCode, SignalStrength signalStrength) {
+            Rlog.d(QtiRIL.TAG, "onSignalStrengthResponse: serial = " + serial + " errorCode = " + errorCode + " signalStrength = " + signalStrength);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onSignalStrengthResponse(serial, errorCode, signalStrength);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrIconTypeResponse(int serial, int errorCode, int iconType) {
+            Rlog.d(QtiRIL.TAG, "onNrIconTypeResponse: serial = " + serial + " errorCode = " + errorCode + " iconType = " + iconType);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onNrIconTypeResponse(serial, errorCode, iconType);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onEnableEndcResponse(int serial, int errorCode, int status) {
+            Rlog.d(QtiRIL.TAG, "onEnableEndcResponse: serial = " + serial + " errorCode = " + errorCode + " status = " + status);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onEnableEndcResponse(serial, errorCode, status);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onEndcStatusResponse(int serial, int errorCode, int endcStatus) {
+            Rlog.d(QtiRIL.TAG, "onEndcStatusResponse: serial = " + serial + " errorCode = " + errorCode + " endcStatus = " + endcStatus);
+            if (QtiRIL.this.mClientRadioResponseCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioResponseCb.onEndcStatusResponse(serial, errorCode, endcStatus);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private void responseSms(RadioResponseInfo responseInfo, SendSmsResult sms) {
+            Object request = this.mRil.qtiProcessResponse(responseInfo);
+            if (request != null) {
+                Message result = this.mRil.qtiGetMessageFromRequest(request);
+                SmsResponse ret = new SmsResponse(sms.messageRef, sms.ackPDU, sms.errorCode);
+                if (responseInfo.error == 0) {
+                    sendMessageResponse(result, ret);
+                }
+                this.mRil.qtiProcessResponseDone(request, responseInfo, ret);
+            }
+        }
+
+        public void sendCdmaSmsResponse(QtiRadioResponseInfo qtiResponseInfo, SendSmsResult sms) {
+            Rlog.d(QtiRIL.TAG, "sendCdmaSmsResponse");
+            RadioResponseInfo responseInfo = toRadioResponseInfo(qtiResponseInfo);
+            Rlog.d(QTI_RILJ_LOG_TAG, "[" + qtiResponseInfo.serial + "] < RIL_REQUEST_CDMA_SEND_SMS ");
+            responseSms(responseInfo, sms);
+        }
+    }
+
+    public class QtiRadioIndication extends IQtiRadioIndication.Stub {
+        static final String TAG = "QtiRadioIndication";
+        int mSlotId;
+
+        public QtiRadioIndication(int slotId) {
+            Rlog.d(TAG, "[" + slotId + "]Constructor: ");
+            this.mSlotId = slotId;
+        }
+
+        public void on5gStatusChange(int enableStatus) {
+            Rlog.d(TAG, "on5gStatusChange: slotId = " + this.mSlotId);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.on5gStatusChange(enableStatus);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrDcParamChange(DcParam dcParam) {
+            Rlog.d(TAG, "onNrDcParamChange: slotId = " + this.mSlotId);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.onNrDcParamChange(dcParam);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrBearerAllocationChange_2_1(int bearerStatus) {
+            Rlog.d(TAG, "onNrBearerAllocationChange_2_1: slotId = " + this.mSlotId);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.onNrBearerAllocationChange_2_1(bearerStatus);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrBearerAllocationChange(int bearerStatus) {
+            Rlog.d(TAG, "onNrBearerAllocationChange: slotId = " + this.mSlotId);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.onNrBearerAllocationChange(bearerStatus);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onUpperLayerIndInfoChange(UpperLayerIndInfo uliInfo) {
+            Rlog.d(TAG, "onUpperLayerIndInfoChange: UpperLayerIndInfo = " + uliInfo);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.onUpperLayerIndInfoChange(uliInfo);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void on5gConfigInfoChange(int confType) {
+            Rlog.d(TAG, "on5gConfigInfoChange: ConfigType = " + confType);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.on5gConfigInfoChange(confType);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onNrIconTypeChange(int iconType) {
+            Rlog.d(TAG, "onNrIconTypeChange: iconType = " + iconType);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.onNrIconTypeChange(iconType);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void onSignalStrengthChange(SignalStrength signalStrength) {
+            Rlog.d(TAG, "onSignalStrengthChange: slotId = " + this.mSlotId);
+            if (QtiRIL.this.mClientRadioIndicationCb != null) {
+                try {
+                    QtiRIL.this.mClientRadioIndicationCb.onSignalStrengthChange(signalStrength);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void qtiRadioIndication(int value) {
+            Rlog.d(TAG, "qtiRadioIndication: NOP!!");
+        }
     }
 }

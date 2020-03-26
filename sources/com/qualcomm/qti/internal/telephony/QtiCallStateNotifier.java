@@ -6,7 +6,7 @@ import android.os.Message;
 import android.os.RegistrantList;
 import android.telephony.Rlog;
 import android.telephony.TelephonyManager;
-import com.android.internal.telephony.Call.State;
+import com.android.internal.telephony.Call;
 import com.android.internal.telephony.GsmCdmaCall;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.imsphone.ImsPhone;
@@ -33,43 +33,6 @@ public class QtiCallStateNotifier {
     private Phone[] mPhones;
     private GsmCdmaCall[] mRiCsCalls;
     private ImsPhoneCall[] mRiImsCalls;
-
-    private class CallStateHandler extends Handler {
-        private CallStateHandler() {
-        }
-
-        public void handleMessage(Message msg) {
-            int phoneId = ((Integer) ((AsyncResult) msg.obj).userObj).intValue();
-            int i = msg.what;
-            if (i != 101 && i != 102) {
-                return;
-            }
-            if (!QtiCallStateNotifier.this.mIsCallInActiveState && QtiCallStateNotifier.this.isCallActive(phoneId)) {
-                QtiCallStateNotifier qtiCallStateNotifier = QtiCallStateNotifier.this;
-                StringBuilder sb = new StringBuilder();
-                sb.append("processCallStateChanged: call active on phone");
-                sb.append(phoneId);
-                qtiCallStateNotifier.log(sb.toString());
-                QtiCallStateNotifier.this.mIsCallInActiveState = true;
-            } else if (QtiCallStateNotifier.this.isCallIdle(phoneId)) {
-                QtiCallStateNotifier qtiCallStateNotifier2 = QtiCallStateNotifier.this;
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("processCallStateChanged: call disconnected on phone");
-                sb2.append(phoneId);
-                qtiCallStateNotifier2.log(sb2.toString());
-                QtiCallStateNotifier.this.mIsCallInActiveState = false;
-                QtiCallStateNotifier.this.mIsCallInProgress = false;
-                QtiCallStateNotifier.this.mCallEndRegistrants.notifyRegistrants();
-            } else if (!QtiCallStateNotifier.this.mIsCallInProgress) {
-                QtiCallStateNotifier qtiCallStateNotifier3 = QtiCallStateNotifier.this;
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("processCallStateChanged: call started on phone");
-                sb3.append(phoneId);
-                qtiCallStateNotifier3.log(sb3.toString());
-                QtiCallStateNotifier.this.mIsCallInProgress = true;
-            }
-        }
-    }
 
     public static void init(Phone[] phones) {
         synchronized (QtiCallStateNotifier.class) {
@@ -140,17 +103,17 @@ public class QtiCallStateNotifier {
     /* access modifiers changed from: private */
     public boolean isCallActive(int phoneId) {
         GsmCdmaCall[] gsmCdmaCallArr = this.mFgCsCalls;
-        if (gsmCdmaCallArr[phoneId] == null || gsmCdmaCallArr[phoneId].getState() != State.ACTIVE) {
+        if (gsmCdmaCallArr[phoneId] == null || gsmCdmaCallArr[phoneId].getState() != Call.State.ACTIVE) {
             GsmCdmaCall[] gsmCdmaCallArr2 = this.mBgCsCalls;
-            if (gsmCdmaCallArr2[phoneId] == null || gsmCdmaCallArr2[phoneId].getState() != State.ACTIVE) {
+            if (gsmCdmaCallArr2[phoneId] == null || gsmCdmaCallArr2[phoneId].getState() != Call.State.ACTIVE) {
                 GsmCdmaCall[] gsmCdmaCallArr3 = this.mRiCsCalls;
-                if (gsmCdmaCallArr3[phoneId] == null || gsmCdmaCallArr3[phoneId].getState() != State.ACTIVE) {
+                if (gsmCdmaCallArr3[phoneId] == null || gsmCdmaCallArr3[phoneId].getState() != Call.State.ACTIVE) {
                     ImsPhoneCall[] imsPhoneCallArr = this.mFgImsCalls;
-                    if (imsPhoneCallArr[phoneId] == null || imsPhoneCallArr[phoneId].getState() != State.ACTIVE) {
+                    if (imsPhoneCallArr[phoneId] == null || imsPhoneCallArr[phoneId].getState() != Call.State.ACTIVE) {
                         ImsPhoneCall[] imsPhoneCallArr2 = this.mBgImsCalls;
-                        if (imsPhoneCallArr2[phoneId] == null || imsPhoneCallArr2[phoneId].getState() != State.ACTIVE) {
+                        if (imsPhoneCallArr2[phoneId] == null || imsPhoneCallArr2[phoneId].getState() != Call.State.ACTIVE) {
                             ImsPhoneCall[] imsPhoneCallArr3 = this.mRiImsCalls;
-                            if (imsPhoneCallArr3[phoneId] == null || imsPhoneCallArr3[phoneId].getState() != State.ACTIVE) {
+                            if (imsPhoneCallArr3[phoneId] == null || imsPhoneCallArr3[phoneId].getState() != Call.State.ACTIVE) {
                                 return false;
                             }
                         }
@@ -183,6 +146,34 @@ public class QtiCallStateNotifier {
             }
         }
         return false;
+    }
+
+    private class CallStateHandler extends Handler {
+        private CallStateHandler() {
+        }
+
+        public void handleMessage(Message msg) {
+            int phoneId = ((Integer) ((AsyncResult) msg.obj).userObj).intValue();
+            int i = msg.what;
+            if (i != 101 && i != 102) {
+                return;
+            }
+            if (!QtiCallStateNotifier.this.mIsCallInActiveState && QtiCallStateNotifier.this.isCallActive(phoneId)) {
+                QtiCallStateNotifier qtiCallStateNotifier = QtiCallStateNotifier.this;
+                qtiCallStateNotifier.log("processCallStateChanged: call active on phone" + phoneId);
+                boolean unused = QtiCallStateNotifier.this.mIsCallInActiveState = true;
+            } else if (QtiCallStateNotifier.this.isCallIdle(phoneId)) {
+                QtiCallStateNotifier qtiCallStateNotifier2 = QtiCallStateNotifier.this;
+                qtiCallStateNotifier2.log("processCallStateChanged: call disconnected on phone" + phoneId);
+                boolean unused2 = QtiCallStateNotifier.this.mIsCallInActiveState = false;
+                boolean unused3 = QtiCallStateNotifier.this.mIsCallInProgress = false;
+                QtiCallStateNotifier.this.mCallEndRegistrants.notifyRegistrants();
+            } else if (!QtiCallStateNotifier.this.mIsCallInProgress) {
+                QtiCallStateNotifier qtiCallStateNotifier3 = QtiCallStateNotifier.this;
+                qtiCallStateNotifier3.log("processCallStateChanged: call started on phone" + phoneId);
+                boolean unused4 = QtiCallStateNotifier.this.mIsCallInProgress = true;
+            }
+        }
     }
 
     /* access modifiers changed from: protected */

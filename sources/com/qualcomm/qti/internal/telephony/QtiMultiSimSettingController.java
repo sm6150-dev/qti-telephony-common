@@ -18,11 +18,7 @@ public class QtiMultiSimSettingController extends MultiSimSettingController {
             if (sInstance == null) {
                 sInstance = new QtiMultiSimSettingController(context, SubscriptionController.getInstance());
             } else {
-                String str = LOG_TAG;
-                StringBuilder sb = new StringBuilder();
-                sb.append("init() called multiple times!  sInstance = ");
-                sb.append(sInstance);
-                Log.wtf(str, sb.toString());
+                Log.wtf(LOG_TAG, "init() called multiple times!  sInstance = " + sInstance);
             }
         }
         return sInstance;
@@ -49,12 +45,7 @@ public class QtiMultiSimSettingController extends MultiSimSettingController {
 
     /* access modifiers changed from: protected */
     public synchronized void setUserDataEnabledForGroup(int subId, boolean enable) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("setUserDataEnabledForGroup subId ");
-        sb.append(subId);
-        sb.append(" enable ");
-        sb.append(enable);
-        log(sb.toString());
+        log("setUserDataEnabledForGroup subId " + subId + " enable " + enable);
         List<SubscriptionInfo> infoList = this.mSubController.getSubscriptionsInGroup(this.mSubController.getGroupUuid(subId), this.mContext.getOpPackageName());
         if (infoList != null) {
             for (SubscriptionInfo info : infoList) {
@@ -75,10 +66,7 @@ public class QtiMultiSimSettingController extends MultiSimSettingController {
 
     /* access modifiers changed from: protected */
     public void updateDefaults(boolean init) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("updateDefaults ");
-        sb.append(init);
-        log(sb.toString());
+        log("updateDefaults " + init);
     }
 
     /* access modifiers changed from: protected */

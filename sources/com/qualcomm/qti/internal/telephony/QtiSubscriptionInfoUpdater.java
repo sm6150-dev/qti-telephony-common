@@ -16,8 +16,8 @@ import android.util.Log;
 import com.android.internal.telephony.CommandsInterface;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.SubscriptionInfoUpdater;
-import com.android.internal.telephony.uicc.IccCardApplicationStatus.AppType;
-import com.android.internal.telephony.uicc.IccCardStatus.CardState;
+import com.android.internal.telephony.uicc.IccCardApplicationStatus;
+import com.android.internal.telephony.uicc.IccCardStatus;
 import com.android.internal.telephony.uicc.UiccCard;
 import com.android.internal.telephony.uicc.UiccController;
 
@@ -43,11 +43,7 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
             if (sInstance == null) {
                 sInstance = new QtiSubscriptionInfoUpdater(looper, context, phone, ci);
             } else {
-                String str = LOG_TAG;
-                StringBuilder sb = new StringBuilder();
-                sb.append("init() called multiple times!  sInstance = ");
-                sb.append(sInstance);
-                Log.wtf(str, sb.toString());
+                Log.wtf(LOG_TAG, "init() called multiple times!  sInstance = " + sInstance);
             }
             qtiSubscriptionInfoUpdater = sInstance;
         }
@@ -72,10 +68,7 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
     }
 
     public void handleMessage(Message msg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(" handleMessage: EVENT:  ");
-        sb.append(msg.what);
-        Rlog.d(LOG_TAG, sb.toString());
+        Rlog.d(LOG_TAG, " handleMessage: EVENT:  " + msg.what);
         if (msg.what != 100) {
             QtiSubscriptionInfoUpdater.super.handleMessage(msg);
         } else {
@@ -83,7 +76,7 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
         }
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public void addSubInfoRecord(int slotId, String iccId) {
         if (iccId != null && slotId >= 0 && slotId < mNumPhones) {
             sendMessage(obtainMessage(100, slotId, -1, iccId));
@@ -96,13 +89,7 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
                 this.mIsRecordUpdateRequired[slotId] = true;
             }
             mIccId[slotId] = iccId;
-            String str = LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append(" slotId = ");
-            sb.append(slotId);
-            sb.append(" needEnableRoamingSettings = ");
-            sb.append(this.needEnableRoamingSettings);
-            Rlog.d(str, sb.toString());
+            Rlog.d(LOG_TAG, " slotId = " + slotId + " needEnableRoamingSettings = " + this.needEnableRoamingSettings);
             if (!TextUtils.isEmpty(iccId) && isCtCard(iccId) && SystemProperties.getBoolean(ROAMING_SETTINGS_CONFIG, false)) {
                 setRoamingSettingsState(sContext, true);
                 this.needEnableRoamingSettings = true;
@@ -119,25 +106,20 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
     private void sendBroadCastToApp() {
         Intent intent = new Intent();
         intent.setClassName("com.qualcomm.qti.networksetting", "com.qualcomm.qti.networksetting.SimAlertNotification");
-        StringBuilder sb = new StringBuilder();
-        sb.append("Sending broadcast to NetworkSetting");
-        sb.append(intent);
-        Rlog.d(LOG_TAG, sb.toString());
+        Rlog.d(LOG_TAG, "Sending broadcast to NetworkSetting" + intent);
         sContext.sendBroadcast(intent);
     }
 
     private void checkUiccCard(String iccId) {
-        boolean isCtCard = isCtCard(iccId);
-        String str = LOG_TAG;
-        if (isCtCard) {
+        if (isCtCard(iccId)) {
             boolean hasUiccApp = false;
             UiccCard uiccCard = UiccController.getInstance().getUiccCard(0);
-            if (uiccCard != null && uiccCard.getCardState() == CardState.CARDSTATE_PRESENT) {
-                if (uiccCard.isApplicationOnIcc(AppType.APPTYPE_USIM) && (uiccCard.isApplicationOnIcc(AppType.APPTYPE_CSIM) || uiccCard.isApplicationOnIcc(AppType.APPTYPE_RUIM))) {
+            if (uiccCard != null && uiccCard.getCardState() == IccCardStatus.CardState.CARDSTATE_PRESENT) {
+                if (uiccCard.isApplicationOnIcc(IccCardApplicationStatus.AppType.APPTYPE_USIM) && (uiccCard.isApplicationOnIcc(IccCardApplicationStatus.AppType.APPTYPE_CSIM) || uiccCard.isApplicationOnIcc(IccCardApplicationStatus.AppType.APPTYPE_RUIM))) {
                     hasUiccApp = true;
                 }
                 if (!hasUiccApp) {
-                    Rlog.d(str, "This is a 3G CT card.");
+                    Rlog.d(LOG_TAG, "This is a 3G CT card.");
                     sendBroadCastToApp();
                     return;
                 }
@@ -145,7 +127,7 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
             }
             return;
         }
-        Rlog.d(str, "This is a non-CT card.");
+        Rlog.d(LOG_TAG, "This is a non-CT card.");
         sendBroadCastToApp();
     }
 
@@ -160,29 +142,24 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
 
     private void setRoamingSettingsState(Context context, boolean install) {
         int state;
-        String str = LOG_TAG;
         if (context == null) {
-            Rlog.d(str, "setRoamingSettingsState, context null");
+            Rlog.d(LOG_TAG, "setRoamingSettingsState, context null");
             return;
         }
         PackageManager pm = context.getPackageManager();
         if (pm == null) {
-            Rlog.d(str, "setRoamingSettingsState, PackageManager null");
+            Rlog.d(LOG_TAG, "setRoamingSettingsState, PackageManager null");
             return;
         }
-        String packageName = "com.qualcomm.qti.roamingsettings";
-        ComponentName cn = new ComponentName(packageName, "com.qualcomm.qti.roamingsettings.RoamingSettingsActivity");
+        ComponentName cn = new ComponentName("com.qualcomm.qti.roamingsettings", "com.qualcomm.qti.roamingsettings.RoamingSettingsActivity");
         if (install) {
             state = 1;
         } else {
             state = 2;
         }
         for (PackageInfo pi : pm.getInstalledPackages(RadioAccessFamily.EHRPD)) {
-            if (!TextUtils.isEmpty(pi.packageName) && packageName.equals(pi.packageName)) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("setRoamingSettings state = ");
-                sb.append(state);
-                Rlog.d(str, sb.toString());
+            if (!TextUtils.isEmpty(pi.packageName) && "com.qualcomm.qti.roamingsettings".equals(pi.packageName)) {
+                Rlog.d(LOG_TAG, "setRoamingSettings state = " + state);
                 pm.setComponentEnabledSetting(cn, state, 0);
             }
         }
@@ -224,25 +201,17 @@ public class QtiSubscriptionInfoUpdater extends SubscriptionInfoUpdater {
     public synchronized void updateSubscriptionInfoByIccId(int slotIndex, boolean updateEmbeddedSubs) {
         if (this.mIsRecordUpdateRequired[slotIndex]) {
             QtiSubscriptionInfoUpdater.super.updateSubscriptionInfoByIccId(slotIndex, updateEmbeddedSubs);
-            String str = LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("SIM state changed, Updating user preference ");
-            sb.append(slotIndex);
-            Rlog.d(str, sb.toString());
+            Rlog.d(LOG_TAG, "SIM state changed, Updating user preference " + slotIndex);
             if (QtiUiccCardProvisioner.getInstance().isAllCardProvisionInfoReceived() && isAllIccIdQueryDone()) {
                 QtiSubscriptionController.getInstance().updateUserPreferences();
             }
             this.mIsRecordUpdateRequired[slotIndex] = false;
         } else {
-            String str2 = LOG_TAG;
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("Ignoring subscription update event ");
-            sb2.append(slotIndex);
-            Rlog.d(str2, sb2.toString());
+            Rlog.d(LOG_TAG, "Ignoring subscription update event " + slotIndex);
         }
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public synchronized void updateUserPreferences() {
         Rlog.d(LOG_TAG, " calling updateUserPreferences ");
         if (isAllIccIdQueryDone()) {

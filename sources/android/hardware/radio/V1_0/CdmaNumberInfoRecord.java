@@ -32,20 +32,7 @@ public final class CdmaNumberInfoRecord {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".number = ");
-        builder.append(this.number);
-        builder.append(", .numberType = ");
-        builder.append(this.numberType);
-        builder.append(", .numberPlan = ");
-        builder.append(this.numberPlan);
-        builder.append(", .pi = ");
-        builder.append(this.pi);
-        builder.append(", .si = ");
-        builder.append(this.si);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".number = " + this.number + ", .numberType = " + this.numberType + ", .numberPlan = " + this.numberPlan + ", .pi = " + this.pi + ", .si = " + this.si + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -88,7 +75,7 @@ public final class CdmaNumberInfoRecord {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaNumberInfoRecord) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

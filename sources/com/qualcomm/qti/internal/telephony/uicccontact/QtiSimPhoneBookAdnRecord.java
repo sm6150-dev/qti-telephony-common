@@ -66,17 +66,16 @@ public class QtiSimPhoneBookAdnRecord {
         sb.append(this.mRecordIndex);
         sb.append(", name = ");
         String str = this.mAlphaTag;
-        String str2 = "null";
         if (str == null) {
-            str = str2;
+            str = "null";
         }
         sb.append(str);
         sb.append(", number = ");
-        String str3 = this.mNumber;
-        if (str3 == null) {
-            str3 = str2;
+        String str2 = this.mNumber;
+        if (str2 == null) {
+            str2 = "null";
         }
-        sb.append(str3);
+        sb.append(str2);
         sb.append(", email count = ");
         sb.append(this.mEmailCount);
         sb.append(", email = ");

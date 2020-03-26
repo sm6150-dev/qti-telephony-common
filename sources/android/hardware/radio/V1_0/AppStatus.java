@@ -35,26 +35,7 @@ public final class AppStatus {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".appType = ");
-        builder.append(AppType.toString(this.appType));
-        builder.append(", .appState = ");
-        builder.append(AppState.toString(this.appState));
-        builder.append(", .persoSubstate = ");
-        builder.append(PersoSubstate.toString(this.persoSubstate));
-        builder.append(", .aidPtr = ");
-        builder.append(this.aidPtr);
-        builder.append(", .appLabelPtr = ");
-        builder.append(this.appLabelPtr);
-        builder.append(", .pin1Replaced = ");
-        builder.append(this.pin1Replaced);
-        builder.append(", .pin1 = ");
-        builder.append(PinState.toString(this.pin1));
-        builder.append(", .pin2 = ");
-        builder.append(PinState.toString(this.pin2));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".appType = " + AppType.toString(this.appType) + ", .appState = " + AppState.toString(this.appState) + ", .persoSubstate = " + PersoSubstate.toString(this.persoSubstate) + ", .aidPtr = " + this.aidPtr + ", .appLabelPtr = " + this.appLabelPtr + ", .pin1Replaced = " + this.pin1Replaced + ", .pin1 = " + PinState.toString(this.pin1) + ", .pin2 = " + PinState.toString(this.pin2) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -102,7 +83,7 @@ public final class AppStatus {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 64);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((AppStatus) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

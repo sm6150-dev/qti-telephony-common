@@ -29,14 +29,7 @@ public final class LastCallFailCauseInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".causeCode = ");
-        builder.append(LastCallFailCause.toString(this.causeCode));
-        builder.append(", .vendorCause = ");
-        builder.append(this.vendorCause);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".causeCode = " + LastCallFailCause.toString(this.causeCode) + ", .vendorCause = " + this.vendorCause + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -77,7 +70,7 @@ public final class LastCallFailCauseInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((LastCallFailCauseInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

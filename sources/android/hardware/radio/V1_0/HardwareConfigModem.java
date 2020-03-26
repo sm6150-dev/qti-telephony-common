@@ -32,20 +32,7 @@ public final class HardwareConfigModem {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".rilModel = ");
-        builder.append(this.rilModel);
-        builder.append(", .rat = ");
-        builder.append(this.rat);
-        builder.append(", .maxVoice = ");
-        builder.append(this.maxVoice);
-        builder.append(", .maxData = ");
-        builder.append(this.maxData);
-        builder.append(", .maxStandby = ");
-        builder.append(this.maxStandby);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".rilModel = " + this.rilModel + ", .rat = " + this.rat + ", .maxVoice = " + this.maxVoice + ", .maxData = " + this.maxData + ", .maxStandby = " + this.maxStandby + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -87,7 +74,7 @@ public final class HardwareConfigModem {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 20);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((HardwareConfigModem) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 20));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

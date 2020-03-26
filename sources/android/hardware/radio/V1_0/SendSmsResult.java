@@ -30,16 +30,7 @@ public final class SendSmsResult {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".messageRef = ");
-        builder.append(this.messageRef);
-        builder.append(", .ackPDU = ");
-        builder.append(this.ackPDU);
-        builder.append(", .errorCode = ");
-        builder.append(this.errorCode);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".messageRef = " + this.messageRef + ", .ackPDU = " + this.ackPDU + ", .errorCode = " + this.errorCode + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -81,7 +72,7 @@ public final class SendSmsResult {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SendSmsResult) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

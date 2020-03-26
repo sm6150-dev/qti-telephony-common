@@ -2,8 +2,7 @@ package com.qualcomm.qti.internal.telephony;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.provider.Settings.Global;
-import android.provider.Settings.SettingNotFoundException;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 
 public class QtiPhoneUtils {
@@ -47,52 +46,34 @@ public class QtiPhoneUtils {
     public static boolean putIntAtIndex(ContentResolver cr, String name, int index, int value) {
         String data = "";
         String[] valArray = null;
-        String v = Global.getString(cr, name);
+        String v = Settings.Global.getString(cr, name);
         if (index == Integer.MAX_VALUE) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("putIntAtIndex index == MAX_VALUE index=");
-            sb.append(index);
-            throw new IllegalArgumentException(sb.toString());
+            throw new IllegalArgumentException("putIntAtIndex index == MAX_VALUE index=" + index);
         } else if (index >= 0) {
-            String str = ",";
             if (v != null) {
-                valArray = v.split(str);
+                valArray = v.split(",");
             }
             for (int i = 0; i < index; i++) {
-                String str2 = "";
+                String str = "";
                 if (valArray != null && i < valArray.length) {
-                    str2 = valArray[i];
+                    str = valArray[i];
                 }
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append(data);
-                sb2.append(str2);
-                sb2.append(str);
-                data = sb2.toString();
+                data = data + str + ",";
             }
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append(data);
-            sb3.append(value);
-            String data2 = sb3.toString();
+            String data2 = data + value;
             if (valArray != null) {
                 for (int i2 = index + 1; i2 < valArray.length; i2++) {
-                    StringBuilder sb4 = new StringBuilder();
-                    sb4.append(data2);
-                    sb4.append(str);
-                    sb4.append(valArray[i2]);
-                    data2 = sb4.toString();
+                    data2 = data2 + "," + valArray[i2];
                 }
             }
-            return Global.putString(cr, name, data2);
+            return Settings.Global.putString(cr, name, data2);
         } else {
-            StringBuilder sb5 = new StringBuilder();
-            sb5.append("putIntAtIndex index < 0 index=");
-            sb5.append(index);
-            throw new IllegalArgumentException(sb5.toString());
+            throw new IllegalArgumentException("putIntAtIndex index < 0 index=" + index);
         }
     }
 
-    public static int getIntAtIndex(ContentResolver cr, String name, int index) throws SettingNotFoundException {
-        String v = Global.getString(cr, name);
+    public static int getIntAtIndex(ContentResolver cr, String name, int index) throws Settings.SettingNotFoundException {
+        String v = Settings.Global.getString(cr, name);
         if (v != null) {
             String[] valArray = v.split(",");
             if (index >= 0 && index < valArray.length && valArray[index] != null) {
@@ -102,6 +83,6 @@ public class QtiPhoneUtils {
                 }
             }
         }
-        throw new SettingNotFoundException(name);
+        throw new Settings.SettingNotFoundException(name);
     }
 }

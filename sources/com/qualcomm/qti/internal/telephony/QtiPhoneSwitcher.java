@@ -10,17 +10,17 @@ import android.os.AsyncResult;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemProperties;
-import android.provider.Settings.Global;
+import android.provider.Settings;
 import android.telephony.SubscriptionManager;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.telephony.Call;
 import com.android.internal.telephony.CallManager;
 import com.android.internal.telephony.CommandsInterface;
 import com.android.internal.telephony.GsmCdmaCall;
 import com.android.internal.telephony.ITelephonyRegistry;
 import com.android.internal.telephony.Phone;
-import com.android.internal.telephony.PhoneConstants.State;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.PhoneSwitcher;
-import com.android.internal.telephony.PhoneSwitcher.PhoneState;
 import com.android.internal.telephony.SubscriptionController;
 import com.android.internal.telephony.dataconnection.DcRequest;
 import com.android.internal.telephony.imsphone.ImsPhone;
@@ -60,12 +60,7 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
                 String value = intent.getStringExtra("ss");
                 int phoneId = intent.getIntExtra("phone", -1);
                 QtiPhoneSwitcher qtiPhoneSwitcher = QtiPhoneSwitcher.this;
-                StringBuilder sb = new StringBuilder();
-                sb.append("mSimStateIntentReceiver: phoneId = ");
-                sb.append(phoneId);
-                sb.append(" value = ");
-                sb.append(value);
-                qtiPhoneSwitcher.log(sb.toString());
+                qtiPhoneSwitcher.log("mSimStateIntentReceiver: phoneId = " + phoneId + " value = " + value);
                 if (phoneId != -1) {
                     QtiPhoneSwitcher.this.mSimStates[phoneId] = value;
                 }
@@ -85,9 +80,9 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
         this.mAllowDataFailure = new int[numPhones];
         this.mSimStates = new String[numPhones];
         this.mCm = CallManager.getInstance();
-        this.mCm.registerForDisconnect(this, DataCallFailCause.IFACE_MISMATCH, null);
+        this.mCm.registerForDisconnect(this, DataCallFailCause.IFACE_MISMATCH, (Object) null);
         this.mQtiRilInterface = QtiRilInterface.getInstance(context);
-        this.mQtiRilInterface.registerForUnsol(this, DataCallFailCause.COMPANION_IFACE_IN_USE, null);
+        this.mQtiRilInterface.registerForUnsol(this, DataCallFailCause.COMPANION_IFACE_IN_USE, (Object) null);
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.intent.action.SIM_STATE_CHANGED");
         this.mContext.registerReceiver(this.mSimStateIntentReceiver, filter);
@@ -116,8 +111,7 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
 
     public static QtiPhoneSwitcher make(int maxActivePhones, int numPhones, Context context, SubscriptionController subscriptionController, Looper looper, ITelephonyRegistry tr, CommandsInterface[] cis, Phone[] phones) {
         if (sPhoneSwitcher == null) {
-            QtiPhoneSwitcher qtiPhoneSwitcher = new QtiPhoneSwitcher(maxActivePhones, numPhones, context, subscriptionController, looper, tr, cis, phones);
-            sPhoneSwitcher = qtiPhoneSwitcher;
+            sPhoneSwitcher = new QtiPhoneSwitcher(maxActivePhones, numPhones, context, subscriptionController, looper, tr, cis, phones);
         }
         return sPhoneSwitcher;
     }
@@ -136,26 +130,17 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
         if (payload.getInt() == 525342) {
             int response_size = payload.getInt();
             if (response_size < 0) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Response size is Invalid ");
-                sb.append(response_size);
-                log(sb.toString());
+                log("Response size is Invalid " + response_size);
                 return;
             }
             this.mMaxActivePhones = payload.get();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append(" Unsol Max Data Changed to: ");
-            sb2.append(this.mMaxActivePhones);
-            log(sb2.toString());
+            log(" Unsol Max Data Changed to: " + this.mMaxActivePhones);
         }
     }
 
     public void handleMessage(Message msg) {
         int ddsPhoneId = this.mSubscriptionController.getPhoneId(this.mSubscriptionController.getDefaultDataSubId());
-        StringBuilder sb = new StringBuilder();
-        sb.append("handle event - ");
-        sb.append(msg.what);
-        log(sb.toString());
+        log("handle event - " + msg.what);
         int i = msg.what;
         if (i == 102) {
             if (this.mHalCommandToUse == 0) {
@@ -224,17 +209,10 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
         if (phoneId == -1) {
             return false;
         }
-        if (!"READY".equals(this.mSimStates[phoneId])) {
-            if (!"LOADED".equals(this.mSimStates[phoneId])) {
-                if (!"IMSI".equals(this.mSimStates[phoneId])) {
-                    return false;
-                }
-            }
+        if (!"READY".equals(this.mSimStates[phoneId]) && !"LOADED".equals(this.mSimStates[phoneId]) && !"IMSI".equals(this.mSimStates[phoneId])) {
+            return false;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("SIM READY for phoneId: ");
-        sb.append(phoneId);
-        log(sb.toString());
+        log("SIM READY for phoneId: " + phoneId);
         return true;
     }
 
@@ -246,11 +224,10 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
         boolean diffDetected = requestsChanged;
         int primaryDataSubId = this.mSubscriptionController.getDefaultDataSubId();
         int ddsPhoneId = this.mSubscriptionController.getPhoneId(primaryDataSubId);
-        String str = "->";
         if (primaryDataSubId != this.mPrimaryDataSubId) {
             sb.append(" mPrimaryDataSubId ");
             sb.append(this.mPrimaryDataSubId);
-            sb.append(str);
+            sb.append("->");
             sb.append(primaryDataSubId);
             this.mManualDdsSwitch = true;
             this.mSendDdsSwitchDoneIntent = true;
@@ -263,7 +240,7 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
                 sb.append(i);
                 sb.append("] ");
                 sb.append(this.mPhoneSubscriptions[i]);
-                sb.append(str);
+                sb.append("->");
                 sb.append(sub);
                 this.mPhoneSubscriptions[i] = sub;
                 diffDetected = true;
@@ -274,7 +251,7 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
         if (i2 != this.mPreferredDataPhoneId) {
             sb.append(" preferred phoneId ");
             sb.append(i2);
-            sb.append(str);
+            sb.append("->");
             sb.append(this.mPreferredDataPhoneId);
             mPreferredDataPhoneIdUpdated = true;
             diffDetected = true;
@@ -284,10 +261,7 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
             return false;
         }
         if (diffDetected) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("evaluating due to ");
-            sb2.append(sb.toString());
-            log(sb2.toString());
+            log("evaluating due to " + sb.toString());
             if (this.mHalCommandToUse == 2) {
                 for (int phoneId = 0; phoneId < this.mNumPhones; phoneId++) {
                     activate(phoneId);
@@ -346,40 +320,27 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
         if (64 == apnType && this.mManualDdsSwitch && this.mMaxActivePhones != this.mNumPhones) {
             subId = this.mPrimaryDataSubId;
         }
-        int phoneId = -1;
-        int i = 0;
-        while (true) {
-            if (i >= this.mNumPhones) {
-                break;
-            } else if (this.mPhoneSubscriptions[i] == subId) {
-                phoneId = i;
-                break;
-            } else {
-                i++;
+        for (int i = 0; i < this.mNumPhones; i++) {
+            if (this.mPhoneSubscriptions[i] == subId) {
+                return i;
             }
         }
-        return phoneId;
+        return -1;
     }
 
     private boolean isUiccProvisioned(int phoneId) {
         boolean status = QtiUiccCardProvisioner.getInstance().getCurrentUiccCardProvisioningStatus(phoneId) > 0;
-        StringBuilder sb = new StringBuilder();
-        sb.append("isUiccProvisioned = ");
-        sb.append(status);
-        log(sb.toString());
+        log("isUiccProvisioned = " + status);
         return status;
     }
 
     /* access modifiers changed from: protected */
     public void deactivate(int phoneId) {
-        PhoneState state = this.mPhoneStates[phoneId];
+        PhoneSwitcher.PhoneState state = this.mPhoneStates[phoneId];
         if (state.active) {
             SubscriptionManager subscriptionManager = (SubscriptionManager) this.mContext.getSystemService("telephony_subscription_service");
             state.active = false;
-            StringBuilder sb = new StringBuilder();
-            sb.append("deactivate ");
-            sb.append(phoneId);
-            log(sb.toString());
+            log("deactivate " + phoneId);
             state.lastRequested = System.currentTimeMillis();
             if ((this.mHalCommandToUse == 1 || this.mHalCommandToUse == 0) && this.mSubscriptionController.isActiveSubId(this.mPhoneSubscriptions[phoneId])) {
                 this.mCommandsInterfaces[phoneId].setDataAllowed(false, obtainMessage(201));
@@ -390,13 +351,10 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
 
     /* access modifiers changed from: protected */
     public void activate(int phoneId) {
-        PhoneState state = this.mPhoneStates[phoneId];
+        PhoneSwitcher.PhoneState state = this.mPhoneStates[phoneId];
         if (!state.active || this.mManualDdsSwitch || getConnectFailureCount(phoneId) != 0) {
             state.active = true;
-            StringBuilder sb = new StringBuilder();
-            sb.append("activate ");
-            sb.append(phoneId);
-            log(sb.toString());
+            log("activate " + phoneId);
             state.lastRequested = System.currentTimeMillis();
             if ((this.mHalCommandToUse == 1 || this.mHalCommandToUse == 0) && this.mNumPhones > 1) {
                 informDdsToRil(this.mPrimaryDataSubId);
@@ -408,41 +366,44 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
     /* access modifiers changed from: protected */
     public void sendRilCommands(int phoneId) {
         if (!SubscriptionManager.isValidPhoneId(phoneId) || phoneId >= this.mNumPhones) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("sendRilCommands: skip dds switch due to invalid phoneid=");
-            sb.append(phoneId);
-            log(sb.toString());
-            return;
-        }
-        if (this.mHalCommandToUse == 1 || this.mHalCommandToUse == 0) {
+            log("sendRilCommands: skip dds switch due to invalid phoneid=" + phoneId);
+        } else if (this.mHalCommandToUse == 1 || this.mHalCommandToUse == 0) {
             if (this.mNumPhones > 1) {
                 this.mCommandsInterfaces[phoneId].setDataAllowed(isPhoneActive(phoneId), obtainMessage(202, phoneId, 0));
             }
         } else if (phoneId == this.mPreferredDataPhoneId) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("sendRilCommands: setPreferredDataModem - phoneId: ");
-            sb2.append(phoneId);
-            log(sb2.toString());
+            log("sendRilCommands: setPreferredDataModem - phoneId: " + phoneId);
             this.mRadioConfig.setPreferredDataModem(phoneId, obtainMessage(203, phoneId, 0));
         }
     }
 
     /* access modifiers changed from: protected */
     public boolean isCallActive(Phone phone) {
-        boolean z = true;
-        boolean isLplTempSwitch = SystemProperties.getBoolean("persist.vendor.radio.enable_temp_dds", true) && Global.getInt(this.mContext.getContentResolver(), "vice_slot_volte_data_enabled", 0) != 0;
-        StringBuilder sb = new StringBuilder();
-        sb.append("isLplTempSwitch = ");
-        sb.append(isLplTempSwitch);
-        log(sb.toString());
+        boolean isLplTempSwitch = SystemProperties.getBoolean("persist.vendor.radio.enable_temp_dds", true) && Settings.Global.getInt(this.mContext.getContentResolver(), "vice_slot_volte_data_enabled", 0) != 0;
+        log("isLplTempSwitch = " + isLplTempSwitch);
         if (!isLplTempSwitch || phone == null) {
             return false;
         }
         int phoneId = phone.getPhoneId();
-        if (!this.mFgCsCalls[phoneId].getState().isAlive() && !this.mBgCsCalls[phoneId].getState().isAlive() && !this.mRiCsCalls[phoneId].getState().isAlive() && !this.mFgImsCalls[phoneId].getState().isAlive() && !this.mBgImsCalls[phoneId].getState().isAlive() && !this.mRiImsCalls[phoneId].getState().isAlive()) {
-            z = false;
+        if (this.mFgCsCalls[phoneId].getState() != Call.State.IDLE && this.mFgCsCalls[phoneId].getState() != Call.State.DISCONNECTED) {
+            return true;
         }
-        return z;
+        if (this.mBgCsCalls[phoneId].getState() != Call.State.IDLE && this.mBgCsCalls[phoneId].getState() != Call.State.DISCONNECTED) {
+            return true;
+        }
+        if (this.mRiCsCalls[phoneId].getState() != Call.State.IDLE && this.mRiCsCalls[phoneId].getState() != Call.State.DISCONNECTED) {
+            return true;
+        }
+        if (this.mFgImsCalls[phoneId].getState() != Call.State.IDLE && this.mFgImsCalls[phoneId].getState() != Call.State.DISCONNECTED) {
+            return true;
+        }
+        if (this.mBgImsCalls[phoneId].getState() != Call.State.IDLE && this.mBgImsCalls[phoneId].getState() != Call.State.DISCONNECTED) {
+            return true;
+        }
+        if (this.mRiImsCalls[phoneId].getState() == Call.State.IDLE || this.mRiImsCalls[phoneId].getState() == Call.State.DISCONNECTED) {
+            return false;
+        }
+        return true;
     }
 
     /* access modifiers changed from: private */
@@ -464,41 +425,27 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
         resetConnectFailureCount(phoneId);
         int ddsPhoneId = this.mSubscriptionController.getPhoneId(this.mSubscriptionController.getDefaultDataSubId());
         if (QtiPhoneUtils.getInstance().isValidPhoneId(ddsPhoneId) && phoneId != ddsPhoneId) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("ALLOW_DATA retries exhausted on phoneId = ");
-            sb.append(phoneId);
-            log(sb.toString());
+            log("ALLOW_DATA retries exhausted on phoneId = " + phoneId);
             enforceDds(ddsPhoneId);
         }
     }
 
     private void enforceDds(int phoneId) {
         int[] subId = this.mSubscriptionController.getSubId(phoneId);
-        StringBuilder sb = new StringBuilder();
-        sb.append("enforceDds: subId = ");
-        sb.append(subId[0]);
-        log(sb.toString());
+        log("enforceDds: subId = " + subId[0]);
         this.mSubscriptionController.setDefaultDataSubId(subId[0]);
     }
 
     private boolean isAnyVoiceCallActiveOnDevice() {
-        boolean ret = this.mCm.getState() != State.IDLE;
-        StringBuilder sb = new StringBuilder();
-        sb.append("isAnyVoiceCallActiveOnDevice: ");
-        sb.append(ret);
-        log(sb.toString());
+        boolean ret = this.mCm.getState() != PhoneConstants.State.IDLE;
+        log("isAnyVoiceCallActiveOnDevice: " + ret);
         return ret;
     }
 
     private void onDdsSwitchResponse(final int phoneId, AsyncResult ar) {
         if (ar.exception != null) {
             incConnectFailureCount(phoneId);
-            StringBuilder sb = new StringBuilder();
-            sb.append("Dds switch failed on phoneId = ");
-            sb.append(phoneId);
-            sb.append(", failureCount = ");
-            sb.append(getConnectFailureCount(phoneId));
-            log(sb.toString());
+            log("Dds switch failed on phoneId = " + phoneId + ", failureCount = " + getConnectFailureCount(phoneId));
             if (isAnyVoiceCallActiveOnDevice()) {
                 log("Wait for call end indication");
             } else if (!isSimReady(phoneId)) {
@@ -507,30 +454,24 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
                 int ddsSwitchFailureCount = getConnectFailureCount(phoneId);
                 if (ddsSwitchFailureCount > 5) {
                     handleConnectMaxFailure(phoneId);
-                } else {
-                    int retryDelay = this.mRetryArray[ddsSwitchFailureCount - 1] * 1000;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("Scheduling DDS switch retry after: ");
-                    sb2.append(retryDelay);
-                    log(sb2.toString());
-                    postDelayed(new Runnable() {
-                        public void run() {
-                            QtiPhoneSwitcher.this.log("Running DDS switch retry");
-                            if (QtiPhoneSwitcher.this.isPhoneIdValidForRetry(phoneId)) {
-                                QtiPhoneSwitcher.this.onRadioCapChanged(phoneId);
-                                return;
-                            }
-                            QtiPhoneSwitcher.this.log("Abandon DDS switch retry");
-                            QtiPhoneSwitcher.this.resetConnectFailureCount(phoneId);
-                        }
-                    }, (long) retryDelay);
+                    return;
                 }
+                int retryDelay = this.mRetryArray[ddsSwitchFailureCount - 1] * 1000;
+                log("Scheduling DDS switch retry after: " + retryDelay);
+                postDelayed(new Runnable() {
+                    public void run() {
+                        QtiPhoneSwitcher.this.log("Running DDS switch retry");
+                        if (QtiPhoneSwitcher.this.isPhoneIdValidForRetry(phoneId)) {
+                            QtiPhoneSwitcher.this.onRadioCapChanged(phoneId);
+                            return;
+                        }
+                        QtiPhoneSwitcher.this.log("Abandon DDS switch retry");
+                        QtiPhoneSwitcher.this.resetConnectFailureCount(phoneId);
+                    }
+                }, (long) retryDelay);
             }
         } else {
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append("DDS switch success on phoneId = ");
-            sb3.append(phoneId);
-            log(sb3.toString());
+            log("DDS switch success on phoneId = " + phoneId);
             if (this.mSendDdsSwitchDoneIntent) {
                 this.mSendDdsSwitchDoneIntent = false;
                 Intent intent = new Intent("org.codeaurora.intent.action.ACTION_DDS_SWITCH_DONE");
@@ -570,12 +511,7 @@ public class QtiPhoneSwitcher extends PhoneSwitcher {
             return;
         }
         for (int i = 0; i < this.mNumPhones; i++) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("InformDdsToRil rild= ");
-            sb.append(i);
-            sb.append(", DDS=");
-            sb.append(ddsPhoneId);
-            log(sb.toString());
+            log("InformDdsToRil rild= " + i + ", DDS=" + ddsPhoneId);
             if (isCallInProgress()) {
                 this.mQtiRilInterface.qcRilSendDDSInfo(ddsPhoneId, 1, i);
             } else {

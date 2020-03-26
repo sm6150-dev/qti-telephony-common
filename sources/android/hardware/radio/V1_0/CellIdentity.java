@@ -33,22 +33,7 @@ public final class CellIdentity {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cellInfoType = ");
-        builder.append(CellInfoType.toString(this.cellInfoType));
-        builder.append(", .cellIdentityGsm = ");
-        builder.append(this.cellIdentityGsm);
-        builder.append(", .cellIdentityWcdma = ");
-        builder.append(this.cellIdentityWcdma);
-        builder.append(", .cellIdentityCdma = ");
-        builder.append(this.cellIdentityCdma);
-        builder.append(", .cellIdentityLte = ");
-        builder.append(this.cellIdentityLte);
-        builder.append(", .cellIdentityTdscdma = ");
-        builder.append(this.cellIdentityTdscdma);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cellInfoType = " + CellInfoType.toString(this.cellInfoType) + ", .cellIdentityGsm = " + this.cellIdentityGsm + ", .cellIdentityWcdma = " + this.cellIdentityWcdma + ", .cellIdentityCdma = " + this.cellIdentityCdma + ", .cellIdentityLte = " + this.cellIdentityLte + ", .cellIdentityTdscdma = " + this.cellIdentityTdscdma + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -128,7 +113,7 @@ public final class CellIdentity {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 88);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellIdentity) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -142,7 +127,7 @@ public final class CellIdentity {
         hwBlob.putBool(_hidl_offset + 8 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 48);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellIdentityGsm) this.cellIdentityGsm.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
+            this.cellIdentityGsm.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
         }
         hwBlob.putBlob(_hidl_offset + 8 + 0, childBlob);
         int _hidl_vec_size2 = this.cellIdentityWcdma.size();
@@ -150,7 +135,7 @@ public final class CellIdentity {
         hwBlob.putBool(_hidl_offset + 24 + 12, false);
         HwBlob childBlob2 = new HwBlob(_hidl_vec_size2 * 48);
         for (int _hidl_index_02 = 0; _hidl_index_02 < _hidl_vec_size2; _hidl_index_02++) {
-            ((CellIdentityWcdma) this.cellIdentityWcdma.get(_hidl_index_02)).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 48));
+            this.cellIdentityWcdma.get(_hidl_index_02).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 48));
         }
         hwBlob.putBlob(_hidl_offset + 24 + 0, childBlob2);
         int _hidl_vec_size3 = this.cellIdentityCdma.size();
@@ -158,7 +143,7 @@ public final class CellIdentity {
         hwBlob.putBool(_hidl_offset + 40 + 12, false);
         HwBlob childBlob3 = new HwBlob(_hidl_vec_size3 * 20);
         for (int _hidl_index_03 = 0; _hidl_index_03 < _hidl_vec_size3; _hidl_index_03++) {
-            ((CellIdentityCdma) this.cellIdentityCdma.get(_hidl_index_03)).writeEmbeddedToBlob(childBlob3, (long) (_hidl_index_03 * 20));
+            this.cellIdentityCdma.get(_hidl_index_03).writeEmbeddedToBlob(childBlob3, (long) (_hidl_index_03 * 20));
         }
         hwBlob.putBlob(_hidl_offset + 40 + 0, childBlob3);
         int _hidl_vec_size4 = this.cellIdentityLte.size();
@@ -166,7 +151,7 @@ public final class CellIdentity {
         hwBlob.putBool(_hidl_offset + 56 + 12, false);
         HwBlob childBlob4 = new HwBlob(_hidl_vec_size4 * 48);
         for (int _hidl_index_04 = 0; _hidl_index_04 < _hidl_vec_size4; _hidl_index_04++) {
-            ((CellIdentityLte) this.cellIdentityLte.get(_hidl_index_04)).writeEmbeddedToBlob(childBlob4, (long) (_hidl_index_04 * 48));
+            this.cellIdentityLte.get(_hidl_index_04).writeEmbeddedToBlob(childBlob4, (long) (_hidl_index_04 * 48));
         }
         hwBlob.putBlob(_hidl_offset + 56 + 0, childBlob4);
         int _hidl_vec_size5 = this.cellIdentityTdscdma.size();
@@ -174,7 +159,7 @@ public final class CellIdentity {
         hwBlob.putBool(_hidl_offset + 72 + 12, false);
         HwBlob childBlob5 = new HwBlob(_hidl_vec_size5 * 48);
         for (int _hidl_index_05 = 0; _hidl_index_05 < _hidl_vec_size5; _hidl_index_05++) {
-            ((CellIdentityTdscdma) this.cellIdentityTdscdma.get(_hidl_index_05)).writeEmbeddedToBlob(childBlob5, (long) (_hidl_index_05 * 48));
+            this.cellIdentityTdscdma.get(_hidl_index_05).writeEmbeddedToBlob(childBlob5, (long) (_hidl_index_05 * 48));
         }
         hwBlob.putBlob(_hidl_offset + 72 + 0, childBlob5);
     }

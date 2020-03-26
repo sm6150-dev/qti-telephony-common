@@ -29,14 +29,7 @@ public final class CarrierRestrictions {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".allowedCarriers = ");
-        builder.append(this.allowedCarriers);
-        builder.append(", .excludedCarriers = ");
-        builder.append(this.excludedCarriers);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".allowedCarriers = " + this.allowedCarriers + ", .excludedCarriers = " + this.excludedCarriers + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -91,7 +84,7 @@ public final class CarrierRestrictions {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CarrierRestrictions) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -104,7 +97,7 @@ public final class CarrierRestrictions {
         hwBlob.putBool(_hidl_offset + 0 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 56);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((Carrier) this.allowedCarriers.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
+            this.allowedCarriers.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
         }
         hwBlob.putBlob(_hidl_offset + 0 + 0, childBlob);
         int _hidl_vec_size2 = this.excludedCarriers.size();
@@ -112,7 +105,7 @@ public final class CarrierRestrictions {
         hwBlob.putBool(_hidl_offset + 16 + 12, false);
         HwBlob childBlob2 = new HwBlob(_hidl_vec_size2 * 56);
         for (int _hidl_index_02 = 0; _hidl_index_02 < _hidl_vec_size2; _hidl_index_02++) {
-            ((Carrier) this.excludedCarriers.get(_hidl_index_02)).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 56));
+            this.excludedCarriers.get(_hidl_index_02).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 56));
         }
         hwBlob.putBlob(_hidl_offset + 16 + 0, childBlob2);
     }

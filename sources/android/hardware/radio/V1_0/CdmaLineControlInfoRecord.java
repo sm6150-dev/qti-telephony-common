@@ -31,18 +31,7 @@ public final class CdmaLineControlInfoRecord {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".lineCtrlPolarityIncluded = ");
-        builder.append(this.lineCtrlPolarityIncluded);
-        builder.append(", .lineCtrlToggle = ");
-        builder.append(this.lineCtrlToggle);
-        builder.append(", .lineCtrlReverse = ");
-        builder.append(this.lineCtrlReverse);
-        builder.append(", .lineCtrlPowerDenial = ");
-        builder.append(this.lineCtrlPowerDenial);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".lineCtrlPolarityIncluded = " + this.lineCtrlPolarityIncluded + ", .lineCtrlToggle = " + this.lineCtrlToggle + ", .lineCtrlReverse = " + this.lineCtrlReverse + ", .lineCtrlPowerDenial = " + this.lineCtrlPowerDenial + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -83,7 +72,7 @@ public final class CdmaLineControlInfoRecord {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 4);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaLineControlInfoRecord) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 4));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 4));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

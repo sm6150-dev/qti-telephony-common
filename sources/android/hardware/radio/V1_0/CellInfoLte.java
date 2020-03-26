@@ -29,14 +29,7 @@ public final class CellInfoLte {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cellIdentityLte = ");
-        builder.append(this.cellIdentityLte);
-        builder.append(", .signalStrengthLte = ");
-        builder.append(this.signalStrengthLte);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cellIdentityLte = " + this.cellIdentityLte + ", .signalStrengthLte = " + this.signalStrengthLte + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class CellInfoLte {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 72);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellInfoLte) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 72));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 72));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

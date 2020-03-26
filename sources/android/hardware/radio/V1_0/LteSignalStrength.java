@@ -33,22 +33,7 @@ public final class LteSignalStrength {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".signalStrength = ");
-        builder.append(this.signalStrength);
-        builder.append(", .rsrp = ");
-        builder.append(this.rsrp);
-        builder.append(", .rsrq = ");
-        builder.append(this.rsrq);
-        builder.append(", .rssnr = ");
-        builder.append(this.rssnr);
-        builder.append(", .cqi = ");
-        builder.append(this.cqi);
-        builder.append(", .timingAdvance = ");
-        builder.append(this.timingAdvance);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".signalStrength = " + this.signalStrength + ", .rsrp = " + this.rsrp + ", .rsrq = " + this.rsrq + ", .rssnr = " + this.rssnr + ", .cqi = " + this.cqi + ", .timingAdvance = " + this.timingAdvance + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -91,7 +76,7 @@ public final class LteSignalStrength {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((LteSignalStrength) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

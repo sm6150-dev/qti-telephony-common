@@ -31,18 +31,7 @@ public final class CdmaSignalInfoRecord {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".isPresent = ");
-        builder.append(this.isPresent);
-        builder.append(", .signalType = ");
-        builder.append(this.signalType);
-        builder.append(", .alertPitch = ");
-        builder.append(this.alertPitch);
-        builder.append(", .signal = ");
-        builder.append(this.signal);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".isPresent = " + this.isPresent + ", .signalType = " + this.signalType + ", .alertPitch = " + this.alertPitch + ", .signal = " + this.signal + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -83,7 +72,7 @@ public final class CdmaSignalInfoRecord {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 4);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaSignalInfoRecord) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 4));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 4));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

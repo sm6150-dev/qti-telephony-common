@@ -30,16 +30,7 @@ public final class CdmaSmsSubaddress {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".subaddressType = ");
-        builder.append(CdmaSmsSubaddressType.toString(this.subaddressType));
-        builder.append(", .odd = ");
-        builder.append(this.odd);
-        builder.append(", .digits = ");
-        builder.append(this.digits);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".subaddressType = " + CdmaSmsSubaddressType.toString(this.subaddressType) + ", .odd = " + this.odd + ", .digits = " + this.digits + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -85,7 +76,7 @@ public final class CdmaSmsSubaddress {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaSmsSubaddress) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -99,7 +90,7 @@ public final class CdmaSmsSubaddress {
         _hidl_blob.putBool(_hidl_offset + 8 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 1);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            childBlob.putInt8((long) (_hidl_index_0 * 1), ((Byte) this.digits.get(_hidl_index_0)).byteValue());
+            childBlob.putInt8((long) (_hidl_index_0 * 1), this.digits.get(_hidl_index_0).byteValue());
         }
         _hidl_blob.putBlob(8 + _hidl_offset + 0, childBlob);
     }

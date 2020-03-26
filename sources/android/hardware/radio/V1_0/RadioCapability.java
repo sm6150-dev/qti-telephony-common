@@ -32,20 +32,7 @@ public final class RadioCapability {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".session = ");
-        builder.append(this.session);
-        builder.append(", .phase = ");
-        builder.append(RadioCapabilityPhase.toString(this.phase));
-        builder.append(", .raf = ");
-        builder.append(RadioAccessFamily.dumpBitfield(this.raf));
-        builder.append(", .logicalModemUuid = ");
-        builder.append(this.logicalModemUuid);
-        builder.append(", .status = ");
-        builder.append(RadioCapabilityStatus.toString(this.status));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".session = " + this.session + ", .phase = " + RadioCapabilityPhase.toString(this.phase) + ", .raf = " + RadioAccessFamily.dumpBitfield(this.raf) + ", .logicalModemUuid = " + this.logicalModemUuid + ", .status = " + RadioCapabilityStatus.toString(this.status) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -89,7 +76,7 @@ public final class RadioCapability {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 40);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((RadioCapability) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

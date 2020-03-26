@@ -30,16 +30,7 @@ public final class IccIoResult {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".sw1 = ");
-        builder.append(this.sw1);
-        builder.append(", .sw2 = ");
-        builder.append(this.sw2);
-        builder.append(", .simResponse = ");
-        builder.append(this.simResponse);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".sw1 = " + this.sw1 + ", .sw2 = " + this.sw2 + ", .simResponse = " + this.simResponse + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -81,7 +72,7 @@ public final class IccIoResult {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 24);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((IccIoResult) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 24));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

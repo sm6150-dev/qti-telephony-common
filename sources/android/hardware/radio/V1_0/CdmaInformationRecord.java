@@ -35,26 +35,7 @@ public final class CdmaInformationRecord {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".name = ");
-        builder.append(CdmaInfoRecName.toString(this.name));
-        builder.append(", .display = ");
-        builder.append(this.display);
-        builder.append(", .number = ");
-        builder.append(this.number);
-        builder.append(", .signal = ");
-        builder.append(this.signal);
-        builder.append(", .redir = ");
-        builder.append(this.redir);
-        builder.append(", .lineCtrl = ");
-        builder.append(this.lineCtrl);
-        builder.append(", .clir = ");
-        builder.append(this.clir);
-        builder.append(", .audioCtrl = ");
-        builder.append(this.audioCtrl);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".name = " + CdmaInfoRecName.toString(this.name) + ", .display = " + this.display + ", .number = " + this.number + ", .signal = " + this.signal + ", .redir = " + this.redir + ", .lineCtrl = " + this.lineCtrl + ", .clir = " + this.clir + ", .audioCtrl = " + this.audioCtrl + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -150,7 +131,7 @@ public final class CdmaInformationRecord {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaInformationRecord) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -164,7 +145,7 @@ public final class CdmaInformationRecord {
         hwBlob.putBool(_hidl_offset + 8 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 16);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaDisplayInfoRecord) this.display.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
+            this.display.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
         }
         hwBlob.putBlob(_hidl_offset + 8 + 0, childBlob);
         int _hidl_vec_size2 = this.number.size();
@@ -172,7 +153,7 @@ public final class CdmaInformationRecord {
         hwBlob.putBool(_hidl_offset + 24 + 12, false);
         HwBlob childBlob2 = new HwBlob(_hidl_vec_size2 * 24);
         for (int _hidl_index_02 = 0; _hidl_index_02 < _hidl_vec_size2; _hidl_index_02++) {
-            ((CdmaNumberInfoRecord) this.number.get(_hidl_index_02)).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 24));
+            this.number.get(_hidl_index_02).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 24));
         }
         hwBlob.putBlob(_hidl_offset + 24 + 0, childBlob2);
         int _hidl_vec_size3 = this.signal.size();
@@ -180,7 +161,7 @@ public final class CdmaInformationRecord {
         hwBlob.putBool(_hidl_offset + 40 + 12, false);
         HwBlob childBlob3 = new HwBlob(_hidl_vec_size3 * 4);
         for (int _hidl_index_03 = 0; _hidl_index_03 < _hidl_vec_size3; _hidl_index_03++) {
-            ((CdmaSignalInfoRecord) this.signal.get(_hidl_index_03)).writeEmbeddedToBlob(childBlob3, (long) (_hidl_index_03 * 4));
+            this.signal.get(_hidl_index_03).writeEmbeddedToBlob(childBlob3, (long) (_hidl_index_03 * 4));
         }
         hwBlob.putBlob(_hidl_offset + 40 + 0, childBlob3);
         int _hidl_vec_size4 = this.redir.size();
@@ -188,7 +169,7 @@ public final class CdmaInformationRecord {
         hwBlob.putBool(_hidl_offset + 56 + 12, false);
         HwBlob childBlob4 = new HwBlob(_hidl_vec_size4 * 32);
         for (int _hidl_index_04 = 0; _hidl_index_04 < _hidl_vec_size4; _hidl_index_04++) {
-            ((CdmaRedirectingNumberInfoRecord) this.redir.get(_hidl_index_04)).writeEmbeddedToBlob(childBlob4, (long) (_hidl_index_04 * 32));
+            this.redir.get(_hidl_index_04).writeEmbeddedToBlob(childBlob4, (long) (_hidl_index_04 * 32));
         }
         hwBlob.putBlob(_hidl_offset + 56 + 0, childBlob4);
         int _hidl_vec_size5 = this.lineCtrl.size();
@@ -196,7 +177,7 @@ public final class CdmaInformationRecord {
         hwBlob.putBool(_hidl_offset + 72 + 12, false);
         HwBlob childBlob5 = new HwBlob(_hidl_vec_size5 * 4);
         for (int _hidl_index_05 = 0; _hidl_index_05 < _hidl_vec_size5; _hidl_index_05++) {
-            ((CdmaLineControlInfoRecord) this.lineCtrl.get(_hidl_index_05)).writeEmbeddedToBlob(childBlob5, (long) (_hidl_index_05 * 4));
+            this.lineCtrl.get(_hidl_index_05).writeEmbeddedToBlob(childBlob5, (long) (_hidl_index_05 * 4));
         }
         hwBlob.putBlob(_hidl_offset + 72 + 0, childBlob5);
         int _hidl_vec_size6 = this.clir.size();
@@ -204,7 +185,7 @@ public final class CdmaInformationRecord {
         hwBlob.putBool(_hidl_offset + 88 + 12, false);
         HwBlob childBlob6 = new HwBlob(_hidl_vec_size6 * 1);
         for (int _hidl_index_06 = 0; _hidl_index_06 < _hidl_vec_size6; _hidl_index_06++) {
-            ((CdmaT53ClirInfoRecord) this.clir.get(_hidl_index_06)).writeEmbeddedToBlob(childBlob6, (long) (_hidl_index_06 * 1));
+            this.clir.get(_hidl_index_06).writeEmbeddedToBlob(childBlob6, (long) (_hidl_index_06 * 1));
         }
         hwBlob.putBlob(_hidl_offset + 88 + 0, childBlob6);
         int _hidl_vec_size7 = this.audioCtrl.size();
@@ -212,7 +193,7 @@ public final class CdmaInformationRecord {
         hwBlob.putBool(_hidl_offset + 104 + 12, false);
         HwBlob childBlob7 = new HwBlob(_hidl_vec_size7 * 2);
         for (int _hidl_index_07 = 0; _hidl_index_07 < _hidl_vec_size7; _hidl_index_07++) {
-            ((CdmaT53AudioControlInfoRecord) this.audioCtrl.get(_hidl_index_07)).writeEmbeddedToBlob(childBlob7, (long) (_hidl_index_07 * 2));
+            this.audioCtrl.get(_hidl_index_07).writeEmbeddedToBlob(childBlob7, (long) (_hidl_index_07 * 2));
         }
         hwBlob.putBlob(_hidl_offset + 104 + 0, childBlob7);
     }

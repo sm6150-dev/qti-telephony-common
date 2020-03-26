@@ -9,12 +9,13 @@ import android.os.SystemProperties;
 import android.util.Log;
 import com.qualcomm.qcrilhook.QcRilHook;
 import com.qualcomm.qcrilhook.QcRilHookCallback;
+import com.qualcomm.qti.internal.telephony.DynamicSarService;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import org.codeaurora.telephony.utils.AsyncResult;
 
-public class ModemSarController implements SarControllerClient {
+public class ModemSarController implements DynamicSarService.SarControllerClient {
     /* access modifiers changed from: private */
     public static int CHARGEState = 0;
     private static final String DEVICE_INFO_HW_CN = "CN";
@@ -28,6 +29,7 @@ public class ModemSarController implements SarControllerClient {
     private static final String DEVICE_TYPE_F10 = "davinci";
     private static final String DEVICE_TYPE_GRUS = "grus";
     private static final String DEVICE_TYPE_PHOENIXIN = "phoenixin";
+    private static final String DEVICE_TYPE_TOCO = "toco";
     private static final String DEVICE_TYPE_TUCANA = "tucana";
     private static final int DSI_0 = 0;
     private static final int DSI_1 = 1;
@@ -82,11 +84,11 @@ public class ModemSarController implements SarControllerClient {
     public static boolean mQcRilHookReady;
     private static QcRilHookCallback mQcrilHookCb = new QcRilHookCallback() {
         public void onQcRilHookReady() {
-            ModemSarController.mQcRilHookReady = true;
+            boolean unused = ModemSarController.mQcRilHookReady = true;
         }
 
         public synchronized void onQcRilHookDisconnected() {
-            ModemSarController.mQcRilHookReady = false;
+            boolean unused = ModemSarController.mQcRilHookReady = false;
         }
     };
     /* access modifiers changed from: private */
@@ -95,264 +97,6 @@ public class ModemSarController implements SarControllerClient {
     CmdProcThread mCmdProc = null;
     private Context mContext;
     private DynamicSarService mService;
-
-    private static class CmdProcThread extends Thread {
-        private Handler mHandler;
-
-        private static class CmdHandler extends Handler {
-            private static final int DYNAMIC_SAR_REQ_NUM = 524489;
-            private static final int INT_SIZE = 4;
-            private static final String OEM_IDENTIFIER = "QOEMHOOK";
-            private byte[] mResBuf;
-
-            private CmdHandler() {
-                this.mResBuf = new byte[16];
-            }
-
-            private void cmdMsgSend(int reqNum, int para1) {
-                String str;
-                while (true) {
-                    boolean access$000 = ModemSarController.mQcRilHookReady;
-                    str = ModemSarController.LOG_TAG;
-                    if (access$000) {
-                        break;
-                    }
-                    Log.i(str, "Error: QcrilHook is not ready!");
-                    SystemClock.sleep(5000);
-                }
-                byte[] requestData = new byte[8];
-                ModemSarController.mQcRilHook;
-                ByteBuffer reqBuffer = QcRilHook.createBufferWithNativeByteOrder(requestData);
-                reqBuffer.putInt(para1);
-                reqBuffer.putInt(0);
-                AsyncResult ar = ModemSarController.mQcRilHook.sendQcRilHookMsg(reqNum, requestData);
-                if (ar.exception != null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("Exception ");
-                    sb.append(ar.exception);
-                    Log.e(str, sb.toString());
-                } else if (ar.result != null) {
-                    ByteBuffer byteBuf = ByteBuffer.wrap((byte[]) ar.result);
-                    byteBuf.order(ByteOrder.nativeOrder());
-                    this.mResBuf[0] = (byte) byteBuf.getInt();
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("Response is: ");
-                    sb2.append(byteBuf.toString());
-                    Log.d(str, sb2.toString());
-                    StringBuilder sb3 = new StringBuilder();
-                    sb3.append("mResBuf[0] = ");
-                    sb3.append(String.valueOf(this.mResBuf[0]));
-                    Log.d(str, sb3.toString());
-                } else {
-                    Log.e(str, "mQcRilHook.sendQcRilHookMsg: Null Response");
-                }
-            }
-
-            /* JADX WARNING: Removed duplicated region for block: B:10:0x00fa  */
-            /* JADX WARNING: Removed duplicated region for block: B:11:0x011d  */
-            /* Code decompiled incorrectly, please refer to instructions dump. */
-            private void DSI_Handle() {
-                /*
-                    r5 = this;
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "SarSensorState is = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.SarSensorState
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "ReceiverState is = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.ReceiverState
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "HotspotState is = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.HotspotState
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "WIFIState is = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.WIFIState
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "CHARGEState is = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.CHARGEState
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "DSI_History = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_History
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    int r0 = com.qualcomm.qti.internal.telephony.ModemSarController.CHARGEState
-                    r1 = 1
-                    if (r0 != r1) goto L_0x00af
-                    boolean r0 = com.qualcomm.qti.internal.telephony.ModemSarController.mCHARGESAREnabled
-                    if (r0 == 0) goto L_0x00af
-                    java.lang.String r0 = com.qualcomm.qti.internal.telephony.ModemSarController.mDeviceName
-                    java.lang.String r1 = "grus"
-                    boolean r0 = r1.equals(r0)
-                    if (r0 == 0) goto L_0x00af
-                    r0 = 8
-                    com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Current = r0
-                    goto L_0x00d8
-                L_0x00af:
-                    java.util.HashMap r0 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Hash
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.SarSensorState
-                    int r2 = com.qualcomm.qti.internal.telephony.ModemSarController.ReceiverState
-                    int r3 = com.qualcomm.qti.internal.telephony.ModemSarController.HotspotState
-                    int r4 = com.qualcomm.qti.internal.telephony.ModemSarController.WIFIState
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Hash_Key_Convert(r1, r2, r3, r4)
-                    java.lang.Integer r1 = java.lang.Integer.valueOf(r1)
-                    java.lang.Object r0 = r0.get(r1)
-                    java.lang.Integer r0 = (java.lang.Integer) r0
-                    int r0 = r0.intValue()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Current = r0
-                L_0x00d8:
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "DSI_Current is = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Current
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    int r0 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Current
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_History
-                    if (r0 == r1) goto L_0x011d
-                    java.lang.StringBuilder r0 = new java.lang.StringBuilder
-                    r0.<init>()
-                    java.lang.String r1 = "cmdMsgSend: = "
-                    r0.append(r1)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Current
-                    r0.append(r1)
-                    java.lang.String r0 = r0.toString()
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                    r0 = 524489(0x800c9, float:7.34966E-40)
-                    int r1 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Current
-                    r5.cmdMsgSend(r0, r1)
-                    goto L_0x0122
-                L_0x011d:
-                    java.lang.String r0 = "DSI value not change, will not send dsi to modem"
-                    com.qualcomm.qti.internal.telephony.ModemSarController.log(r0)
-                L_0x0122:
-                    int r0 = com.qualcomm.qti.internal.telephony.ModemSarController.DSI_Current
-                    com.qualcomm.qti.internal.telephony.ModemSarController.DSI_History = r0
-                    return
-                */
-                throw new UnsupportedOperationException("Method not decompiled: com.qualcomm.qti.internal.telephony.ModemSarController.CmdProcThread.CmdHandler.DSI_Handle():void");
-            }
-
-            public void handleMessage(Message msg) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("handlerMessage, msg = ");
-                sb.append(msg.what);
-                ModemSarController.log(sb.toString());
-                int i = msg.what;
-                String str = "msg.arg1 = ";
-                if (i == 1) {
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append(str);
-                    sb2.append(msg.arg1);
-                    ModemSarController.log(sb2.toString());
-                    if (ModemSarController.mSarSensorEnabled) {
-                        ModemSarController.SarSensorState = msg.arg1;
-                        if (!(ModemSarController.SarSensorState == 0 || 1 == ModemSarController.SarSensorState || 2 == ModemSarController.SarSensorState)) {
-                            ModemSarController.log("sar sensor value is invalid, will force set it to 0");
-                            ModemSarController.SarSensorState = 0;
-                        }
-                        DSI_Handle();
-                        return;
-                    }
-                    ModemSarController.log("sar sensor is not started, invalid event, will not send dsi");
-                } else if (i == 2) {
-                    StringBuilder sb3 = new StringBuilder();
-                    sb3.append(str);
-                    sb3.append(msg.arg1);
-                    ModemSarController.log(sb3.toString());
-                    ModemSarController.ReceiverState = msg.arg1;
-                    if (!(ModemSarController.ReceiverState == 0 || 1 == ModemSarController.ReceiverState)) {
-                        ModemSarController.log("ReceiverState is invalid, will force set it to 0");
-                        ModemSarController.ReceiverState = 0;
-                    }
-                    DSI_Handle();
-                } else if (i == 3) {
-                    StringBuilder sb4 = new StringBuilder();
-                    sb4.append(str);
-                    sb4.append(msg.arg1);
-                    ModemSarController.log(sb4.toString());
-                    ModemSarController.HotspotState = msg.arg1;
-                    if (!(ModemSarController.HotspotState == 0 || 1 == ModemSarController.HotspotState)) {
-                        ModemSarController.log("HotspotState is invalid, will force set it to 0");
-                        ModemSarController.HotspotState = 0;
-                    }
-                    DSI_Handle();
-                } else if (i == 4) {
-                    StringBuilder sb5 = new StringBuilder();
-                    sb5.append(str);
-                    sb5.append(msg.arg1);
-                    ModemSarController.log(sb5.toString());
-                    ModemSarController.WIFIState = msg.arg1;
-                    if (!(ModemSarController.WIFIState == 0 || 1 == ModemSarController.WIFIState)) {
-                        ModemSarController.log("WIFIState is invalid, will force set it to 0");
-                        ModemSarController.WIFIState = 0;
-                    }
-                    DSI_Handle();
-                } else if (i == 5) {
-                    StringBuilder sb6 = new StringBuilder();
-                    sb6.append(str);
-                    sb6.append(msg.arg1);
-                    ModemSarController.log(sb6.toString());
-                    if (ModemSarController.mCHARGESAREnabled) {
-                        ModemSarController.CHARGEState = msg.arg1;
-                        if (!(ModemSarController.CHARGEState == 0 || 1 == ModemSarController.CHARGEState)) {
-                            ModemSarController.log("CHARGE SAR value is invalid, will force set it to 0");
-                            ModemSarController.CHARGEState = 0;
-                        }
-                        DSI_Handle();
-                        return;
-                    }
-                    ModemSarController.log("CHARGE SAR is not started, invalid event, will not send dsi");
-                }
-            }
-        }
-
-        private CmdProcThread() {
-            this.mHandler = null;
-        }
-
-        public Handler getCmdHandler() {
-            if (this.mHandler == null) {
-                Log.e(ModemSarController.LOG_TAG, "getCmdHandler, handler is NULL!!!");
-            }
-            return this.mHandler;
-        }
-
-        public void run() {
-            Looper.prepare();
-            this.mHandler = new CmdHandler();
-            ModemSarController.log("CmdProcThread, thread is running up!!!!");
-            Looper.loop();
-        }
-    }
 
     public static void make(Context context) {
         if (sIntance == null) {
@@ -368,22 +112,7 @@ public class ModemSarController implements SarControllerClient {
         mDynmaicSarTestEnabled = SystemProperties.getBoolean(PROPERTY_DYNAMIC_SAR_TEST_CONTROL, false);
         mDynmaicSarMainEnabled = SystemProperties.getBoolean(PROPERTY_DYNAMIC_SAR_MAIN_CONTROL, false);
         mCHARGESAREnabled = SystemProperties.getBoolean(PROPERTY_CHARGE_SAR_CONTROL, false);
-        StringBuilder sb = new StringBuilder();
-        sb.append("Device name = ");
-        sb.append(mDeviceName);
-        sb.append(", DeviceHW = ");
-        sb.append(mDeviceHW);
-        sb.append(", DeviceSW = ");
-        sb.append(mDeviceSW);
-        sb.append(", mDynmaicSarTestEnabled = ");
-        sb.append(mDynmaicSarTestEnabled);
-        sb.append(", mDynmaicSarMainEnabled = ");
-        sb.append(mDynmaicSarMainEnabled);
-        sb.append(", mSarSensorEnabled = ");
-        sb.append(mSarSensorEnabled);
-        sb.append(", mCHARGESAREnabled = ");
-        sb.append(mCHARGESAREnabled);
-        log(sb.toString());
+        log("Device name = " + mDeviceName + ", DeviceHW = " + mDeviceHW + ", DeviceSW = " + mDeviceSW + ", mDynmaicSarTestEnabled = " + mDynmaicSarTestEnabled + ", mDynmaicSarMainEnabled = " + mDynmaicSarMainEnabled + ", mSarSensorEnabled = " + mSarSensorEnabled + ", mCHARGESAREnabled = " + mCHARGESAREnabled);
         if (mDynmaicSarTestEnabled) {
             log("Warning, Sar Test switch is started.");
             DSI_Hash_Init_Common_Cfg();
@@ -439,6 +168,9 @@ public class ModemSarController implements SarControllerClient {
             if (mDeviceName.contains(DEVICE_TYPE_TUCANA)) {
                 return onInitSarParameterF4();
             }
+            if (mDeviceName.contains(DEVICE_TYPE_TOCO)) {
+                return onInitSarParameterF4L();
+            }
             log("not support this product");
             return false;
         }
@@ -455,8 +187,6 @@ public class ModemSarController implements SarControllerClient {
     }
 
     private static boolean onInitSarParameterF10() {
-        boolean sarFlag = true;
-        String str = DEVICE_INFO_HW_LEVEL_P2;
         log("onInitSarParameterF10");
         if (mDeviceSW == null) {
             log("mDeviceSW is null");
@@ -466,29 +196,26 @@ public class ModemSarController implements SarControllerClient {
             return false;
         } else {
             String hwLevel = SystemProperties.get(PROPERTY_DEVICE_INFO_HW_LEVEL);
-            StringBuilder sb = new StringBuilder();
-            sb.append("hwLevel: ");
-            sb.append(hwLevel);
-            log(sb.toString());
+            log("hwLevel: " + hwLevel);
             if (DEVICE_INFO_HW_LEVEL_P0.equals(hwLevel) || DEVICE_INFO_HW_LEVEL_P1.equals(hwLevel)) {
                 log("RFNV about sar is not valid in P0 and P1, pls use test switch to open sar after you are sure RFNV of sar is good");
-                sarFlag = false;
+                return false;
             } else if (mDeviceSW.contains(DEVICE_INFO_SW_GLOBAL) && mDeviceHW.contains(DEVICE_INFO_HW_GLOBAL)) {
                 DSI_Hash_Init_Common_Cfg();
+                return true;
             } else if (!mDeviceSW.contains(DEVICE_INFO_SW_INDIA) || !mDeviceHW.contains(DEVICE_INFO_HW_INDIA)) {
                 log("sw and hw info is mismatch or not correct, pls check your sw and hw info");
-                sarFlag = false;
+                return false;
             } else {
                 DSI_Hash_Init_Common_Cfg();
                 mSarSensorEnabled = false;
                 log("India version not supprot sar sensor, will not listen it");
+                return true;
             }
-            return sarFlag;
         }
     }
 
     private static boolean onInitSarParameterG7B() {
-        boolean sarFlag = true;
         log("onInitSarParameterG7B");
         String str = mDeviceSW;
         if (str == null) {
@@ -497,16 +224,14 @@ public class ModemSarController implements SarControllerClient {
         } else if (mDeviceHW == null) {
             log("mDeviceHW is null");
             return false;
+        } else if (!str.contains(DEVICE_INFO_SW_INDIA) || !mDeviceHW.contains(DEVICE_INFO_HW_INDIA)) {
+            log("sw and hw info is mismatch or not correct, pls check your sw and hw info");
+            return false;
         } else {
-            if (!str.contains(DEVICE_INFO_SW_INDIA) || !mDeviceHW.contains(DEVICE_INFO_HW_INDIA)) {
-                log("sw and hw info is mismatch or not correct, pls check your sw and hw info");
-                sarFlag = false;
-            } else {
-                DSI_Hash_Init_Common_Cfg();
-                mSarSensorEnabled = false;
-                log("India version not supprot sar sensor, will not listen it");
-            }
-            return sarFlag;
+            DSI_Hash_Init_Common_Cfg();
+            mSarSensorEnabled = false;
+            log("India version not supprot sar sensor, will not listen it");
+            return true;
         }
     }
 
@@ -520,13 +245,25 @@ public class ModemSarController implements SarControllerClient {
         return true;
     }
 
+    private static boolean onInitSarParameterF4L() {
+        log("onInitSarParameterF4L");
+        if (mDeviceSW.contains(DEVICE_INFO_SW_GLOBAL) && mDeviceHW.contains(DEVICE_INFO_HW_GLOBAL)) {
+            DSI_Hash_Init_Common_Cfg();
+            log("Global version disable sar sensor");
+            return true;
+        } else if (!mDeviceSW.contains(DEVICE_INFO_SW_INDIA) || !mDeviceHW.contains(DEVICE_INFO_HW_INDIA)) {
+            log("not support this version");
+            return false;
+        } else {
+            DSI_Hash_Init_Common_Cfg();
+            mSarSensorEnabled = false;
+            log("India version not supprot sar sensor, will not listen it");
+            return true;
+        }
+    }
+
     public void onStateChanged(int type, int value) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("onStateChanged: type = ");
-        sb.append(type);
-        sb.append(", value = ");
-        sb.append(value);
-        log(sb.toString());
+        log("onStateChanged: type = " + type + ", value = " + value);
         if (type == 0) {
             sendMsgToHandler(4, value, 0);
         } else if (type == 1) {
@@ -549,50 +286,34 @@ public class ModemSarController implements SarControllerClient {
 
     private static void DSI_Hash_Init_Common_Cfg() {
         log("DSI_Hash_Init_Common_Cfg");
-        HashMap<Integer, Integer> hashMap = DSI_Hash;
-        Integer valueOf = Integer.valueOf(0);
-        hashMap.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 0, 0)), valueOf);
-        HashMap<Integer, Integer> hashMap2 = DSI_Hash;
-        Integer valueOf2 = Integer.valueOf(1);
-        hashMap2.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 0, 1)), valueOf);
-        HashMap<Integer, Integer> hashMap3 = DSI_Hash;
-        Integer valueOf3 = Integer.valueOf(2);
-        hashMap3.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 0, 0)), valueOf2);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 0, 0)), valueOf2);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 0, 0)), valueOf2);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 0, 1)), valueOf3);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 0, 1)), valueOf3);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 0, 1)), valueOf3);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 0, 0)), Integer.valueOf(3));
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 0, 1)), Integer.valueOf(4));
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 0, 0)), Integer.valueOf(5));
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 0, 1)), Integer.valueOf(6));
-        HashMap<Integer, Integer> hashMap4 = DSI_Hash;
-        Integer valueOf4 = Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 1, 0));
-        Integer valueOf5 = Integer.valueOf(7);
-        hashMap4.put(valueOf4, valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 1, 1)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 1, 0)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 1, 1)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 1, 0)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 1, 1)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 1, 0)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 1, 1)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 1, 0)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 1, 1)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 1, 0)), valueOf5);
-        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 1, 1)), valueOf5);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 0, 0)), 0);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 0, 1)), 0);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 0, 0)), 1);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 0, 0)), 1);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 0, 0)), 1);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 0, 1)), 2);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 0, 1)), 2);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 0, 1)), 2);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 0, 0)), 3);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 0, 1)), 4);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 0, 0)), 5);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 0, 1)), 6);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 1, 0)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 0, 1, 1)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 1, 0)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(2, 1, 1, 1)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 1, 0)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 0, 1, 1)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 1, 0)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(1, 1, 1, 1)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 1, 0)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 0, 1, 1)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 1, 0)), 7);
+        DSI_Hash.put(Integer.valueOf(DSI_Hash_Key_Convert(0, 1, 1, 1)), 7);
     }
 
     private void sendMsgToHandler(int message, int arg1, int arg2) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("sendMsgToHandler, Message = ");
-        sb.append(message);
-        sb.append(", arg1 = ");
-        sb.append(arg1);
-        sb.append(", arg2 = ");
-        sb.append(arg2);
-        log(sb.toString());
+        log("sendMsgToHandler, Message = " + message + ", arg1 = " + arg1 + ", arg2 = " + arg2);
         Handler handler = this.mCmdProc.getCmdHandler();
         handler.sendMessage(handler.obtainMessage(message, arg1, arg2));
     }
@@ -600,5 +321,138 @@ public class ModemSarController implements SarControllerClient {
     /* access modifiers changed from: private */
     public static final void log(String s) {
         Log.i(LOG_TAG, s);
+    }
+
+    private static class CmdProcThread extends Thread {
+        private Handler mHandler;
+
+        private CmdProcThread() {
+            this.mHandler = null;
+        }
+
+        public Handler getCmdHandler() {
+            if (this.mHandler == null) {
+                Log.e(ModemSarController.LOG_TAG, "getCmdHandler, handler is NULL!!!");
+            }
+            return this.mHandler;
+        }
+
+        public void run() {
+            Looper.prepare();
+            this.mHandler = new CmdHandler();
+            ModemSarController.log("CmdProcThread, thread is running up!!!!");
+            Looper.loop();
+        }
+
+        private static class CmdHandler extends Handler {
+            private static final int DYNAMIC_SAR_REQ_NUM = 524489;
+            private static final int INT_SIZE = 4;
+            private static final String OEM_IDENTIFIER = "QOEMHOOK";
+            private byte[] mResBuf;
+
+            private CmdHandler() {
+                this.mResBuf = new byte[16];
+            }
+
+            private void cmdMsgSend(int reqNum, int para1) {
+                while (!ModemSarController.mQcRilHookReady) {
+                    Log.i(ModemSarController.LOG_TAG, "Error: QcrilHook is not ready!");
+                    SystemClock.sleep(5000);
+                }
+                byte[] requestData = new byte[8];
+                QcRilHook unused = ModemSarController.mQcRilHook;
+                ByteBuffer reqBuffer = QcRilHook.createBufferWithNativeByteOrder(requestData);
+                reqBuffer.putInt(para1);
+                reqBuffer.putInt(0);
+                AsyncResult ar = ModemSarController.mQcRilHook.sendQcRilHookMsg(reqNum, requestData);
+                if (ar.exception != null) {
+                    Log.e(ModemSarController.LOG_TAG, "Exception " + ar.exception);
+                } else if (ar.result != null) {
+                    ByteBuffer byteBuf = ByteBuffer.wrap((byte[]) ar.result);
+                    byteBuf.order(ByteOrder.nativeOrder());
+                    this.mResBuf[0] = (byte) byteBuf.getInt();
+                    Log.d(ModemSarController.LOG_TAG, "Response is: " + byteBuf.toString());
+                    Log.d(ModemSarController.LOG_TAG, "mResBuf[0] = " + String.valueOf(this.mResBuf[0]));
+                } else {
+                    Log.e(ModemSarController.LOG_TAG, "mQcRilHook.sendQcRilHookMsg: Null Response");
+                }
+            }
+
+            private void DSI_Handle() {
+                ModemSarController.log("SarSensorState is = " + ModemSarController.SarSensorState);
+                ModemSarController.log("ReceiverState is = " + ModemSarController.ReceiverState);
+                ModemSarController.log("HotspotState is = " + ModemSarController.HotspotState);
+                ModemSarController.log("WIFIState is = " + ModemSarController.WIFIState);
+                ModemSarController.log("CHARGEState is = " + ModemSarController.CHARGEState);
+                ModemSarController.log("DSI_History = " + ModemSarController.DSI_History);
+                if (ModemSarController.CHARGEState != 1 || !ModemSarController.mCHARGESAREnabled || !ModemSarController.DEVICE_TYPE_GRUS.equals(ModemSarController.mDeviceName)) {
+                    int unused = ModemSarController.DSI_Current = ((Integer) ModemSarController.DSI_Hash.get(Integer.valueOf(ModemSarController.DSI_Hash_Key_Convert(ModemSarController.SarSensorState, ModemSarController.ReceiverState, ModemSarController.HotspotState, ModemSarController.WIFIState)))).intValue();
+                } else {
+                    int unused2 = ModemSarController.DSI_Current = 8;
+                }
+                ModemSarController.log("DSI_Current is = " + ModemSarController.DSI_Current);
+                if (ModemSarController.DSI_Current != ModemSarController.DSI_History) {
+                    ModemSarController.log("cmdMsgSend: = " + ModemSarController.DSI_Current);
+                    cmdMsgSend(DYNAMIC_SAR_REQ_NUM, ModemSarController.DSI_Current);
+                } else {
+                    ModemSarController.log("DSI value not change, will not send dsi to modem");
+                }
+                int unused3 = ModemSarController.DSI_History = ModemSarController.DSI_Current;
+            }
+
+            public void handleMessage(Message msg) {
+                ModemSarController.log("handlerMessage, msg = " + msg.what);
+                int i = msg.what;
+                if (i == 1) {
+                    ModemSarController.log("msg.arg1 = " + msg.arg1);
+                    if (ModemSarController.mSarSensorEnabled) {
+                        int unused = ModemSarController.SarSensorState = msg.arg1;
+                        if (!(ModemSarController.SarSensorState == 0 || 1 == ModemSarController.SarSensorState || 2 == ModemSarController.SarSensorState)) {
+                            ModemSarController.log("sar sensor value is invalid, will force set it to 0");
+                            int unused2 = ModemSarController.SarSensorState = 2;
+                        }
+                        DSI_Handle();
+                        return;
+                    }
+                    ModemSarController.log("sar sensor is not started, invalid event, will not send dsi");
+                } else if (i == 2) {
+                    ModemSarController.log("msg.arg1 = " + msg.arg1);
+                    int unused3 = ModemSarController.ReceiverState = msg.arg1;
+                    if (!(ModemSarController.ReceiverState == 0 || 1 == ModemSarController.ReceiverState)) {
+                        ModemSarController.log("ReceiverState is invalid, will force set it to 0");
+                        int unused4 = ModemSarController.ReceiverState = 0;
+                    }
+                    DSI_Handle();
+                } else if (i == 3) {
+                    ModemSarController.log("msg.arg1 = " + msg.arg1);
+                    int unused5 = ModemSarController.HotspotState = msg.arg1;
+                    if (!(ModemSarController.HotspotState == 0 || 1 == ModemSarController.HotspotState)) {
+                        ModemSarController.log("HotspotState is invalid, will force set it to 0");
+                        int unused6 = ModemSarController.HotspotState = 0;
+                    }
+                    DSI_Handle();
+                } else if (i == 4) {
+                    ModemSarController.log("msg.arg1 = " + msg.arg1);
+                    int unused7 = ModemSarController.WIFIState = msg.arg1;
+                    if (!(ModemSarController.WIFIState == 0 || 1 == ModemSarController.WIFIState)) {
+                        ModemSarController.log("WIFIState is invalid, will force set it to 0");
+                        int unused8 = ModemSarController.WIFIState = 0;
+                    }
+                    DSI_Handle();
+                } else if (i == 5) {
+                    ModemSarController.log("msg.arg1 = " + msg.arg1);
+                    if (ModemSarController.mCHARGESAREnabled) {
+                        int unused9 = ModemSarController.CHARGEState = msg.arg1;
+                        if (!(ModemSarController.CHARGEState == 0 || 1 == ModemSarController.CHARGEState)) {
+                            ModemSarController.log("CHARGE SAR value is invalid, will force set it to 0");
+                            int unused10 = ModemSarController.CHARGEState = 0;
+                        }
+                        DSI_Handle();
+                        return;
+                    }
+                    ModemSarController.log("CHARGE SAR is not started, invalid event, will not send dsi");
+                }
+            }
+        }
     }
 }

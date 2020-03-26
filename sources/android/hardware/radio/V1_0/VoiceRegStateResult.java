@@ -35,26 +35,7 @@ public final class VoiceRegStateResult {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".regState = ");
-        builder.append(RegState.toString(this.regState));
-        builder.append(", .rat = ");
-        builder.append(this.rat);
-        builder.append(", .cssSupported = ");
-        builder.append(this.cssSupported);
-        builder.append(", .roamingIndicator = ");
-        builder.append(this.roamingIndicator);
-        builder.append(", .systemIsInPrl = ");
-        builder.append(this.systemIsInPrl);
-        builder.append(", .defaultRoamingIndicator = ");
-        builder.append(this.defaultRoamingIndicator);
-        builder.append(", .reasonForDenial = ");
-        builder.append(this.reasonForDenial);
-        builder.append(", .cellIdentity = ");
-        builder.append(this.cellIdentity);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".regState = " + RegState.toString(this.regState) + ", .rat = " + this.rat + ", .cssSupported = " + this.cssSupported + ", .roamingIndicator = " + this.roamingIndicator + ", .systemIsInPrl = " + this.systemIsInPrl + ", .defaultRoamingIndicator = " + this.defaultRoamingIndicator + ", .reasonForDenial = " + this.reasonForDenial + ", .cellIdentity = " + this.cellIdentity + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -99,7 +80,7 @@ public final class VoiceRegStateResult {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((VoiceRegStateResult) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

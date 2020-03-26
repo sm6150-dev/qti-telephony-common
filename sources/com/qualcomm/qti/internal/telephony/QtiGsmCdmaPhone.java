@@ -38,7 +38,7 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
         this.mIsPhoneReadyPending = false;
         Rlog.d(LOG_TAG, "Constructor");
         this.mQtiRilInterface = getQtiRilInterface();
-        this.mQtiRilInterface.registerForServiceReadyEvent(this, 117, null);
+        this.mQtiRilInterface.registerForServiceReadyEvent(this, 117, (Object) null);
     }
 
     public void setPreferredNetworkType(int networkType, Message response) {
@@ -55,10 +55,7 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
         try {
             radioPowerOpt = QtiTelephonyComponentFactory.getInstance().getRil(0).getPropertyValueInt("persist.vendor.radio.poweron_opt", 0);
         } catch (RemoteException | NullPointerException ex) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Exception: ");
-            sb.append(ex);
-            Rlog.e(LOG_TAG, sb.toString());
+            Rlog.e(LOG_TAG, "Exception: " + ex);
         }
         if (!this.mIsPhoneReadySent && radioPowerOpt == 1) {
             if (!this.mQtiRilInterface.isServiceReady()) {
@@ -101,12 +98,7 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
         } catch (NullPointerException e) {
             provisionStatus = 0;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("ProvisionStatus: ");
-        sb.append(provisionStatus);
-        sb.append(" phone id:");
-        sb.append(this.mPhoneId);
-        Rlog.d(LOG_TAG, sb.toString());
+        Rlog.d(LOG_TAG, "ProvisionStatus: " + provisionStatus + " phone id:" + this.mPhoneId);
         return subscriptionManager.isActiveSubscriptionId(getSubId()) && provisionStatus == 1;
     }
 
@@ -131,12 +123,7 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
     }
 
     public void handleMessage(Message msg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("handleMessage: Event: ");
-        sb.append(msg.what);
-        String sb2 = sb.toString();
-        String str = LOG_TAG;
-        Rlog.d(str, sb2);
+        Rlog.d(LOG_TAG, "handleMessage: Event: " + msg.what);
         int i = msg.what;
         if (i == 1) {
             this.mIsPhoneReadySent = false;
@@ -144,17 +131,14 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
             QtiGsmCdmaPhone.super.handleMessage(msg);
         } else if (i == 3) {
             if (isPhoneTypeGsm()) {
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("notify call forward indication, phone id:");
-                sb3.append(this.mPhoneId);
-                Rlog.d(str, sb3.toString());
+                Rlog.d(LOG_TAG, "notify call forward indication, phone id:" + this.mPhoneId);
                 notifyCallForwardingIndicator();
             }
             QtiGsmCdmaPhone.super.handleMessage(msg);
         } else if (i == 23) {
-            Rlog.d(str, "Event EVENT_NV_READY Received");
+            Rlog.d(LOG_TAG, "Event EVENT_NV_READY Received");
             this.mSST.pollState();
-            Rlog.d(str, "notifyMessageWaitingChanged");
+            Rlog.d(LOG_TAG, "notifyMessageWaitingChanged");
             this.mNotifier.notifyMessageWaitingChanged(this);
             updateVoiceMail();
         } else if (i == 41) {
@@ -165,12 +149,12 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
         } else {
             AsyncResult ar = (AsyncResult) msg.obj;
             if (ar == null || ar.result == null) {
-                Rlog.e(str, "Error: empty result, EVENT_OEM_HOOK_SERVICE_READY");
+                Rlog.e(LOG_TAG, "Error: empty result, EVENT_OEM_HOOK_SERVICE_READY");
             } else if (((Boolean) ar.result).booleanValue()) {
                 if (this.mIsPhoneReadyPending) {
                     updatePhoneReady(this.mPhoneId);
                 }
-                Rlog.d(str, "EVENT_OEM_HOOK_SERVICE_READY received");
+                Rlog.d(LOG_TAG, "EVENT_OEM_HOOK_SERVICE_READY received");
             }
         }
     }
@@ -180,14 +164,10 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
             if (isPhoneTypeCdma() && c == 'D') {
                 c = '#';
             }
-            this.mCi.startDtmf(c, null);
+            this.mCi.startDtmf(c, (Message) null);
             return;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("startDtmf called with invalid character '");
-        sb.append(c);
-        sb.append("'");
-        Rlog.e(LOG_TAG, sb.toString());
+        Rlog.e(LOG_TAG, "startDtmf called with invalid character '" + c + "'");
     }
 
     public void sendBurstDtmf(String dtmfString, int on, int off, Message onComplete) {
@@ -202,9 +182,9 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
         ExtTelephonyServiceImpl serviceImpl = ExtTelephonyServiceImpl.getInstance();
         if (SubsidyLockSettingsObserver.isSubsidyLockFeatureEnabled() && !SubsidyLockSettingsObserver.isSubsidyUnlocked(this.mContext)) {
             if ((serviceImpl != null) && serviceImpl.isPrimaryCarrierSlotId(getPhoneId())) {
-                setPreferredNetworkType(PhoneFactory.calculatePreferredNetworkType(this.mContext, getSubId()), null);
+                setPreferredNetworkType(PhoneFactory.calculatePreferredNetworkType(this.mContext, getSubId()), (Message) null);
                 logd(" settings network selection mode to AUTO ");
-                setNetworkSelectionModeAutomatic(null);
+                setNetworkSelectionModeAutomatic((Message) null);
                 return;
             }
         }
@@ -244,20 +224,10 @@ public class QtiGsmCdmaPhone extends GsmCdmaPhone {
     }
 
     private void logd(String msg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        sb.append(this.mPhoneId);
-        sb.append(" ] ");
-        sb.append(msg);
-        Rlog.d(LOG_TAG, sb.toString());
+        Rlog.d(LOG_TAG, "[" + this.mPhoneId + " ] " + msg);
     }
 
     private void loge(String msg) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        sb.append(this.mPhoneId);
-        sb.append(" ] ");
-        sb.append(msg);
-        Rlog.e(LOG_TAG, sb.toString());
+        Rlog.e(LOG_TAG, "[" + this.mPhoneId + " ] " + msg);
     }
 }

@@ -29,14 +29,7 @@ public final class SignalStrength {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".rsrp = ");
-        builder.append(this.rsrp);
-        builder.append(", .snr = ");
-        builder.append(this.snr);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".rsrp = " + this.rsrp + ", .snr = " + this.snr + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class SignalStrength {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 8);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SignalStrength) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

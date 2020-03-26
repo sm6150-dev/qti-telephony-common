@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.IDeviceIdleController;
 import android.os.Looper;
-import android.provider.Settings.Global;
+import android.provider.Settings;
 import android.telephony.Rlog;
 import com.android.internal.telephony.CommandsInterface;
 import com.android.internal.telephony.GsmCdmaCallTracker;
@@ -119,8 +119,7 @@ public class QtiTelephonyComponentFactory extends TelephonyComponentFactory {
 
     public Phone makePhone(Context context, CommandsInterface ci, PhoneNotifier notifier, int phoneId, int precisePhoneType, TelephonyComponentFactory telephonyComponentFactory) {
         Rlog.d(LOG_TAG, "makePhone");
-        QtiGsmCdmaPhone qtiGsmCdmaPhone = new QtiGsmCdmaPhone(context, ci, notifier, phoneId, precisePhoneType, telephonyComponentFactory);
-        return qtiGsmCdmaPhone;
+        return new QtiGsmCdmaPhone(context, ci, notifier, phoneId, precisePhoneType, telephonyComponentFactory);
     }
 
     public SubscriptionController initSubscriptionController(Context c, CommandsInterface[] ci) {
@@ -135,11 +134,9 @@ public class QtiTelephonyComponentFactory extends TelephonyComponentFactory {
 
     public void makeExtTelephonyClasses(Context context, Phone[] phones, CommandsInterface[] commandsInterfaces) {
         Rlog.d(LOG_TAG, " makeExtTelephonyClasses ");
-        String str = "settings_network_and_internet_v2";
-        String value = Global.getString(context.getContentResolver(), str);
-        String str2 = "false";
-        if (value == null || !value.equals(str2)) {
-            Global.putString(context.getContentResolver(), str, str2);
+        String value = Settings.Global.getString(context.getContentResolver(), "settings_network_and_internet_v2");
+        if (value == null || !value.equals("false")) {
+            Settings.Global.putString(context.getContentResolver(), "settings_network_and_internet_v2", "false");
         }
         QtiPhoneUtils.init(context);
         QtiUiccCardProvisioner.make(context, commandsInterfaces);
@@ -178,11 +175,7 @@ public class QtiTelephonyComponentFactory extends TelephonyComponentFactory {
             qtiRILArr[instanceId.intValue()] = new QtiRIL(context, preferredNetworkType, cdmaSubscription, instanceId);
             return this.mRil[instanceId.intValue()];
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("RilInstance = ");
-        sb.append(instanceId);
-        sb.append(" not allowed!");
-        throw new RuntimeException(sb.toString());
+        throw new RuntimeException("RilInstance = " + instanceId + " not allowed!");
     }
 
     public QtiRIL getRil(int slotId) {

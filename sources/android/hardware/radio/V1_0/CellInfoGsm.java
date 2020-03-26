@@ -29,14 +29,7 @@ public final class CellInfoGsm {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cellIdentityGsm = ");
-        builder.append(this.cellIdentityGsm);
-        builder.append(", .signalStrengthGsm = ");
-        builder.append(this.signalStrengthGsm);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cellIdentityGsm = " + this.cellIdentityGsm + ", .signalStrengthGsm = " + this.signalStrengthGsm + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class CellInfoGsm {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 64);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellInfoGsm) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 64));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

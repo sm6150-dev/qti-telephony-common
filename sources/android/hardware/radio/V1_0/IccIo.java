@@ -36,28 +36,7 @@ public final class IccIo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".command = ");
-        builder.append(this.command);
-        builder.append(", .fileId = ");
-        builder.append(this.fileId);
-        builder.append(", .path = ");
-        builder.append(this.path);
-        builder.append(", .p1 = ");
-        builder.append(this.p1);
-        builder.append(", .p2 = ");
-        builder.append(this.p2);
-        builder.append(", .p3 = ");
-        builder.append(this.p3);
-        builder.append(", .data = ");
-        builder.append(this.data);
-        builder.append(", .pin2 = ");
-        builder.append(this.pin2);
-        builder.append(", .aid = ");
-        builder.append(this.aid);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".command = " + this.command + ", .fileId = " + this.fileId + ", .path = " + this.path + ", .p1 = " + this.p1 + ", .p2 = " + this.p2 + ", .p3 = " + this.p3 + ", .data = " + this.data + ", .pin2 = " + this.pin2 + ", .aid = " + this.aid + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -108,7 +87,7 @@ public final class IccIo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 88);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((IccIo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

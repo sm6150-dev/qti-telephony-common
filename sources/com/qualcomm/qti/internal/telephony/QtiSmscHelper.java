@@ -41,7 +41,8 @@ public class QtiSmscHelper extends Handler {
                             this.mSuccess = z;
                             this.mSetLock.notifyAll();
                         }
-                    } finally {
+                    } catch (Throwable th) {
+                        throw th;
                     }
                 }
                 z = false;
@@ -52,13 +53,7 @@ public class QtiSmscHelper extends Handler {
             synchronized (this.mGetLock) {
                 if (ar != null) {
                     if (ar.exception == null) {
-                        String str = LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("smsc = ");
-                        sb.append(ar.result);
-                        sb.append(" on phone = ");
-                        sb.append(msg.arg1);
-                        Rlog.d(str, sb.toString());
+                        Rlog.d(LOG_TAG, "smsc = " + ar.result + " on phone = " + msg.arg1);
                         this.mSmscArray.set(msg.arg1, ar.result);
                     }
                 }
@@ -69,19 +64,12 @@ public class QtiSmscHelper extends Handler {
 
     public boolean setSmscAddress(int slotId, String smsc) {
         if (!isValidPhoneId(slotId)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Invalid phone id = ");
-            sb.append(slotId);
-            Rlog.d(LOG_TAG, sb.toString());
+            Rlog.d(LOG_TAG, "Invalid phone id = " + slotId);
             return false;
         }
         synchronized (this.mSetLock) {
             if (TextUtils.equals((String) this.mSmscArray.get(slotId), smsc)) {
-                String str = LOG_TAG;
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("the same smsc is there on phone = ");
-                sb2.append(slotId);
-                Rlog.d(str, sb2.toString());
+                Rlog.d(LOG_TAG, "the same smsc is there on phone = " + slotId);
                 return true;
             }
             this.mPhones[slotId].setSmscAddress(smsc, obtainMessage(1, slotId, -1));
@@ -100,10 +88,7 @@ public class QtiSmscHelper extends Handler {
     public String getSmscAddress(int slotId) {
         String str;
         if (!isValidPhoneId(slotId)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Invalid phone id = ");
-            sb.append(slotId);
-            Rlog.d(LOG_TAG, sb.toString());
+            Rlog.d(LOG_TAG, "Invalid phone id = " + slotId);
             return null;
         }
         synchronized (this.mGetLock) {

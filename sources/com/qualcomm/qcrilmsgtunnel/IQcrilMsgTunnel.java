@@ -8,6 +8,9 @@ import android.os.RemoteException;
 import com.qualcomm.qcrilhook.IOemHookCallback;
 
 public interface IQcrilMsgTunnel extends IInterface {
+    int sendOemRilRequestRaw(byte[] bArr, byte[] bArr2, int i) throws RemoteException;
+
+    void sendOemRilRequestRawAsync(byte[] bArr, IOemHookCallback iOemHookCallback, int i) throws RemoteException;
 
     public static class Default implements IQcrilMsgTunnel {
         public int sendOemRilRequestRaw(byte[] request, byte[] response, int sub) throws RemoteException {
@@ -26,6 +29,54 @@ public interface IQcrilMsgTunnel extends IInterface {
         private static final String DESCRIPTOR = "com.qualcomm.qcrilmsgtunnel.IQcrilMsgTunnel";
         static final int TRANSACTION_sendOemRilRequestRaw = 1;
         static final int TRANSACTION_sendOemRilRequestRawAsync = 2;
+
+        public Stub() {
+            attachInterface(this, DESCRIPTOR);
+        }
+
+        public static IQcrilMsgTunnel asInterface(IBinder obj) {
+            if (obj == null) {
+                return null;
+            }
+            IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
+            if (iin == null || !(iin instanceof IQcrilMsgTunnel)) {
+                return new Proxy(obj);
+            }
+            return (IQcrilMsgTunnel) iin;
+        }
+
+        public IBinder asBinder() {
+            return this;
+        }
+
+        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+            byte[] _arg1;
+            if (code == 1) {
+                data.enforceInterface(DESCRIPTOR);
+                byte[] _arg0 = data.createByteArray();
+                int _arg1_length = data.readInt();
+                if (_arg1_length < 0) {
+                    _arg1 = null;
+                } else {
+                    _arg1 = new byte[_arg1_length];
+                }
+                int _result = sendOemRilRequestRaw(_arg0, _arg1, data.readInt());
+                reply.writeNoException();
+                reply.writeInt(_result);
+                reply.writeByteArray(_arg1);
+                return true;
+            } else if (code == 2) {
+                data.enforceInterface(DESCRIPTOR);
+                sendOemRilRequestRawAsync(data.createByteArray(), IOemHookCallback.Stub.asInterface(data.readStrongBinder()), data.readInt());
+                reply.writeNoException();
+                return true;
+            } else if (code != 1598968902) {
+                return super.onTransact(code, data, reply, flags);
+            } else {
+                reply.writeString(DESCRIPTOR);
+                return true;
+            }
+        }
 
         private static class Proxy implements IQcrilMsgTunnel {
             public static IQcrilMsgTunnel sDefaultImpl;
@@ -92,55 +143,6 @@ public interface IQcrilMsgTunnel extends IInterface {
             }
         }
 
-        public Stub() {
-            attachInterface(this, DESCRIPTOR);
-        }
-
-        public static IQcrilMsgTunnel asInterface(IBinder obj) {
-            if (obj == null) {
-                return null;
-            }
-            IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
-            if (iin == null || !(iin instanceof IQcrilMsgTunnel)) {
-                return new Proxy(obj);
-            }
-            return (IQcrilMsgTunnel) iin;
-        }
-
-        public IBinder asBinder() {
-            return this;
-        }
-
-        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
-            byte[] _arg1;
-            String descriptor = DESCRIPTOR;
-            if (code == 1) {
-                data.enforceInterface(descriptor);
-                byte[] _arg0 = data.createByteArray();
-                int _arg1_length = data.readInt();
-                if (_arg1_length < 0) {
-                    _arg1 = null;
-                } else {
-                    _arg1 = new byte[_arg1_length];
-                }
-                int _result = sendOemRilRequestRaw(_arg0, _arg1, data.readInt());
-                reply.writeNoException();
-                reply.writeInt(_result);
-                reply.writeByteArray(_arg1);
-                return true;
-            } else if (code == 2) {
-                data.enforceInterface(descriptor);
-                sendOemRilRequestRawAsync(data.createByteArray(), com.qualcomm.qcrilhook.IOemHookCallback.Stub.asInterface(data.readStrongBinder()), data.readInt());
-                reply.writeNoException();
-                return true;
-            } else if (code != 1598968902) {
-                return super.onTransact(code, data, reply, flags);
-            } else {
-                reply.writeString(descriptor);
-                return true;
-            }
-        }
-
         public static boolean setDefaultImpl(IQcrilMsgTunnel impl) {
             if (Proxy.sDefaultImpl != null || impl == null) {
                 return false;
@@ -153,8 +155,4 @@ public interface IQcrilMsgTunnel extends IInterface {
             return Proxy.sDefaultImpl;
         }
     }
-
-    int sendOemRilRequestRaw(byte[] bArr, byte[] bArr2, int i) throws RemoteException;
-
-    void sendOemRilRequestRawAsync(byte[] bArr, IOemHookCallback iOemHookCallback, int i) throws RemoteException;
 }

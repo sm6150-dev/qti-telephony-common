@@ -29,10 +29,7 @@ public final class SsTeleserviceType {
         if (o == 5) {
             return "ALL_TELESERVICES_EXCEPT_SMS";
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("0x");
-        sb.append(Integer.toHexString(o));
-        return sb.toString();
+        return "0x" + Integer.toHexString(o);
     }
 
     public static final String dumpBitfield(int o) {
@@ -60,10 +57,7 @@ public final class SsTeleserviceType {
             flipped |= 5;
         }
         if (o != flipped) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("0x");
-            sb.append(Integer.toHexString((~flipped) & o));
-            list.add(sb.toString());
+            list.add("0x" + Integer.toHexString((~flipped) & o));
         }
         return String.join(" | ", list);
     }

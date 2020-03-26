@@ -12,7 +12,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.preference.PreferenceManager;
-import android.provider.Settings.Secure;
+import android.provider.Settings;
 import android.telephony.Rlog;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -22,7 +22,6 @@ import com.qualcomm.qti.internal.telephony.QtiUiccCardProvisioner;
 import java.util.HashSet;
 import java.util.Set;
 import org.codeaurora.internal.IExtTelephony;
-import org.codeaurora.internal.IExtTelephony.Stub;
 
 public class SubsidyLockSettingsObserver extends ContentObserver {
     public static final int AP_LOCKED = 102;
@@ -40,6 +39,59 @@ public class SubsidyLockSettingsObserver extends ContentObserver {
     public Context mContext;
     private QtiPrimaryCardPriorityHandler mPriorityHandler;
     private SubsidySettingsHandler mSettingsHandler;
+
+    public SubsidyLockSettingsObserver(Context context) {
+        super((Handler) null);
+        this.mContext = context;
+        mCurrentState = PreferenceManager.getDefaultSharedPreferences(this.mContext).getInt(SUBSIDY_STATE_KEY, mCurrentState);
+        Rlog.d(TAG, " in constructor, context =  " + this.mContext + " device state " + mCurrentState);
+    }
+
+    public void observe(QtiCardInfoManager cardInfoManager, QtiPrimaryCardPriorityHandler cardPriorityHandler) {
+        ContentResolver resolver = this.mContext.getContentResolver();
+        this.mCardInfoManager = cardInfoManager;
+        this.mPriorityHandler = cardPriorityHandler;
+        resolver.registerContentObserver(Settings.Secure.getUriFor(SUBSIDY_LOCK_SETTINGS), false, this);
+        registerAllCardsAvailableCallback();
+    }
+
+    private void registerAllCardsAvailableCallback() {
+        if (this.mSettingsHandler == null) {
+            this.mSettingsHandler = new SubsidySettingsHandler(Looper.getMainLooper());
+            this.mCardInfoManager.registerAllCardsInfoAvailable(this.mSettingsHandler, 4, (Object) null);
+        }
+    }
+
+    public void onChange(boolean selfChange) {
+        QtiPrimaryCardPriorityHandler qtiPrimaryCardPriorityHandler = this.mPriorityHandler;
+        if (qtiPrimaryCardPriorityHandler != null) {
+            qtiPrimaryCardPriorityHandler.reloadPriorityConfig();
+            this.mPriorityHandler.loadCurrentPriorityConfigs(true);
+        }
+        HandlerThread thread = new HandlerThread("Subsidy Settings handler thread");
+        thread.start();
+        Handler handler = new SubsidySettingsHandler(thread.getLooper());
+        if (isSubsidyLocked(this.mContext)) {
+            handler.obtainMessage(0).sendToTarget();
+        } else if (isPermanentlyUnlocked(this.mContext)) {
+            handler.obtainMessage(2).sendToTarget();
+        } else if (isSubsidyUnlocked(this.mContext)) {
+            handler.obtainMessage(1, Integer.valueOf(SUBSIDY_UNLOCKED)).sendToTarget();
+        }
+    }
+
+    public static boolean isSubsidyLocked(Context context) {
+        int subsidyLock = Settings.Secure.getInt(context.getContentResolver(), SUBSIDY_LOCK_SETTINGS, -1);
+        return subsidyLock == 101 || subsidyLock == 102;
+    }
+
+    public static boolean isSubsidyUnlocked(Context context) {
+        return Settings.Secure.getInt(context.getContentResolver(), SUBSIDY_LOCK_SETTINGS, -1) == 103;
+    }
+
+    public static boolean isPermanentlyUnlocked(Context context) {
+        return Settings.Secure.getInt(context.getContentResolver(), SUBSIDY_LOCK_SETTINGS, -1) == 100;
+    }
 
     private class SIMDeactivationRecords {
         private static final String KEY_DEACTIVATION_RECORD = "key_deactivation_record";
@@ -94,19 +146,10 @@ public class SubsidyLockSettingsObserver extends ContentObserver {
         }
 
         public void handleMessage(Message msg) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(" handleMessage, event  ");
-            sb.append(msg.what);
-            sb.append(" current state ");
-            sb.append(SubsidyLockSettingsObserver.mCurrentState);
-            String sb2 = sb.toString();
-            String str = SubsidyLockSettingsObserver.TAG;
-            Rlog.d(str, sb2);
+            Rlog.d(SubsidyLockSettingsObserver.TAG, " handleMessage, event  " + msg.what + " current state " + SubsidyLockSettingsObserver.mCurrentState);
             int i = msg.what;
-            String str2 = ", not proceeding further.";
-            String str3 = "extphone";
             if (i == 0) {
-                IExtTelephony mExtTelephony = Stub.asInterface(ServiceManager.getService(str3));
+                IExtTelephony mExtTelephony = IExtTelephony.Stub.asInterface(ServiceManager.getService("extphone"));
                 int i2 = 0;
                 while (i2 < this.mNumSimSlots) {
                     try {
@@ -121,11 +164,7 @@ public class SubsidyLockSettingsObserver extends ContentObserver {
                                 i2++;
                             }
                         }
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("Invalid sub info for slot id: ");
-                        sb3.append(i2);
-                        sb3.append(str2);
-                        Rlog.e(str, sb3.toString());
+                        Rlog.e(SubsidyLockSettingsObserver.TAG, "Invalid sub info for slot id: " + i2 + ", not proceeding further.");
                         i2++;
                     } catch (RemoteException e) {
                         e.printStackTrace();
@@ -136,7 +175,7 @@ public class SubsidyLockSettingsObserver extends ContentObserver {
                 SubsidyLockSettingsObserver.this.updateDeviceState(102);
                 obtainMessage(3).sendToTarget();
             } else if (i == 1) {
-                IExtTelephony mExtTelephony1 = Stub.asInterface(ServiceManager.getService(str3));
+                IExtTelephony mExtTelephony1 = IExtTelephony.Stub.asInterface(ServiceManager.getService("extphone"));
                 int i3 = 0;
                 while (i3 < this.mNumSimSlots) {
                     try {
@@ -157,11 +196,7 @@ public class SubsidyLockSettingsObserver extends ContentObserver {
                                 i3++;
                             }
                         }
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("Invalid subscription info for slot id: ");
-                        sb4.append(i3);
-                        sb4.append(str2);
-                        Rlog.e(str, sb4.toString());
+                        Rlog.e(SubsidyLockSettingsObserver.TAG, "Invalid subscription info for slot id: " + i3 + ", not proceeding further.");
                         i3++;
                     } catch (RemoteException e3) {
                         e3.printStackTrace();
@@ -174,7 +209,7 @@ public class SubsidyLockSettingsObserver extends ContentObserver {
                 }
                 obtainMessage(3).sendToTarget();
             } else if (i == 2) {
-                obtainMessage(1, Integer.valueOf(100)).sendToTarget();
+                obtainMessage(1, 100).sendToTarget();
             } else if (i != 3) {
                 if (i == 4) {
                     SubsidyLockSettingsObserver.this.onChange(false);
@@ -187,77 +222,14 @@ public class SubsidyLockSettingsObserver extends ContentObserver {
         }
     }
 
-    public SubsidyLockSettingsObserver(Context context) {
-        super(null);
-        this.mContext = context;
-        mCurrentState = PreferenceManager.getDefaultSharedPreferences(this.mContext).getInt(SUBSIDY_STATE_KEY, mCurrentState);
-        StringBuilder sb = new StringBuilder();
-        sb.append(" in constructor, context =  ");
-        sb.append(this.mContext);
-        sb.append(" device state ");
-        sb.append(mCurrentState);
-        Rlog.d(TAG, sb.toString());
-    }
-
-    public void observe(QtiCardInfoManager cardInfoManager, QtiPrimaryCardPriorityHandler cardPriorityHandler) {
-        ContentResolver resolver = this.mContext.getContentResolver();
-        this.mCardInfoManager = cardInfoManager;
-        this.mPriorityHandler = cardPriorityHandler;
-        resolver.registerContentObserver(Secure.getUriFor(SUBSIDY_LOCK_SETTINGS), false, this);
-        registerAllCardsAvailableCallback();
-    }
-
-    private void registerAllCardsAvailableCallback() {
-        if (this.mSettingsHandler == null) {
-            this.mSettingsHandler = new SubsidySettingsHandler(Looper.getMainLooper());
-            this.mCardInfoManager.registerAllCardsInfoAvailable(this.mSettingsHandler, 4, null);
-        }
-    }
-
-    public void onChange(boolean selfChange) {
-        QtiPrimaryCardPriorityHandler qtiPrimaryCardPriorityHandler = this.mPriorityHandler;
-        if (qtiPrimaryCardPriorityHandler != null) {
-            qtiPrimaryCardPriorityHandler.reloadPriorityConfig();
-            this.mPriorityHandler.loadCurrentPriorityConfigs(true);
-        }
-        HandlerThread thread = new HandlerThread("Subsidy Settings handler thread");
-        thread.start();
-        Handler handler = new SubsidySettingsHandler(thread.getLooper());
-        if (isSubsidyLocked(this.mContext)) {
-            handler.obtainMessage(0).sendToTarget();
-        } else if (isPermanentlyUnlocked(this.mContext)) {
-            handler.obtainMessage(2).sendToTarget();
-        } else if (isSubsidyUnlocked(this.mContext)) {
-            handler.obtainMessage(1, Integer.valueOf(SUBSIDY_UNLOCKED)).sendToTarget();
-        }
-    }
-
-    public static boolean isSubsidyLocked(Context context) {
-        int subsidyLock = Secure.getInt(context.getContentResolver(), SUBSIDY_LOCK_SETTINGS, -1);
-        return subsidyLock == 101 || subsidyLock == 102;
-    }
-
-    public static boolean isSubsidyUnlocked(Context context) {
-        return Secure.getInt(context.getContentResolver(), SUBSIDY_LOCK_SETTINGS, -1) == 103;
-    }
-
-    public static boolean isPermanentlyUnlocked(Context context) {
-        return Secure.getInt(context.getContentResolver(), SUBSIDY_LOCK_SETTINGS, -1) == 100;
-    }
-
     /* access modifiers changed from: private */
     public void updateDeviceState(int newState) {
+        QtiPrimaryCardPriorityHandler qtiPrimaryCardPriorityHandler;
         if (mCurrentState != newState) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(" updateDeviceState, new state  ");
-            sb.append(newState);
-            Rlog.d(TAG, sb.toString());
-            if (newState == 100 || mCurrentState == 100) {
-                QtiPrimaryCardPriorityHandler qtiPrimaryCardPriorityHandler = this.mPriorityHandler;
-                if (qtiPrimaryCardPriorityHandler != null) {
-                    qtiPrimaryCardPriorityHandler.reloadPriorityConfig();
-                    this.mPriorityHandler.loadCurrentPriorityConfigs(true);
-                }
+            Rlog.d(TAG, " updateDeviceState, new state  " + newState);
+            if ((newState == 100 || mCurrentState == 100) && (qtiPrimaryCardPriorityHandler = this.mPriorityHandler) != null) {
+                qtiPrimaryCardPriorityHandler.reloadPriorityConfig();
+                this.mPriorityHandler.loadCurrentPriorityConfigs(true);
             }
             if (mCurrentState == 100 && (newState == 102 || newState == 103)) {
                 this.mSettingsHandler.obtainMessage(5).sendToTarget();

@@ -16,7 +16,7 @@ import com.qualcomm.qcrilhook.IQcRilHook;
 import com.qualcomm.qcrilhook.OemHookCallback;
 import com.qualcomm.qcrilhook.QcRilHook;
 import com.qualcomm.qcrilhook.QcRilHookCallback;
-import com.qualcomm.qti.internal.telephony.QtiUiccCardProvisioner.UiccProvisionStatus;
+import com.qualcomm.qti.internal.telephony.QtiUiccCardProvisioner;
 import com.qualcomm.qti.internal.telephony.uicccontact.QtiSimPhoneBookAdnRecord;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -35,8 +35,8 @@ public class QtiRilInterface implements BaseRilInterface {
     public static boolean mIsServiceReady = false;
     /* access modifiers changed from: private */
     public static QtiRilInterface sInstance = null;
-    private final String ACTION_ADN_INIT_DONE;
-    private final String ACTION_ADN_RECORDS_IND;
+    private final String ACTION_ADN_INIT_DONE = "qualcomm.intent.action.ACTION_ADN_INIT_DONE";
+    private final String ACTION_ADN_RECORDS_IND = "qualcomm.intent.action.ACTION_ADN_RECORDS_IND";
     /* access modifiers changed from: private */
     public RegistrantList mAdnInitDoneRegistrantList;
     /* access modifiers changed from: private */
@@ -44,66 +44,72 @@ public class QtiRilInterface implements BaseRilInterface {
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             QtiRilInterface qtiRilInterface = QtiRilInterface.this;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Received ");
-            sb.append(intent.getAction());
-            qtiRilInterface.logd(sb.toString());
+            qtiRilInterface.logd("Received " + intent.getAction());
             if ("qualcomm.intent.action.ACTION_ADN_INIT_DONE".equals(intent.getAction())) {
-                QtiRilInterface.this.mAdnInitDoneRegistrantList.notifyRegistrants(new AsyncResult(null, null, null));
-                return;
-            }
-            if ("qualcomm.intent.action.ACTION_ADN_RECORDS_IND".equals(intent.getAction())) {
-                QtiRilInterface.this.mAdnRecordsInfoRegistrantList.notifyRegistrants(new AsyncResult(null, QtiRilInterface.this.responseAdnRecords(intent.getByteArrayExtra("adn_records")), null));
+                QtiRilInterface.this.mAdnInitDoneRegistrantList.notifyRegistrants(new AsyncResult((Object) null, (Object) null, (Throwable) null));
+            } else if ("qualcomm.intent.action.ACTION_ADN_RECORDS_IND".equals(intent.getAction())) {
+                QtiRilInterface.this.mAdnRecordsInfoRegistrantList.notifyRegistrants(new AsyncResult((Object) null, QtiRilInterface.this.responseAdnRecords(intent.getByteArrayExtra("adn_records")), (Throwable) null));
             }
         }
     };
     private QcRilHook mQcRilHook;
     private QcRilHookCallback mQcrilHookCb = new QcRilHookCallback() {
         public void onQcRilHookReady() {
-            QtiRilInterface.mIsServiceReady = true;
+            boolean unused = QtiRilInterface.mIsServiceReady = true;
             QtiRilInterface.this.logd("Service ready, notifying registrants");
-            QtiRilInterface.this.mServiceReadyRegistrantList.notifyRegistrants(new AsyncResult(null, Boolean.valueOf(QtiRilInterface.mIsServiceReady), null));
+            QtiRilInterface.this.mServiceReadyRegistrantList.notifyRegistrants(new AsyncResult((Object) null, Boolean.valueOf(QtiRilInterface.mIsServiceReady), (Throwable) null));
         }
 
         public synchronized void onQcRilHookDisconnected() {
-            QtiRilInterface.mIsServiceReady = false;
+            boolean unused = QtiRilInterface.mIsServiceReady = false;
             QtiRilInterface.this.logd("Service disconnected, notifying registrants");
-            QtiRilInterface.this.mServiceReadyRegistrantList.notifyRegistrants(new AsyncResult(null, Boolean.valueOf(QtiRilInterface.mIsServiceReady), null));
-            QtiRilInterface.sInstance = null;
+            QtiRilInterface.this.mServiceReadyRegistrantList.notifyRegistrants(new AsyncResult((Object) null, Boolean.valueOf(QtiRilInterface.mIsServiceReady), (Throwable) null));
+            QtiRilInterface unused2 = QtiRilInterface.sInstance = null;
         }
     };
     /* access modifiers changed from: private */
     public RegistrantList mServiceReadyRegistrantList;
 
-    protected class AdnOemHookCallback extends OemHookCallback {
-        Message mAppMessage;
-        int mRspLength;
-
-        public AdnOemHookCallback(Message msg, int length) {
-            super(msg);
-            this.mAppMessage = msg;
-            this.mRspLength = length;
-        }
-
-        public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
-            if (response != null) {
-                QtiRilInterface qtiRilInterface = QtiRilInterface.this;
-                StringBuilder sb = new StringBuilder();
-                sb.append("AdnOemHookCallback: onOemHookResponse = ");
-                sb.append(response.toString());
-                qtiRilInterface.logd(sb.toString());
-                AsyncResult.forMessage(this.mAppMessage, QtiRilInterface.this.parseInts(response, this.mRspLength), null);
-            } else {
-                AsyncResult.forMessage(this.mAppMessage, null, new Exception("QCRIL_EVT_HOOK_GET_ADN_RECORD failed"));
+    public static synchronized QtiRilInterface getInstance(Context context) {
+        QtiRilInterface qtiRilInterface;
+        synchronized (QtiRilInterface.class) {
+            if (sInstance == null) {
+                sInstance = new QtiRilInterface(context);
             }
-            this.mAppMessage.sendToTarget();
+            qtiRilInterface = sInstance;
         }
+        return qtiRilInterface;
+    }
 
-        public void onOemHookException(int phoneId) throws RemoteException {
-            QtiRilInterface.this.logd("AdnOemHookCallback: onOemHookException");
-            AsyncResult.forMessage(this.mAppMessage, null, new Exception("com.android.internal.telephony.CommandException: MODEM_ERR"));
-            this.mAppMessage.sendToTarget();
+    private QtiRilInterface(Context context) {
+        logd(" in constructor ");
+        this.mServiceReadyRegistrantList = new RegistrantList();
+        this.mAdnInitDoneRegistrantList = new RegistrantList();
+        this.mAdnRecordsInfoRegistrantList = new RegistrantList();
+        try {
+            this.mQcRilHook = new QcRilHook(context, this.mQcrilHookCb);
+        } catch (SecurityException se) {
+            loge("SecurityException during QcRilHook init: " + se);
+            mIsServiceReady = false;
         }
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("qualcomm.intent.action.ACTION_ADN_INIT_DONE");
+        intentFilter.addAction("qualcomm.intent.action.ACTION_ADN_RECORDS_IND");
+        context.registerReceiver(this.mBroadcastReceiver, intentFilter);
+    }
+
+    public QtiUiccCardProvisioner.UiccProvisionStatus getUiccProvisionPreference(int phoneId) {
+        QtiUiccCardProvisioner.UiccProvisionStatus provStatus = new QtiUiccCardProvisioner.UiccProvisionStatus();
+        org.codeaurora.telephony.utils.AsyncResult ar = this.mQcRilHook.sendQcRilHookMsg((int) IQcRilHook.QCRIL_EVT_HOOK_GET_UICC_PROVISION_PREFERENCE, new byte[0], phoneId);
+        if (ar.exception == null && ar.result != null) {
+            ByteBuffer byteBuf = ByteBuffer.wrap((byte[]) ar.result);
+            byteBuf.order(ByteOrder.nativeOrder());
+            logd("Data received: " + byteBuf.toString());
+            provStatus.setUserPreference(byteBuf.getInt());
+            provStatus.setCurrentState(byteBuf.getInt());
+        }
+        logi("get pref, phoneId " + phoneId + " " + provStatus + " exception " + ar.exception);
+        return provStatus;
     }
 
     private class DepersoCallback extends OemHookCallback {
@@ -132,74 +138,8 @@ public class QtiRilInterface implements BaseRilInterface {
         }
     }
 
-    public static synchronized QtiRilInterface getInstance(Context context) {
-        QtiRilInterface qtiRilInterface;
-        synchronized (QtiRilInterface.class) {
-            if (sInstance == null) {
-                sInstance = new QtiRilInterface(context);
-            }
-            qtiRilInterface = sInstance;
-        }
-        return qtiRilInterface;
-    }
-
-    private QtiRilInterface(Context context) {
-        String str = "qualcomm.intent.action.ACTION_ADN_INIT_DONE";
-        this.ACTION_ADN_INIT_DONE = str;
-        String str2 = "qualcomm.intent.action.ACTION_ADN_RECORDS_IND";
-        this.ACTION_ADN_RECORDS_IND = str2;
-        logd(" in constructor ");
-        this.mServiceReadyRegistrantList = new RegistrantList();
-        this.mAdnInitDoneRegistrantList = new RegistrantList();
-        this.mAdnRecordsInfoRegistrantList = new RegistrantList();
-        try {
-            this.mQcRilHook = new QcRilHook(context, this.mQcrilHookCb);
-        } catch (SecurityException se) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("SecurityException during QcRilHook init: ");
-            sb.append(se);
-            loge(sb.toString());
-            mIsServiceReady = false;
-        }
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(str);
-        intentFilter.addAction(str2);
-        context.registerReceiver(this.mBroadcastReceiver, intentFilter);
-    }
-
-    public UiccProvisionStatus getUiccProvisionPreference(int phoneId) {
-        UiccProvisionStatus provStatus = new UiccProvisionStatus();
-        org.codeaurora.telephony.utils.AsyncResult ar = this.mQcRilHook.sendQcRilHookMsg((int) IQcRilHook.QCRIL_EVT_HOOK_GET_UICC_PROVISION_PREFERENCE, new byte[0], phoneId);
-        if (ar.exception == null && ar.result != null) {
-            ByteBuffer byteBuf = ByteBuffer.wrap((byte[]) ar.result);
-            byteBuf.order(ByteOrder.nativeOrder());
-            StringBuilder sb = new StringBuilder();
-            sb.append("Data received: ");
-            sb.append(byteBuf.toString());
-            logd(sb.toString());
-            provStatus.setUserPreference(byteBuf.getInt());
-            provStatus.setCurrentState(byteBuf.getInt());
-        }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("get pref, phoneId ");
-        sb2.append(phoneId);
-        sb2.append(" ");
-        sb2.append(provStatus);
-        sb2.append(" exception ");
-        sb2.append(ar.exception);
-        logi(sb2.toString());
-        return provStatus;
-    }
-
     public void supplyIccDepersonalization(String netpin, String type, IDepersoResCallback callback, int phoneId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("supplyDepersonalization: netpin = ");
-        sb.append(netpin);
-        sb.append(" type = ");
-        sb.append(type);
-        sb.append("phoneId = ");
-        sb.append(phoneId);
-        logd(sb.toString());
+        logd("supplyDepersonalization: netpin = " + netpin + " type = " + type + "phoneId = " + phoneId);
         Message msg = Message.obtain();
         int i = 1;
         int length = type.length() + 1;
@@ -210,11 +150,11 @@ public class QtiRilInterface implements BaseRilInterface {
         QcRilHook qcRilHook = this.mQcRilHook;
         ByteBuffer buf = QcRilHook.createBufferWithNativeByteOrder(payload);
         buf.put(type.getBytes());
-        buf.put(0);
+        buf.put((byte) 0);
         if (netpin != null) {
             buf.put(netpin.getBytes());
         }
-        buf.put(0);
+        buf.put((byte) 0);
         this.mQcRilHook.sendQcRilHookMsgAsync(IQcRilHook.QCRIL_EVT_HOOK_ENTER_DEPERSONALIZATION_CODE, payload, new DepersoCallback(callback, msg), phoneId);
     }
 
@@ -235,12 +175,7 @@ public class QtiRilInterface implements BaseRilInterface {
         if (ar.exception == null && ar.result != null) {
             maxData = ByteBuffer.wrap((byte[]) ar.result).get();
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getMaxDataAllowed maxData = ");
-        sb.append(maxData);
-        sb.append(" exception: ");
-        sb.append(ar.exception);
-        logi(sb.toString());
+        logi("getMaxDataAllowed maxData = " + maxData + " exception: " + ar.exception);
         return maxData;
     }
 
@@ -254,12 +189,7 @@ public class QtiRilInterface implements BaseRilInterface {
             }
             status = z;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getLpluslSupportStatus: ");
-        sb.append(status);
-        sb.append(" exception: ");
-        sb.append(ar.exception);
-        logi(sb.toString());
+        logi("getLpluslSupportStatus: " + status + " exception: " + ar.exception);
         return status;
     }
 
@@ -281,14 +211,7 @@ public class QtiRilInterface implements BaseRilInterface {
         if (ar.exception == null) {
             retval = true;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("set provision userPref ");
-        sb.append(userPref);
-        sb.append(" phoneId ");
-        sb.append(phoneId);
-        sb.append(" exception: ");
-        sb.append(ar.exception);
-        logi(sb.toString());
+        logi("set provision userPref " + userPref + " phoneId " + phoneId + " exception: " + ar.exception);
         return retval;
     }
 
@@ -296,19 +219,41 @@ public class QtiRilInterface implements BaseRilInterface {
     public int[] parseInts(byte[] buffer, int numInts) {
         ByteBuffer byteBuf = ByteBuffer.wrap(buffer);
         byteBuf.order(ByteOrder.nativeOrder());
-        StringBuilder sb = new StringBuilder();
-        sb.append("numInts: ");
-        sb.append(numInts);
-        logi(sb.toString());
+        logi("numInts: " + numInts);
         int[] response = new int[numInts];
         for (int i = 0; i < numInts; i++) {
             response[i] = byteBuf.getInt();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("response[i]: ");
-            sb2.append(response[i]);
-            logi(sb2.toString());
+            logi("response[i]: " + response[i]);
         }
         return response;
+    }
+
+    protected class AdnOemHookCallback extends OemHookCallback {
+        Message mAppMessage;
+        int mRspLength;
+
+        public AdnOemHookCallback(Message msg, int length) {
+            super(msg);
+            this.mAppMessage = msg;
+            this.mRspLength = length;
+        }
+
+        public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
+            if (response != null) {
+                QtiRilInterface qtiRilInterface = QtiRilInterface.this;
+                qtiRilInterface.logd("AdnOemHookCallback: onOemHookResponse = " + response.toString());
+                AsyncResult.forMessage(this.mAppMessage, QtiRilInterface.this.parseInts(response, this.mRspLength), (Throwable) null);
+            } else {
+                AsyncResult.forMessage(this.mAppMessage, (Object) null, new Exception("QCRIL_EVT_HOOK_GET_ADN_RECORD failed"));
+            }
+            this.mAppMessage.sendToTarget();
+        }
+
+        public void onOemHookException(int phoneId) throws RemoteException {
+            QtiRilInterface.this.logd("AdnOemHookCallback: onOemHookException");
+            AsyncResult.forMessage(this.mAppMessage, (Object) null, new Exception("com.android.internal.telephony.CommandException: MODEM_ERR"));
+            this.mAppMessage.sendToTarget();
+        }
     }
 
     public void getAdnRecord(Message callbackMsg, int phoneId) {
@@ -337,12 +282,11 @@ public class QtiRilInterface implements BaseRilInterface {
         ByteBuffer reqBuffer = QcRilHook.createBufferWithNativeByteOrder(requestData);
         AdnOemHookCallback oemHookCb = new AdnOemHookCallback(callbackMsg, 1);
         reqBuffer.putShort((short) adnRecordInfo.getRecordIndex());
-        String str = "UTF-8";
         if (!TextUtils.isEmpty(name)) {
             reqBuffer.putShort((short) name.getBytes().length);
             try {
-                reqBuffer.put(name.getBytes(str));
-                reqBuffer.put(0);
+                reqBuffer.put(name.getBytes("UTF-8"));
+                reqBuffer.put((byte) 0);
             } catch (UnsupportedEncodingException e) {
                 loge("Unsupport UTF-8 to parse name");
                 return;
@@ -353,8 +297,8 @@ public class QtiRilInterface implements BaseRilInterface {
         if (!TextUtils.isEmpty(number)) {
             reqBuffer.putShort((short) number.getBytes().length);
             try {
-                reqBuffer.put(QtiSimPhoneBookAdnRecord.ConvertToRecordNumber(number).getBytes(str));
-                reqBuffer.put(0);
+                reqBuffer.put(QtiSimPhoneBookAdnRecord.ConvertToRecordNumber(number).getBytes("UTF-8"));
+                reqBuffer.put((byte) 0);
             } catch (UnsupportedEncodingException e2) {
                 loge("Unsupport UTF-8 to parse number");
                 return;
@@ -367,8 +311,8 @@ public class QtiRilInterface implements BaseRilInterface {
         while (i2 < numEmails) {
             reqBuffer.putShort((short) adnRecordInfo.getEmails()[i2].getBytes().length);
             try {
-                reqBuffer.put(adnRecordInfo.getEmails()[i2].getBytes(str));
-                reqBuffer.put(0);
+                reqBuffer.put(adnRecordInfo.getEmails()[i2].getBytes("UTF-8"));
+                reqBuffer.put((byte) 0);
                 i2++;
             } catch (UnsupportedEncodingException e3) {
                 loge("Unsupport UTF-8 to parse email");
@@ -380,8 +324,8 @@ public class QtiRilInterface implements BaseRilInterface {
         while (j2 < numAdNumbers) {
             reqBuffer.putShort((short) adnRecordInfo.getAdNumbers()[j2].getBytes().length);
             try {
-                reqBuffer.put(QtiSimPhoneBookAdnRecord.ConvertToRecordNumber(adnRecordInfo.getAdNumbers()[j2]).getBytes(str));
-                reqBuffer.put(0);
+                reqBuffer.put(QtiSimPhoneBookAdnRecord.ConvertToRecordNumber(adnRecordInfo.getAdNumbers()[j2]).getBytes("UTF-8"));
+                reqBuffer.put((byte) 0);
                 j2++;
             } catch (UnsupportedEncodingException e4) {
                 loge("Unsupport UTF-8 to parse anr");
@@ -389,10 +333,7 @@ public class QtiRilInterface implements BaseRilInterface {
             }
         }
         this.mQcRilHook.sendQcRilHookMsgAsync(IQcRilHook.QCRIL_EVT_HOOK_UPDATE_ADN_RECORD, requestData, oemHookCb, phoneId);
-        StringBuilder sb = new StringBuilder();
-        sb.append("updateAdnRecord() with ");
-        sb.append(adnRecordInfo.toString());
-        logi(sb.toString());
+        logi("updateAdnRecord() with " + adnRecordInfo.toString());
     }
 
     public boolean isServiceReady() {
@@ -413,7 +354,7 @@ public class QtiRilInterface implements BaseRilInterface {
         Registrant r = new Registrant(h, what, obj);
         this.mServiceReadyRegistrantList.add(r);
         if (isServiceReady()) {
-            r.notifyRegistrant(new AsyncResult(null, Boolean.valueOf(mIsServiceReady), null));
+            r.notifyRegistrant(new AsyncResult((Object) null, Boolean.valueOf(mIsServiceReady), (Throwable) null));
         }
     }
 
@@ -449,60 +390,59 @@ public class QtiRilInterface implements BaseRilInterface {
     public Object responseAdnRecords(byte[] data) {
         ByteBuffer byteBuf = ByteBuffer.wrap(data);
         byteBuf.order(ByteOrder.nativeOrder());
-        short numRecords = byteBuf.getShort();
+        int numRecords = byteBuf.getShort();
         QtiSimPhoneBookAdnRecord[] AdnRecordsInfoGroup = new QtiSimPhoneBookAdnRecord[numRecords];
         for (int i = 0; i < numRecords; i++) {
             AdnRecordsInfoGroup[i] = new QtiSimPhoneBookAdnRecord();
             AdnRecordsInfoGroup[i].mRecordIndex = byteBuf.getShort();
-            short nameLength = byteBuf.getShort();
-            String str = "UTF-8";
+            int nameLength = byteBuf.getShort();
             if (nameLength > 0) {
                 byte[] alphaTag = new byte[nameLength];
                 byteBuf.get(alphaTag);
                 try {
-                    AdnRecordsInfoGroup[i].mAlphaTag = new String(alphaTag, str);
+                    AdnRecordsInfoGroup[i].mAlphaTag = new String(alphaTag, "UTF-8");
                 } catch (UnsupportedEncodingException e) {
                     loge("Unsupport UTF-8 to parse name");
                 }
             }
-            short numberLength = byteBuf.getShort();
+            int numberLength = byteBuf.getShort();
             if (numberLength > 0) {
                 byte[] number = new byte[numberLength];
                 byteBuf.get(number);
                 try {
-                    AdnRecordsInfoGroup[i].mNumber = QtiSimPhoneBookAdnRecord.ConvertToPhoneNumber(new String(number, str));
+                    AdnRecordsInfoGroup[i].mNumber = QtiSimPhoneBookAdnRecord.ConvertToPhoneNumber(new String(number, "UTF-8"));
                 } catch (UnsupportedEncodingException e2) {
                     loge("Unsupport UTF-8 to parse number");
                 }
             }
-            short numEmails = byteBuf.getShort();
+            int numEmails = byteBuf.getShort();
             if (numEmails > 0) {
                 AdnRecordsInfoGroup[i].mEmailCount = numEmails;
                 AdnRecordsInfoGroup[i].mEmails = new String[numEmails];
                 for (int j = 0; j < numEmails; j++) {
-                    short emailLength = byteBuf.getShort();
+                    int emailLength = byteBuf.getShort();
                     if (emailLength > 0) {
                         byte[] email = new byte[emailLength];
                         byteBuf.get(email);
                         try {
-                            AdnRecordsInfoGroup[i].mEmails[j] = new String(email, str);
+                            AdnRecordsInfoGroup[i].mEmails[j] = new String(email, "UTF-8");
                         } catch (UnsupportedEncodingException e3) {
                             loge("Unsupport UTF-8 to parse email");
                         }
                     }
                 }
             }
-            short numAnrs = byteBuf.getShort();
+            int numAnrs = byteBuf.getShort();
             if (numAnrs > 0) {
                 AdnRecordsInfoGroup[i].mAdNumCount = numAnrs;
                 AdnRecordsInfoGroup[i].mAdNumbers = new String[numAnrs];
                 for (int k = 0; k < numAnrs; k++) {
-                    short anrLength = byteBuf.getShort();
+                    int anrLength = byteBuf.getShort();
                     if (anrLength > 0) {
                         byte[] anr = new byte[anrLength];
                         byteBuf.get(anr);
                         try {
-                            AdnRecordsInfoGroup[i].mAdNumbers[k] = QtiSimPhoneBookAdnRecord.ConvertToPhoneNumber(new String(anr, str));
+                            AdnRecordsInfoGroup[i].mAdNumbers[k] = QtiSimPhoneBookAdnRecord.ConvertToPhoneNumber(new String(anr, "UTF-8"));
                         } catch (UnsupportedEncodingException e4) {
                             loge("Unsupport UTF-8 to parse anr");
                         }

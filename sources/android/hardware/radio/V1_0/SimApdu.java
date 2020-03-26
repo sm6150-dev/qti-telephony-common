@@ -34,24 +34,7 @@ public final class SimApdu {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".sessionId = ");
-        builder.append(this.sessionId);
-        builder.append(", .cla = ");
-        builder.append(this.cla);
-        builder.append(", .instruction = ");
-        builder.append(this.instruction);
-        builder.append(", .p1 = ");
-        builder.append(this.p1);
-        builder.append(", .p2 = ");
-        builder.append(this.p2);
-        builder.append(", .p3 = ");
-        builder.append(this.p3);
-        builder.append(", .data = ");
-        builder.append(this.data);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".sessionId = " + this.sessionId + ", .cla = " + this.cla + ", .instruction = " + this.instruction + ", .p1 = " + this.p1 + ", .p2 = " + this.p2 + ", .p3 = " + this.p3 + ", .data = " + this.data + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -97,7 +80,7 @@ public final class SimApdu {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 40);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SimApdu) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

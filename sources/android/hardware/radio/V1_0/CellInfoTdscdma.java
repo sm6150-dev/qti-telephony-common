@@ -29,14 +29,7 @@ public final class CellInfoTdscdma {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cellIdentityTdscdma = ");
-        builder.append(this.cellIdentityTdscdma);
-        builder.append(", .signalStrengthTdscdma = ");
-        builder.append(this.signalStrengthTdscdma);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cellIdentityTdscdma = " + this.cellIdentityTdscdma + ", .signalStrengthTdscdma = " + this.signalStrengthTdscdma + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class CellInfoTdscdma {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 56);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellInfoTdscdma) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

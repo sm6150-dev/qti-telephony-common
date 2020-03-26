@@ -13,13 +13,10 @@ public final class CfData {
         if (this == otherObject) {
             return true;
         }
-        if (otherObject == null || otherObject.getClass() != CfData.class) {
-            return false;
+        if (otherObject != null && otherObject.getClass() == CfData.class && HidlSupport.deepEquals(this.cfInfo, ((CfData) otherObject).cfInfo)) {
+            return true;
         }
-        if (!HidlSupport.deepEquals(this.cfInfo, ((CfData) otherObject).cfInfo)) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     public final int hashCode() {
@@ -27,12 +24,7 @@ public final class CfData {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".cfInfo = ");
-        builder.append(this.cfInfo);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".cfInfo = " + this.cfInfo + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -79,7 +71,7 @@ public final class CfData {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 16);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CfData) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -91,7 +83,7 @@ public final class CfData {
         _hidl_blob.putBool(_hidl_offset + 0 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 40);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CallForwardInfo) this.cfInfo.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
+            this.cfInfo.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
         }
         _hidl_blob.putBlob(_hidl_offset + 0 + 0, childBlob);
     }

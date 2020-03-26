@@ -31,18 +31,7 @@ public final class OperatorInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".alphaLong = ");
-        builder.append(this.alphaLong);
-        builder.append(", .alphaShort = ");
-        builder.append(this.alphaShort);
-        builder.append(", .operatorNumeric = ");
-        builder.append(this.operatorNumeric);
-        builder.append(", .status = ");
-        builder.append(OperatorStatus.toString(this.status));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".alphaLong = " + this.alphaLong + ", .alphaShort = " + this.alphaShort + ", .operatorNumeric = " + this.operatorNumeric + ", .status = " + OperatorStatus.toString(this.status) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -87,7 +76,7 @@ public final class OperatorInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 56);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((OperatorInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 56));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

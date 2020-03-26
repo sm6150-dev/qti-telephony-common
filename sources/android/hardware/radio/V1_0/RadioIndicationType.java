@@ -13,10 +13,7 @@ public final class RadioIndicationType {
         if (o == 1) {
             return "UNSOLICITED_ACK_EXP";
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("0x");
-        sb.append(Integer.toHexString(o));
-        return sb.toString();
+        return "0x" + Integer.toHexString(o);
     }
 
     public static final String dumpBitfield(int o) {
@@ -28,10 +25,7 @@ public final class RadioIndicationType {
             flipped = 0 | 1;
         }
         if (o != flipped) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("0x");
-            sb.append(Integer.toHexString((~flipped) & o));
-            list.add(sb.toString());
+            list.add("0x" + Integer.toHexString((~flipped) & o));
         }
         return String.join(" | ", list);
     }

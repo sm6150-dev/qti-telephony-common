@@ -57,7 +57,7 @@ public class DynamicSarService {
     private static final List<String> mFCCList = Arrays.asList(FCCList);
     private static DynamicSarService mInstance;
     private static IntentFilter mfilter = new IntentFilter();
-    private final String TAG;
+    private final String TAG = "DynamicSarService";
     private ArrayList<SarControllerClient> mAudioReceiverListeners = new ArrayList<>();
     private boolean mCallStateActive;
     /* access modifiers changed from: private */
@@ -85,23 +85,18 @@ public class DynamicSarService {
     private ArrayList<SarControllerClient> mModemListeners = new ArrayList<>();
     private final PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
         public void onCallStateChanged(int state, String incomingNumber) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("PhoneStateListener.onCallStateChanged: state=");
-            sb.append(state);
-            Log.d("DynamicSarService", sb.toString());
+            Log.d("DynamicSarService", "PhoneStateListener.onCallStateChanged: state=" + state);
             DynamicSarService.this.refreshSensorListener(32, state);
         }
 
         public void onDataActivity(int direction) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("PhoneStateListener.onDataActivity: direction=");
-            sb.append(direction);
-            Log.d("DynamicSarService", sb.toString());
+            Log.d("DynamicSarService", "PhoneStateListener.onDataActivity: direction=" + direction);
             DynamicSarService.this.refreshSensorListener(128, direction);
         }
     };
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
+            int mccState;
             int hotspotState;
             int wifiState;
             String action = intent.getAction();
@@ -114,7 +109,7 @@ public class DynamicSarService {
                 if (wifiState != DynamicSarService.this.mCurrentWifiState) {
                     DynamicSarService dynamicSarService = DynamicSarService.this;
                     dynamicSarService.callChangeListeners(dynamicSarService.mWifiListeners, 0, wifiState);
-                    DynamicSarService.this.mCurrentWifiState = wifiState;
+                    int unused = DynamicSarService.this.mCurrentWifiState = wifiState;
                 }
             } else if ("android.net.wifi.WIFI_AP_STATE_CHANGED".equals(action)) {
                 if (intent.getIntExtra("wifi_state", 0) == 13) {
@@ -125,7 +120,7 @@ public class DynamicSarService {
                 if (hotspotState != DynamicSarService.this.mCurrentHotspotState) {
                     DynamicSarService dynamicSarService2 = DynamicSarService.this;
                     dynamicSarService2.callChangeListeners(dynamicSarService2.mHotspotListeners, 1, hotspotState);
-                    DynamicSarService.this.mCurrentHotspotState = hotspotState;
+                    int unused2 = DynamicSarService.this.mCurrentHotspotState = hotspotState;
                 }
             } else if ("android.intent.action.ACTION_POWER_CONNECTED".equals(action)) {
                 DynamicSarService dynamicSarService3 = DynamicSarService.this;
@@ -133,13 +128,10 @@ public class DynamicSarService {
             } else if ("android.intent.action.ACTION_POWER_DISCONNECTED".equals(action)) {
                 DynamicSarService dynamicSarService4 = DynamicSarService.this;
                 dynamicSarService4.callChangeListeners(dynamicSarService4.mChargeDISCONNECTEDListeners, 7, 0);
-            } else if ("android.net.wifi.COUNTRY_CODE_CHANGED".equals(action)) {
-                int mccState = DynamicSarService.this.getMccState();
-                if (mccState != DynamicSarService.this.mCurrentMccState) {
-                    DynamicSarService dynamicSarService5 = DynamicSarService.this;
-                    dynamicSarService5.callChangeListeners(dynamicSarService5.mMccListeners, 8, mccState);
-                    DynamicSarService.this.mCurrentMccState = mccState;
-                }
+            } else if ("android.net.wifi.COUNTRY_CODE_CHANGED".equals(action) && (mccState = DynamicSarService.this.getMccState()) != DynamicSarService.this.mCurrentMccState) {
+                DynamicSarService dynamicSarService5 = DynamicSarService.this;
+                dynamicSarService5.callChangeListeners(dynamicSarService5.mMccListeners, 8, mccState);
+                int unused3 = DynamicSarService.this.mCurrentMccState = mccState;
             }
         }
     };
@@ -152,25 +144,19 @@ public class DynamicSarService {
 
         public final void onSensorChanged(SensorEvent event) {
             int type = event.sensor.getType();
-            if (type != 0) {
-                String str = "DynamicSarService";
-                if (type != DynamicSarService.SENSOR_TYPE_SARSENSOR) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onSensorChanged unknown event for sensor: ");
-                    sb.append(event.sensor.getType());
-                    Log.d(str, sb.toString());
-                    return;
-                }
-                int sarState = (int) event.values[0];
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("onSensorChanged distance = ");
-                sb2.append(sarState);
-                Log.d(str, sb2.toString());
-                if (sarState != DynamicSarService.this.mCurrentSarSensorState) {
-                    DynamicSarService dynamicSarService = DynamicSarService.this;
-                    dynamicSarService.callChangeListeners(dynamicSarService.mSarSensorListeners, 3, sarState);
-                    DynamicSarService.this.mCurrentSarSensorState = sarState;
-                }
+            if (type == 0) {
+                return;
+            }
+            if (type != DynamicSarService.SENSOR_TYPE_SARSENSOR) {
+                Log.d("DynamicSarService", "onSensorChanged unknown event for sensor: " + event.sensor.getType());
+                return;
+            }
+            int sarState = (int) event.values[0];
+            Log.d("DynamicSarService", "onSensorChanged distance = " + sarState);
+            if (sarState != DynamicSarService.this.mCurrentSarSensorState) {
+                DynamicSarService dynamicSarService = DynamicSarService.this;
+                dynamicSarService.callChangeListeners(dynamicSarService.mSarSensorListeners, 3, sarState);
+                int unused = DynamicSarService.this.mCurrentSarSensorState = sarState;
             }
         }
     };
@@ -185,12 +171,10 @@ public class DynamicSarService {
     }
 
     private DynamicSarService(Context context) {
-        String str = "DynamicSarService";
-        this.TAG = str;
-        Log.d(str, "DynamicSarService init...");
+        Log.d("DynamicSarService", "DynamicSarService init...");
         this.mContext = context;
         this.mWifiManager = (WifiManager) this.mContext.getSystemService("wifi");
-        Log.d(str, "DynamicSarService init done");
+        Log.d("DynamicSarService", "DynamicSarService init done");
     }
 
     public static DynamicSarService getInstance(Context context) {
@@ -204,9 +188,8 @@ public class DynamicSarService {
     public int getMccState() {
         int mMccState = 0;
         String mNetworkCountryCode = SystemProperties.get(PROPERTY_OPERATOR_ISO_COUNTRY, "");
-        String str = "DynamicSarService";
         if (mNetworkCountryCode.length() < 2) {
-            Log.d(str, "Can't get network countryCode, use MCC_DEFAULT");
+            Log.d("DynamicSarService", "Can't get network countryCode, use MCC_DEFAULT");
             return 3;
         }
         String[] mCountryCode = mNetworkCountryCode.split(",");
@@ -232,12 +215,7 @@ public class DynamicSarService {
             }
             i++;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("mNetworkCountryCode: ");
-        sb.append(mNetworkCountryCode);
-        sb.append(", mMccState: ");
-        sb.append(mMccState);
-        Log.d(str, sb.toString());
+        Log.d("DynamicSarService", "mNetworkCountryCode: " + mNetworkCountryCode + ", mMccState: " + mMccState);
         return mMccState;
     }
 
@@ -260,10 +238,7 @@ public class DynamicSarService {
                 state = 0;
             }
             if (state != this.mCurrentAudioReceiverState) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("AudioReceiverState: ");
-                sb.append(state);
-                Log.d("DynamicSarService", sb.toString());
+                Log.d("DynamicSarService", "AudioReceiverState: " + state);
                 callChangeListeners(this.mAudioReceiverListeners, 5, state);
                 this.mCurrentAudioReceiverState = state;
             }
@@ -277,12 +252,7 @@ public class DynamicSarService {
 
     /* access modifiers changed from: private */
     public void refreshSensorListener(int messageType, int state) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("modem state change,messageType: ");
-        sb.append(messageType);
-        sb.append(" state: ");
-        sb.append(state);
-        Log.d("DynamicSarService", sb.toString());
+        Log.d("DynamicSarService", "modem state change,messageType: " + messageType + " state: " + state);
         int modemState = 0;
         if (messageType == 128) {
             if (state == 1 || state == 2 || state == 3) {
@@ -307,7 +277,7 @@ public class DynamicSarService {
     }
 
     private void GetInitialChargeStatus() {
-        int status = this.mContext.registerReceiver(null, new IntentFilter("android.intent.action.BATTERY_CHANGED")).getIntExtra("status", -1);
+        int status = this.mContext.registerReceiver((BroadcastReceiver) null, new IntentFilter("android.intent.action.BATTERY_CHANGED")).getIntExtra("status", -1);
         boolean isCharging = status == 2 || status == 5;
         if (isCharging) {
             callChangeListeners(this.mChargeCONNECTEDListeners, 6, 1);
@@ -316,7 +286,7 @@ public class DynamicSarService {
         }
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public void registerStateChangeListener(int type, SarControllerClient listener) {
         switch (type) {
             case 0:
@@ -335,8 +305,13 @@ public class DynamicSarService {
             case 3:
                 this.mSensorManager = (SensorManager) this.mContext.getSystemService("sensor");
                 this.mSensor = this.mSensorManager.getDefaultSensor(SENSOR_TYPE_SARSENSOR, true);
-                this.mSensorManager.registerListener(this.mSensorEventListener, this.mSensor, 3);
+                boolean sensorFlag = this.mSensorManager.registerListener(this.mSensorEventListener, this.mSensor, 3);
                 this.mSarSensorListeners.add(listener);
+                if (!sensorFlag) {
+                    callChangeListeners(this.mSarSensorListeners, 3, 2);
+                    Log.d("DynamicSarService", "SAR sensor registration failed,set SAR_DISTANCE_SHORT");
+                    break;
+                }
                 break;
             case 4:
                 this.mHallSensorListeners.add(listener);
@@ -363,11 +338,11 @@ public class DynamicSarService {
         this.mContext.registerReceiver(this.mReceiver, mfilter);
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public void callChangeListeners(ArrayList<SarControllerClient> listeners, int type, int value) {
         if (listeners.size() != 0) {
             for (int i = 0; i < listeners.size(); i++) {
-                ((SarControllerClient) listeners.get(i)).onStateChanged(type, value);
+                listeners.get(i).onStateChanged(type, value);
             }
         }
     }

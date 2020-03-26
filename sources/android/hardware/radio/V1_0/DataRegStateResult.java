@@ -32,20 +32,7 @@ public final class DataRegStateResult {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".regState = ");
-        builder.append(RegState.toString(this.regState));
-        builder.append(", .rat = ");
-        builder.append(this.rat);
-        builder.append(", .reasonDataDenied = ");
-        builder.append(this.reasonDataDenied);
-        builder.append(", .maxDataCalls = ");
-        builder.append(this.maxDataCalls);
-        builder.append(", .cellIdentity = ");
-        builder.append(this.cellIdentity);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".regState = " + RegState.toString(this.regState) + ", .rat = " + this.rat + ", .reasonDataDenied = " + this.reasonDataDenied + ", .maxDataCalls = " + this.maxDataCalls + ", .cellIdentity = " + this.cellIdentity + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -87,7 +74,7 @@ public final class DataRegStateResult {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 104);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((DataRegStateResult) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 104));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 104));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

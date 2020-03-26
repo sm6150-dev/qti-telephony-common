@@ -33,10 +33,7 @@ public final class UusType {
         if (o == 6) {
             return "TYPE3_NOT_REQUIRED";
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("0x");
-        sb.append(Integer.toHexString(o));
-        return sb.toString();
+        return "0x" + Integer.toHexString(o);
     }
 
     public static final String dumpBitfield(int o) {
@@ -68,10 +65,7 @@ public final class UusType {
             flipped |= 6;
         }
         if (o != flipped) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("0x");
-            sb.append(Integer.toHexString((~flipped) & o));
-            list.add(sb.toString());
+            list.add("0x" + Integer.toHexString((~flipped) & o));
         }
         return String.join(" | ", list);
     }

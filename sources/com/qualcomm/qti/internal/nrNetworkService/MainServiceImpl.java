@@ -6,7 +6,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.IBinder.DeathRecipient;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
@@ -52,106 +51,47 @@ public class MainServiceImpl {
     private int mClientIndex = -1;
     IHidlConnectionCallback mHidlConnectionCallback = new IHidlConnectionCallback() {
         public void on5gStatus(int slotId, Token token, Status status, boolean enableStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("on5gStatus slotId = ");
-            sb.append(slotId);
-            sb.append(" token = ");
-            sb.append(token);
-            sb.append(" status = ");
-            sb.append(status);
-            sb.append(" enableStatus = ");
-            sb.append(enableStatus);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "on5gStatus slotId = " + slotId + " token = " + token + " status = " + status + " enableStatus = " + enableStatus);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(1, slotId, -1, new Result(token, status, Boolean.valueOf(enableStatus))));
         }
 
         public void onNrDcParam(int slotId, Token token, Status status, DcParam dcParam) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrDcParam slotId = ");
-            sb.append(slotId);
-            sb.append(" token = ");
-            sb.append(token);
-            sb.append(" status = ");
-            sb.append(status);
-            sb.append(" DcParam = ");
-            sb.append(dcParam);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "onNrDcParam slotId = " + slotId + " token = " + token + " status = " + status + " DcParam = " + dcParam);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(3, slotId, -1, new Result(token, status, dcParam)));
         }
 
         public void onAnyNrBearerAllocation(int slotId, Token token, Status status, BearerAllocationStatus bearerStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onAnyNrBearerAllocation slotId = ");
-            sb.append(slotId);
-            sb.append(" bearerStatus = ");
-            sb.append(bearerStatus);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "onAnyNrBearerAllocation slotId = " + slotId + " bearerStatus = " + bearerStatus);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(0, slotId, -1, new Result(token, status, bearerStatus)));
         }
 
         public void onUpperLayerIndInfo(int slotId, Token token, Status status, UpperLayerIndInfo ulInfo) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onUpperLayerIndInfo slotId = ");
-            sb.append(slotId);
-            sb.append(" UpperLayerIndInfo = ");
-            sb.append(ulInfo);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "onUpperLayerIndInfo slotId = " + slotId + " UpperLayerIndInfo = " + ulInfo);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(5, slotId, -1, new Result(token, status, ulInfo)));
         }
 
         public void on5gConfigInfo(int slotId, Token token, Status status, NrConfigType nrConfigType) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("on5gConfigInfo slotId = ");
-            sb.append(slotId);
-            sb.append(" NrConfigType = ");
-            sb.append(nrConfigType);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "on5gConfigInfo slotId = " + slotId + " NrConfigType = " + nrConfigType);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(6, slotId, -1, new Result(token, status, nrConfigType)));
         }
 
         public void onSignalStrength(int slotId, Token token, Status status, SignalStrength signalStrength) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onSignalStrength slotId = ");
-            sb.append(slotId);
-            sb.append(" signalStrength = ");
-            sb.append(signalStrength);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "onSignalStrength slotId = " + slotId + " signalStrength = " + signalStrength);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(2, slotId, -1, new Result(token, status, signalStrength)));
         }
 
         public void onNrIconType(int slotId, Token token, Status status, NrIconType nrIconType) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onNrIconType slotId = ");
-            sb.append(slotId);
-            sb.append(" NrIconType = ");
-            sb.append(nrIconType);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "onNrIconType slotId = " + slotId + " NrIconType = " + nrIconType);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(7, slotId, -1, new Result(token, status, nrIconType)));
         }
 
         public void onEnableEndc(int slotId, Token token, Status status) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onEnableEndc slotId = ");
-            sb.append(slotId);
-            sb.append(" token = ");
-            sb.append(token);
-            sb.append(" status = ");
-            sb.append(status);
-            Log.d(MainServiceImpl.TAG, sb.toString());
-            MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(8, slotId, -1, new Result(token, status, null)));
+            Log.d(MainServiceImpl.TAG, "onEnableEndc slotId = " + slotId + " token = " + token + " status = " + status);
+            MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(8, slotId, -1, new Result(token, status, (Object) null)));
         }
 
         public void onEndcStatus(int slotId, Token token, Status status, boolean enableStatus) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("onEndcStatus slotId = ");
-            sb.append(slotId);
-            sb.append(" token = ");
-            sb.append(token);
-            sb.append(" status = ");
-            sb.append(status);
-            sb.append(" enable = ");
-            sb.append(enableStatus);
-            Log.d(MainServiceImpl.TAG, sb.toString());
+            Log.d(MainServiceImpl.TAG, "onEndcStatus slotId = " + slotId + " token = " + token + " status = " + status + " enable = " + enableStatus);
             MainServiceImpl.this.mWorkerThreadHandler.sendMessage(MainServiceImpl.this.mWorkerThreadHandler.obtainMessage(9, slotId, -1, new Result(token, status, Boolean.valueOf(enableStatus))));
         }
     };
@@ -161,41 +101,72 @@ public class MainServiceImpl {
     /* access modifiers changed from: private */
     public Handler mWorkerThreadHandler;
 
-    class ClientBinderDeathRecipient implements DeathRecipient {
-        INetworkCallback mCallback;
+    private class WorkerHandler extends Handler {
+        private static final String TAG = "MainServiceImplHandler: ";
 
-        public ClientBinderDeathRecipient(INetworkCallback callback) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("registering for client cb = ");
-            sb.append(callback);
-            sb.append(" binder = ");
-            sb.append(callback.asBinder());
-            sb.append(" death notification");
-            Log.d(MainServiceImpl.TAG, sb.toString());
-            this.mCallback = callback;
+        public WorkerHandler(Looper looper) {
+            super(looper);
         }
 
-        public void binderDied() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Client callback = ");
-            sb.append(this.mCallback);
-            String str = " binder = ";
-            sb.append(str);
-            sb.append(this.mCallback.asBinder());
-            sb.append("died");
-            String sb2 = sb.toString();
-            String str2 = MainServiceImpl.TAG;
-            Log.d(str2, sb2);
-            this.mCallback.asBinder().unlinkToDeath(this, 0);
-            try {
-                MainServiceImpl.this.unRegisterCallback(this.mCallback);
-            } catch (RemoteException e) {
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("Exception while unregistering callback = ");
-                sb3.append(this.mCallback);
-                sb3.append(str);
-                sb3.append(this.mCallback.asBinder());
-                Log.d(str2, sb3.toString());
+        public void handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage msg.what = " + msg.what);
+            switch (msg.what) {
+                case 0:
+                    Log.d(TAG, "EVENT_ON_BEARER_ALLOCATION_CHANGE_IND");
+                    int slotId = msg.arg1;
+                    Result result = (Result) msg.obj;
+                    MainServiceImpl.this.onAnyNrBearerAllocation(slotId, result.mToken, result.mStatus, (BearerAllocationStatus) result.mData);
+                    return;
+                case 1:
+                    Log.d(TAG, "EVENT_ON_5G_ENABLE_STATUS");
+                    int slotId2 = msg.arg1;
+                    Result result2 = (Result) msg.obj;
+                    MainServiceImpl.this.on5gStatus(slotId2, result2.mToken, result2.mStatus, ((Boolean) result2.mData).booleanValue());
+                    return;
+                case 2:
+                    Log.d(TAG, "EVENT_ON_5G_SIGNAL_STRENGTH_CHANGE_IND");
+                    int slotId3 = msg.arg1;
+                    Result result3 = (Result) msg.obj;
+                    MainServiceImpl.this.onSignalStrength(slotId3, result3.mToken, result3.mStatus, (SignalStrength) result3.mData);
+                    return;
+                case 3:
+                    Log.d(TAG, "EVENT_ON_NR_DUAL_CONNECTIVITY_CHANGE_IND");
+                    int slotId4 = msg.arg1;
+                    Result result4 = (Result) msg.obj;
+                    MainServiceImpl.this.onNrDcParam(slotId4, result4.mToken, result4.mStatus, (DcParam) result4.mData);
+                    return;
+                case 5:
+                    Log.d(TAG, "EVENT_ON_UPPER_LAYER_INDICATION_INFO");
+                    int slotId5 = msg.arg1;
+                    Result result5 = (Result) msg.obj;
+                    MainServiceImpl.this.onUpperLayerIndInfo(slotId5, result5.mToken, result5.mStatus, (UpperLayerIndInfo) result5.mData);
+                    return;
+                case 6:
+                    Log.d(TAG, "EVENT_ON_5G_CONFIG_INFO");
+                    int slotId6 = msg.arg1;
+                    Result result6 = (Result) msg.obj;
+                    MainServiceImpl.this.on5gConfigInfo(slotId6, result6.mToken, result6.mStatus, (NrConfigType) result6.mData);
+                    return;
+                case 7:
+                    Log.d(TAG, "EVENT_ON_NR_ICON_TYPE");
+                    int slotId7 = msg.arg1;
+                    Result result7 = (Result) msg.obj;
+                    MainServiceImpl.this.onNrIconType(slotId7, result7.mToken, result7.mStatus, (NrIconType) result7.mData);
+                    return;
+                case 8:
+                    Log.d(TAG, "EVENT_ON_ENABLE_ENDC");
+                    int slotId8 = msg.arg1;
+                    Result result8 = (Result) msg.obj;
+                    MainServiceImpl.this.onEnableEndc(slotId8, result8.mToken, result8.mStatus);
+                    return;
+                case 9:
+                    Log.d(TAG, "EVENT_ON_ENDC_STATUS");
+                    int slotId9 = msg.arg1;
+                    Result result9 = (Result) msg.obj;
+                    MainServiceImpl.this.onEndcStatus(slotId9, result9.mToken, result9.mStatus, ((Boolean) result9.mData).booleanValue());
+                    return;
+                default:
+                    return;
             }
         }
     }
@@ -212,15 +183,7 @@ public class MainServiceImpl {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Result{mToken=");
-            sb.append(this.mToken);
-            sb.append(", mStatus=");
-            sb.append(this.mStatus);
-            sb.append(", mData=");
-            sb.append(this.mData);
-            sb.append('}');
-            return sb.toString();
+            return "Result{mToken=" + this.mToken + ", mStatus=" + this.mStatus + ", mData=" + this.mData + '}';
         }
     }
 
@@ -236,82 +199,7 @@ public class MainServiceImpl {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Transaction{mToken=");
-            sb.append(this.mToken);
-            sb.append(", mName='");
-            sb.append(this.mName);
-            sb.append('\'');
-            sb.append(", mClient=");
-            sb.append(this.mClient);
-            sb.append('}');
-            return sb.toString();
-        }
-    }
-
-    private class WorkerHandler extends Handler {
-        private static final String TAG = "MainServiceImplHandler: ";
-
-        public WorkerHandler(Looper looper) {
-            super(looper);
-        }
-
-        public void handleMessage(Message msg) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("handleMessage msg.what = ");
-            sb.append(msg.what);
-            String sb2 = sb.toString();
-            String str = TAG;
-            Log.d(str, sb2);
-            switch (msg.what) {
-                case 0:
-                    Log.d(str, "EVENT_ON_BEARER_ALLOCATION_CHANGE_IND");
-                    Result result = (Result) msg.obj;
-                    MainServiceImpl.this.onAnyNrBearerAllocation(msg.arg1, result.mToken, result.mStatus, (BearerAllocationStatus) result.mData);
-                    return;
-                case 1:
-                    Log.d(str, "EVENT_ON_5G_ENABLE_STATUS");
-                    Result result2 = (Result) msg.obj;
-                    MainServiceImpl.this.on5gStatus(msg.arg1, result2.mToken, result2.mStatus, ((Boolean) result2.mData).booleanValue());
-                    return;
-                case 2:
-                    Log.d(str, "EVENT_ON_5G_SIGNAL_STRENGTH_CHANGE_IND");
-                    Result result3 = (Result) msg.obj;
-                    MainServiceImpl.this.onSignalStrength(msg.arg1, result3.mToken, result3.mStatus, (SignalStrength) result3.mData);
-                    return;
-                case 3:
-                    Log.d(str, "EVENT_ON_NR_DUAL_CONNECTIVITY_CHANGE_IND");
-                    Result result4 = (Result) msg.obj;
-                    MainServiceImpl.this.onNrDcParam(msg.arg1, result4.mToken, result4.mStatus, (DcParam) result4.mData);
-                    return;
-                case 5:
-                    Log.d(str, "EVENT_ON_UPPER_LAYER_INDICATION_INFO");
-                    Result result5 = (Result) msg.obj;
-                    MainServiceImpl.this.onUpperLayerIndInfo(msg.arg1, result5.mToken, result5.mStatus, (UpperLayerIndInfo) result5.mData);
-                    return;
-                case 6:
-                    Log.d(str, "EVENT_ON_5G_CONFIG_INFO");
-                    Result result6 = (Result) msg.obj;
-                    MainServiceImpl.this.on5gConfigInfo(msg.arg1, result6.mToken, result6.mStatus, (NrConfigType) result6.mData);
-                    return;
-                case 7:
-                    Log.d(str, "EVENT_ON_NR_ICON_TYPE");
-                    Result result7 = (Result) msg.obj;
-                    MainServiceImpl.this.onNrIconType(msg.arg1, result7.mToken, result7.mStatus, (NrIconType) result7.mData);
-                    return;
-                case 8:
-                    Log.d(str, "EVENT_ON_ENABLE_ENDC");
-                    Result result8 = (Result) msg.obj;
-                    MainServiceImpl.this.onEnableEndc(msg.arg1, result8.mToken, result8.mStatus);
-                    return;
-                case 9:
-                    Log.d(str, "EVENT_ON_ENDC_STATUS");
-                    Result result9 = (Result) msg.obj;
-                    MainServiceImpl.this.onEndcStatus(msg.arg1, result9.mToken, result9.mStatus, ((Boolean) result9.mData).booleanValue());
-                    return;
-                default:
-                    return;
-            }
+            return "Transaction{mToken=" + this.mToken + ", mName='" + this.mName + '\'' + ", mClient=" + this.mClient + '}';
         }
     }
 
@@ -322,11 +210,7 @@ public class MainServiceImpl {
             if (sInstance == null) {
                 sInstance = new MainServiceImpl(context);
             } else {
-                String str = TAG;
-                StringBuilder sb = new StringBuilder();
-                sb.append("init() called multiple times!  sInstance = ");
-                sb.append(sInstance);
-                Log.wtf(str, sb.toString());
+                Log.wtf(TAG, "init() called multiple times!  sInstance = " + sInstance);
             }
             mainServiceImpl = sInstance;
         }
@@ -341,8 +225,7 @@ public class MainServiceImpl {
     }
 
     public MainServiceImpl(Context context) {
-        String str = TAG;
-        Log.d(str, str);
+        Log.d(TAG, TAG);
         mContext = context;
         this.mAppOpsManager = (AppOpsManager) mContext.getSystemService("appops");
         setHidlClient(new QtiRadioHidlClient());
@@ -352,8 +235,7 @@ public class MainServiceImpl {
 
     @VisibleForTesting
     public MainServiceImpl(Context context, IHidlConnectionInterface hidlClient, Looper workerLooper) {
-        String str = TAG;
-        Log.d(str, str);
+        Log.d(TAG, TAG);
         mContext = context;
         this.mAppOpsManager = (AppOpsManager) mContext.getSystemService("appops");
         setHidlClient(hidlClient);
@@ -372,122 +254,82 @@ public class MainServiceImpl {
     public Token enable5g(int slotId, Client client) throws RemoteException {
         int uid = Binder.getCallingUid();
         String packageName = mContext.getPackageManager().getNameForUid(uid);
-        StringBuilder sb = new StringBuilder();
-        sb.append("enable5g: slotId = ");
-        sb.append(slotId);
-        sb.append(" uid = ");
-        sb.append(uid);
-        sb.append(" package=");
-        sb.append(packageName);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "enable5g: slotId = " + slotId + " uid = " + uid + " package=" + packageName);
         Token token = this.mHidlConnectionInterface.enable5g(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "Enable5g", client));
         return token;
     }
 
     public Token disable5g(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("disable5g: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "disable5g: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.disable5g(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "disable5g", client));
         return token;
     }
 
     public Token enable5gOnly(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("enable5gOnly: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "enable5gOnly: slotId = " + slotId);
         throw new RemoteException("not implemented");
     }
 
     public Token query5gStatus(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("query5gStatus: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "query5gStatus: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.query5gStatus(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "query5gStatus", client));
         return token;
     }
 
     public Token queryNrDcParam(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrDcParam: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "queryNrDcParam: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.queryNrDcParam(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "queryNrDcParam", client));
         return token;
     }
 
     public Token queryNrBearerAllocation(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrBearerAllocation: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "queryNrBearerAllocation: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.queryNrBearerAllocation(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "queryNrBearerAllocation", client));
         return token;
     }
 
     public Token queryNrSignalStrength(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrSignalStrength: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "queryNrSignalStrength: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.queryNrSignalStrength(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "queryNrSignalStrength", client));
         return token;
     }
 
     public Token queryUpperLayerIndInfo(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryUpperLayerIndInfo: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "queryUpperLayerIndInfo: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.queryUpperLayerIndInfo(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "queryUpperLayerIndInfo", client));
         return token;
     }
 
     public Token query5gConfigInfo(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("query5gConfigInfo: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "query5gConfigInfo: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.query5gConfigInfo(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "query5gConfigInfo", client));
         return token;
     }
 
     public Token queryNrIconType(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrIconType: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "queryNrIconType: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.queryNrIconType(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "queryNrIconType", client));
         return token;
     }
 
     public Token enableEndc(int slotId, boolean enabled, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("enableEndc: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "enableEndc: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.enableEndc(slotId, enabled);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "enableEndc", client));
         return token;
     }
 
     public Token queryEndcStatus(int slotId, Client client) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryEndcStatus: slotId = ");
-        sb.append(slotId);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "queryEndcStatus: slotId = " + slotId);
         Token token = this.mHidlConnectionInterface.queryEndcStatus(slotId);
         this.mInflightRequests.put(Integer.valueOf(token.get()), new Transaction(token, "queryEndcStatus", client));
         return token;
@@ -496,18 +338,14 @@ public class MainServiceImpl {
     private boolean addCallback(INetworkCallback callback) {
         IBinder binder = callback.asBinder();
         synchronized (this.mCallbackList) {
-            Iterator it = this.mCallbackList.iterator();
+            Iterator<INetworkCallback> it = this.mCallbackList.iterator();
             while (it.hasNext()) {
-                if (((INetworkCallback) it.next()).asBinder().equals(binder)) {
+                if (it.next().asBinder().equals(binder)) {
                     boolean z = this.FAILED;
                     return z;
                 }
             }
-            String str = TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("add callback= ");
-            sb.append(callback);
-            Log.d(str, sb.toString());
+            Log.d(TAG, "add callback= " + callback);
             this.mCallbackList.add(callback);
             return this.SUCCESS;
         }
@@ -515,22 +353,13 @@ public class MainServiceImpl {
 
     private void removeCallback(INetworkCallback callback) {
         IBinder binder = callback.asBinder();
-        StringBuilder sb = new StringBuilder();
-        sb.append("removeCallback: callback= ");
-        sb.append(callback);
-        sb.append(", Binder = ");
-        sb.append(binder);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "removeCallback: callback= " + callback + ", Binder = " + binder);
         synchronized (this.mCallbackList) {
-            Iterator it = this.mCallbackList.iterator();
+            Iterator<INetworkCallback> it = this.mCallbackList.iterator();
             while (it.hasNext()) {
-                INetworkCallback it2 = (INetworkCallback) it.next();
+                INetworkCallback it2 = it.next();
                 if (it2.asBinder().equals(binder)) {
-                    String str = TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("remove callback= ");
-                    sb2.append(it2);
-                    Log.d(str, sb2.toString());
+                    Log.d(TAG, "remove callback= " + it2);
                     this.mCallbackList.remove(it2);
                     return;
                 }
@@ -541,13 +370,8 @@ public class MainServiceImpl {
     private void removeClientFromInflightRequests(INetworkCallback callback) {
         for (Integer intValue : this.mInflightRequests.keySet()) {
             int key = intValue.intValue();
-            if (((Transaction) this.mInflightRequests.get(Integer.valueOf(key))).mClient.getCallback().asBinder() == callback.asBinder()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("removeClientFromInflightRequests: Token = ");
-                sb.append(key);
-                sb.append(" => ");
-                sb.append(this.mInflightRequests.get(Integer.valueOf(key)));
-                Log.d(TAG, sb.toString());
+            if (this.mInflightRequests.get(Integer.valueOf(key)).mClient.getCallback().asBinder() == callback.asBinder()) {
+                Log.d(TAG, "removeClientFromInflightRequests: Token = " + key + " => " + this.mInflightRequests.get(Integer.valueOf(key)));
                 this.mInflightRequests.remove(Integer.valueOf(key));
             }
         }
@@ -558,30 +382,16 @@ public class MainServiceImpl {
         binder.linkToDeath(new ClientBinderDeathRecipient(callback), 0);
         int uid = Binder.getCallingUid();
         String callerPackageName = mContext.getPackageManager().getNameForUid(uid);
-        StringBuilder sb = new StringBuilder();
-        sb.append("registerCallback: uid = ");
-        sb.append(uid);
-        sb.append(" callerPackage=");
-        sb.append(callerPackageName);
-        sb.append("callback = ");
-        sb.append(callback);
-        sb.append("binder = ");
-        sb.append(binder);
-        String sb2 = sb.toString();
-        String str = TAG;
-        Log.d(str, sb2);
+        Log.d(TAG, "registerCallback: uid = " + uid + " callerPackage=" + callerPackageName + "callback = " + callback + "binder = " + binder);
         this.mAppOpsManager.checkPackage(Binder.getCallingUid(), packageName);
         if (addCallback(callback) == this.SUCCESS) {
             int i = this.mClientIndex + 1;
             this.mClientIndex = i;
             Client client = new Client(i, uid, packageName, callback);
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append("registerCallback: client = ");
-            sb3.append(client);
-            Log.d(str, sb3.toString());
+            Log.d(TAG, "registerCallback: client = " + client);
             return client;
         }
-        Log.d(str, "registerCallback: callback could not be added.");
+        Log.d(TAG, "registerCallback: callback could not be added.");
         return null;
     }
 
@@ -590,7 +400,26 @@ public class MainServiceImpl {
         removeClientFromInflightRequests(callback);
     }
 
-    /* access modifiers changed from: 0000 */
+    class ClientBinderDeathRecipient implements IBinder.DeathRecipient {
+        INetworkCallback mCallback;
+
+        public ClientBinderDeathRecipient(INetworkCallback callback) {
+            Log.d(MainServiceImpl.TAG, "registering for client cb = " + callback + " binder = " + callback.asBinder() + " death notification");
+            this.mCallback = callback;
+        }
+
+        public void binderDied() {
+            Log.d(MainServiceImpl.TAG, "Client callback = " + this.mCallback + " binder = " + this.mCallback.asBinder() + "died");
+            this.mCallback.asBinder().unlinkToDeath(this, 0);
+            try {
+                MainServiceImpl.this.unRegisterCallback(this.mCallback);
+            } catch (RemoteException e) {
+                Log.d(MainServiceImpl.TAG, "Exception while unregistering callback = " + this.mCallback + " binder = " + this.mCallback.asBinder());
+            }
+        }
+    }
+
+    /* access modifiers changed from: package-private */
     public ArrayList<INetworkCallback> retrieveCallbacks(int tokenKey) {
         ArrayList<INetworkCallback> list = new ArrayList<>();
         if (tokenKey == -1) {
@@ -599,7 +428,7 @@ public class MainServiceImpl {
         if (!this.mInflightRequests.containsKey(Integer.valueOf(tokenKey))) {
             return list;
         }
-        list.add(((Transaction) this.mInflightRequests.get(Integer.valueOf(tokenKey))).mClient.getCallback());
+        list.add(this.mInflightRequests.get(Integer.valueOf(tokenKey)).mClient.getCallback());
         return list;
     }
 
@@ -609,23 +438,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("on5gStatus: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.on5gStatus(slotId, token, status, enableStatus);
+                    Log.d(TAG, "on5gStatus: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().on5gStatus(slotId, token, status, enableStatus);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("on5gStatus: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "on5gStatus: Exception = " + e);
         }
     }
 
@@ -635,23 +456,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onNrDcParam: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.onNrDcParam(slotId, token, status, dcParam);
+                    Log.d(TAG, "onNrDcParam: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().onNrDcParam(slotId, token, status, dcParam);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("on5gStatus: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "on5gStatus: Exception = " + e);
         }
     }
 
@@ -661,23 +474,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onUpperLayerIndInfo: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.onUpperLayerIndInfo(slotId, token, status, ulInfo);
+                    Log.d(TAG, "onUpperLayerIndInfo: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().onUpperLayerIndInfo(slotId, token, status, ulInfo);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("onUpperLayerIndInfo: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "onUpperLayerIndInfo: Exception = " + e);
         }
     }
 
@@ -687,23 +492,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("on5gConfigInfo: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.on5gConfigInfo(slotId, token, status, nrConfigType);
+                    Log.d(TAG, "on5gConfigInfo: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().on5gConfigInfo(slotId, token, status, nrConfigType);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("on5gConfigInfo: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "on5gConfigInfo: Exception = " + e);
         }
     }
 
@@ -713,23 +510,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onAnyNrBearerAllocation: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.onAnyNrBearerAllocation(slotId, token, status, bearerStatus);
+                    Log.d(TAG, "onAnyNrBearerAllocation: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().onAnyNrBearerAllocation(slotId, token, status, bearerStatus);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("on5gStatus: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "on5gStatus: Exception = " + e);
         }
     }
 
@@ -739,23 +528,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onSignalStrength: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.onSignalStrength(slotId, token, status, signalStrength);
+                    Log.d(TAG, "onSignalStrength: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().onSignalStrength(slotId, token, status, signalStrength);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("on5gStatus: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "on5gStatus: Exception = " + e);
         }
     }
 
@@ -765,23 +546,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onNrIconType: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.onNrIconType(slotId, token, status, nrIconType);
+                    Log.d(TAG, "onNrIconType: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().onNrIconType(slotId, token, status, nrIconType);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("onNrIconType: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "onNrIconType: Exception = " + e);
         }
     }
 
@@ -791,23 +564,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onEnableEndc: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.onEnableEndc(slotId, token, status);
+                    Log.d(TAG, "onEnableEndc: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().onEnableEndc(slotId, token, status);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("onEnableEndc: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "onEnableEndc: Exception = " + e);
         }
     }
 
@@ -817,23 +582,15 @@ public class MainServiceImpl {
         try {
             int tokenKey = token.get();
             synchronized (this.mCallbackList) {
-                Iterator it = retrieveCallbacks(tokenKey).iterator();
+                Iterator<INetworkCallback> it = retrieveCallbacks(tokenKey).iterator();
                 while (it.hasNext()) {
-                    INetworkCallback callback = (INetworkCallback) it.next();
-                    String str = TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("onEndcStatus: Responding back for transaction = ");
-                    sb.append(this.mInflightRequests.get(Integer.valueOf(tokenKey)));
-                    Log.d(str, sb.toString());
-                    callback.onEndcStatus(slotId, token, status, enableStatus);
+                    Log.d(TAG, "onEndcStatus: Responding back for transaction = " + this.mInflightRequests.get(Integer.valueOf(tokenKey)));
+                    it.next().onEndcStatus(slotId, token, status, enableStatus);
                     this.mInflightRequests.remove(Integer.valueOf(tokenKey));
                 }
             }
         } catch (RemoteException e) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("onEndcStatus: Exception = ");
-            sb2.append(e);
-            Log.d(TAG, sb2.toString());
+            Log.d(TAG, "onEndcStatus: Exception = " + e);
         }
     }
 
@@ -851,38 +608,25 @@ public class MainServiceImpl {
 
     private void dumpAidlClients(PrintWriter pw) {
         synchronized (this.mCallbackList) {
-            Iterator it = this.mCallbackList.iterator();
+            Iterator<INetworkCallback> it = this.mCallbackList.iterator();
             while (it.hasNext()) {
-                INetworkCallback callback = (INetworkCallback) it.next();
+                INetworkCallback callback = it.next();
                 IBinder binder = callback.asBinder();
-                StringBuilder sb = new StringBuilder();
-                sb.append("Callback = ");
-                sb.append(callback);
-                sb.append("-> Binder = ");
-                sb.append(binder);
-                pw.println(sb.toString());
+                pw.println("Callback = " + callback + "-> Binder = " + binder);
             }
         }
     }
 
     private void dumpInflightRequests(PrintWriter pw) {
         for (Integer key : this.mInflightRequests.keySet()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Token = ");
-            sb.append(key);
-            sb.append(" => ");
-            sb.append(this.mInflightRequests.get(key));
-            pw.println(sb.toString());
+            pw.println("Token = " + key + " => " + this.mInflightRequests.get(key));
         }
     }
 
     public void dump(FileDescriptor fd, PrintWriter printwriter, String[] args) {
         PrintWriter pw = printwriter;
         pw.println("5G-Middleware:");
-        StringBuilder sb = new StringBuilder();
-        sb.append("mHidlConnectionInterface = ");
-        sb.append(this.mHidlConnectionInterface);
-        pw.println(sb.toString());
+        pw.println("mHidlConnectionInterface = " + this.mHidlConnectionInterface);
         pw.println("AIDL clients : ");
         dumpAidlClients(pw);
         pw.flush();

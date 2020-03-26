@@ -8,6 +8,12 @@ public class PresenceMsgParser {
     /* access modifiers changed from: private */
     public static String LOG_TAG = "PresenceMsgParser";
 
+    enum MediaCapabilities {
+        FULL_DUPLEX,
+        HALF_RECEIVE_ONLY,
+        HALF_SEND_ONLY
+    }
+
     public static class ContactInfo {
         public ListHeaderInfo listHeaderInfo;
         public String mAudioCapabilities;
@@ -28,43 +34,7 @@ public class PresenceMsgParser {
         public String mVideoCapabilities;
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("ContactInfo [listHeaderInfo=");
-            sb.append(this.listHeaderInfo);
-            sb.append(", mResourceUri=");
-            sb.append(this.mResourceUri);
-            sb.append(", mResourceId=");
-            sb.append(this.mResourceId);
-            sb.append(", mResourceState=");
-            sb.append(this.mResourceState);
-            sb.append(", mResourceReason=");
-            sb.append(this.mResourceReason);
-            sb.append(", mResourceCid=");
-            sb.append(this.mResourceCid);
-            sb.append(", mDescription=");
-            sb.append(this.mDescription);
-            sb.append(", mVersion=");
-            sb.append(this.mVersion);
-            sb.append(", mServiceId=");
-            sb.append(this.mServiceId);
-            sb.append(", mContactUri=");
-            sb.append(this.mContactUri);
-            sb.append(", mIsVolteContact=");
-            sb.append(this.mIsVolteContact);
-            sb.append(", mPublishStatus=");
-            sb.append(this.mPublishStatus);
-            sb.append(", mIsAudioSupported=");
-            sb.append(this.mIsAudioSupported);
-            sb.append(", mIsVideoSupported=");
-            sb.append(this.mIsVideoSupported);
-            sb.append(", mAudioCapabilities=");
-            sb.append(this.mAudioCapabilities);
-            sb.append(", mVideoCapabilities=");
-            sb.append(this.mVideoCapabilities);
-            sb.append(", mTimeStamp=");
-            sb.append(this.mTimeStamp);
-            sb.append("]");
-            return sb.toString();
+            return "ContactInfo [listHeaderInfo=" + this.listHeaderInfo + ", mResourceUri=" + this.mResourceUri + ", mResourceId=" + this.mResourceId + ", mResourceState=" + this.mResourceState + ", mResourceReason=" + this.mResourceReason + ", mResourceCid=" + this.mResourceCid + ", mDescription=" + this.mDescription + ", mVersion=" + this.mVersion + ", mServiceId=" + this.mServiceId + ", mContactUri=" + this.mContactUri + ", mIsVolteContact=" + this.mIsVolteContact + ", mPublishStatus=" + this.mPublishStatus + ", mIsAudioSupported=" + this.mIsAudioSupported + ", mIsVideoSupported=" + this.mIsVideoSupported + ", mAudioCapabilities=" + this.mAudioCapabilities + ", mVideoCapabilities=" + this.mVideoCapabilities + ", mTimeStamp=" + this.mTimeStamp + "]";
         }
     }
 
@@ -75,24 +45,8 @@ public class PresenceMsgParser {
         public String mListVersion;
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("ListHeaderInfo [mListContactUri=");
-            sb.append(this.mListContactUri);
-            sb.append(", mListName=");
-            sb.append(this.mListName);
-            sb.append(", mListVersion=");
-            sb.append(this.mListVersion);
-            sb.append(", mListFullState=");
-            sb.append(this.mListFullState);
-            sb.append("]");
-            return sb.toString();
+            return "ListHeaderInfo [mListContactUri=" + this.mListContactUri + ", mListName=" + this.mListName + ", mListVersion=" + this.mListVersion + ", mListFullState=" + this.mListFullState + "]";
         }
-    }
-
-    enum MediaCapabilities {
-        FULL_DUPLEX,
-        HALF_RECEIVE_ONLY,
-        HALF_SEND_ONLY
     }
 
     static class PresenceRichNotifyParser {
@@ -156,48 +110,30 @@ public class PresenceMsgParser {
             String s = parseString(parseByte());
             this.listHeaderInfo.mListContactUri = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ListContactUri = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ListContactUri = " + s);
         }
 
         private void parseListName() {
             String s = parseString(parseByte());
             this.listHeaderInfo.mListName = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ListName = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ListName = " + s);
         }
 
         private void parseListVersion() {
             int listVersion = parseInteger();
             ListHeaderInfo listHeaderInfo2 = this.listHeaderInfo;
-            StringBuilder sb = new StringBuilder();
-            sb.append("");
-            sb.append(listVersion);
-            listHeaderInfo2.mListVersion = sb.toString();
+            listHeaderInfo2.mListVersion = "" + listVersion;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("Parsing ListVersion = ");
-            sb2.append(listVersion);
-            Log.d(access$000, sb2.toString());
+            Log.d(access$000, "Parsing ListVersion = " + listVersion);
         }
 
         private void parseListFullState() {
             int b = parseByte();
             ListHeaderInfo listHeaderInfo2 = this.listHeaderInfo;
-            StringBuilder sb = new StringBuilder();
-            sb.append("");
-            sb.append(b);
-            listHeaderInfo2.mListFullState = sb.toString();
+            listHeaderInfo2.mListFullState = "" + b;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("Parsing ListFullState = ");
-            sb2.append(b);
-            Log.d(access$000, sb2.toString());
+            Log.d(access$000, "Parsing ListFullState = " + b);
         }
 
         private void parseListInfo() {
@@ -211,10 +147,7 @@ public class PresenceMsgParser {
             String s = parseString(parseByte());
             this.c.mResourceUri = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ResourceUri = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ResourceUri = " + s);
         }
 
         private void parseIsVolteContact() {
@@ -226,60 +159,42 @@ public class PresenceMsgParser {
             }
             contactInfo.mIsVolteContact = z;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing IsVolteContact = ");
-            sb.append(this.c.mIsVolteContact);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing IsVolteContact = " + this.c.mIsVolteContact);
         }
 
         private void parsePublishStatus() {
             int val = parseInteger();
             this.c.mPublishStatus = val;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing PublishStatus = ");
-            sb.append(val);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing PublishStatus = " + val);
         }
 
         private void parseResourceId() {
             String s = parseString(parseByte());
             this.c.mResourceId = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ResourceId = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ResourceId = " + s);
         }
 
         private void parseResourceState() {
             String s = parseString(parseByte());
             this.c.mResourceState = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ResourceState = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ResourceState = " + s);
         }
 
         private void parseResourceReason() {
             String s = parseString(parseByte());
             this.c.mResourceReason = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ResourceReason = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ResourceReason = " + s);
         }
 
         private void parseResourceCid() {
             String s = parseString(parseShort());
             this.c.mResourceCid = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ResourceCid = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ResourceCid = " + s);
         }
 
         private void parseResouceInstance() {
@@ -293,40 +208,28 @@ public class PresenceMsgParser {
             String s = parseString(parseByte());
             this.c.mContactUri = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing Contact Uri = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing Contact Uri = " + s);
         }
 
         private void parseDescription() {
             String s = parseString(parseByte());
             this.c.mDescription = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing Description = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing Description = " + s);
         }
 
         private void parseVersion() {
             String s = parseString(parseByte());
             this.c.mVersion = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing Version = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing Version = " + s);
         }
 
         private void parseServiceid() {
             String s = parseString(parseByte());
             this.c.mServiceId = s;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing ServiceId = ");
-            sb.append(s);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing ServiceId = " + s);
         }
 
         private void parseServiceDescriptions() {
@@ -344,30 +247,21 @@ public class PresenceMsgParser {
             }
             contactInfo.mIsAudioSupported = z;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing isAudioSupported=");
-            sb.append(this.c.mIsAudioSupported);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing isAudioSupported=" + this.c.mIsAudioSupported);
         }
 
         private void parseAudioCapability() {
             int val = parseInteger();
             this.c.mAudioCapabilities = MediaCapabilities.values()[val].toString();
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing AudioCapabilities=");
-            sb.append(this.c.mAudioCapabilities);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing AudioCapabilities=" + this.c.mAudioCapabilities);
         }
 
         private void parseVideoCapability() {
             int val = parseInteger();
             this.c.mVideoCapabilities = MediaCapabilities.values()[val].toString();
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing VideoCapabilities=");
-            sb.append(this.c.mVideoCapabilities);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing VideoCapabilities=" + this.c.mVideoCapabilities);
         }
 
         private void parseIsVideoSupported() {
@@ -379,10 +273,7 @@ public class PresenceMsgParser {
             }
             contactInfo.mIsVideoSupported = z;
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing isVideoSupported=");
-            sb.append(this.c.mIsVideoSupported);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing isVideoSupported=" + this.c.mIsVideoSupported);
         }
 
         private void parseServiceCapabilities() {
@@ -401,10 +292,7 @@ public class PresenceMsgParser {
         private void parseTimeStamp() {
             this.c.mTimeStamp = parseString(parseByte());
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing timeStamp=");
-            sb.append(this.c.mTimeStamp);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing timeStamp=" + this.c.mTimeStamp);
         }
 
         private void parsePresenceUserInfoWithTs() {
@@ -419,10 +307,7 @@ public class PresenceMsgParser {
         private void parseUserListInfo() {
             int numOfContacts = parseUserListInfoLen();
             String access$000 = PresenceMsgParser.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("Parsing numOfContacts = ");
-            sb.append(numOfContacts);
-            Log.d(access$000, sb.toString());
+            Log.d(access$000, "Parsing numOfContacts = " + numOfContacts);
             for (int i = 0; i < numOfContacts; i++) {
                 this.c = new ContactInfo();
                 this.c.listHeaderInfo = this.listHeaderInfo;
@@ -447,10 +332,7 @@ public class PresenceMsgParser {
 
     static ArrayList<ContactInfo> parseNotifyUpdate(ByteBuffer respByteBuf, int responseSize, int successStatus) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("notifyUpdate(), Thread=");
-        sb.append(Thread.currentThread().getName());
-        Log.d(str, sb.toString());
+        Log.d(str, "notifyUpdate(), Thread=" + Thread.currentThread().getName());
         while (responseSize > 0) {
             short type = PrimitiveParser.toUnsigned(respByteBuf.get());
             int length = PrimitiveParser.toUnsigned(respByteBuf.getShort());
@@ -462,20 +344,14 @@ public class PresenceMsgParser {
                     }
                     int callId = PrimitiveParser.toUnsigned(data[0]);
                     String str2 = LOG_TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("callId = ");
-                    sb2.append(callId);
-                    Log.v(str2, sb2.toString());
+                    Log.v(str2, "callId = " + callId);
                 }
                 responseSize -= length + 3;
             } else {
                 Log.v(LOG_TAG, "NOTIFY_DETAIL_TYPE");
                 ArrayList<ContactInfo> parsedContactList = new PresenceRichNotifyParser(respByteBuf, length).parseRichInfo();
                 String str3 = LOG_TAG;
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("parsed contact info ");
-                sb3.append(parsedContactList);
-                Log.d(str3, sb3.toString());
+                Log.d(str3, "parsed contact info " + parsedContactList);
                 return parsedContactList;
             }
         }
@@ -490,7 +366,7 @@ public class PresenceMsgParser {
 
     static String parseNotifyUpdateXML(ByteBuffer respByteBuf) {
         byte unsigned = (byte) PrimitiveParser.toUnsigned(respByteBuf.get());
-        short len = (short) PrimitiveParser.toUnsigned(respByteBuf.getShort());
+        int len = (short) PrimitiveParser.toUnsigned(respByteBuf.getShort());
         byte[] data = new byte[len];
         for (int i = 0; i < len; i++) {
             data[i] = respByteBuf.get();

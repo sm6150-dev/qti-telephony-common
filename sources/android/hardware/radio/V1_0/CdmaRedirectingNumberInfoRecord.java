@@ -29,14 +29,7 @@ public final class CdmaRedirectingNumberInfoRecord {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".redirectingNumber = ");
-        builder.append(this.redirectingNumber);
-        builder.append(", .redirectingReason = ");
-        builder.append(CdmaRedirectingReason.toString(this.redirectingReason));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".redirectingNumber = " + this.redirectingNumber + ", .redirectingReason = " + CdmaRedirectingReason.toString(this.redirectingReason) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class CdmaRedirectingNumberInfoRecord {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaRedirectingNumberInfoRecord) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

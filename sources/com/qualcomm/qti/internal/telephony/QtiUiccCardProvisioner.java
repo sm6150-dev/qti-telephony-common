@@ -14,8 +14,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.telephony.CommandsInterface;
-import com.android.internal.telephony.uicc.IccCardApplicationStatus.AppType;
-import com.android.internal.telephony.uicc.IccCardStatus.CardState;
+import com.android.internal.telephony.uicc.IccCardApplicationStatus;
+import com.android.internal.telephony.uicc.IccCardStatus;
 import com.android.internal.telephony.uicc.IccFileHandler;
 import com.android.internal.telephony.uicc.IccUtils;
 import com.android.internal.telephony.uicc.UiccCard;
@@ -46,7 +46,7 @@ public class QtiUiccCardProvisioner extends Handler {
     private static UiccController mUiccController = null;
     private static QtiUiccCardProvisioner sInstance;
     private static Object sManualProvLock = new Object();
-    private CardState[] mCardState;
+    private IccCardStatus.CardState[] mCardState;
     private final CommandsInterface[] mCis;
     private Context mContext;
     private boolean[] mIsIccIdQueryPending;
@@ -69,7 +69,7 @@ public class QtiUiccCardProvisioner extends Handler {
         UiccProvisionStatus() {
         }
 
-        /* access modifiers changed from: 0000 */
+        /* access modifiers changed from: package-private */
         public boolean equals(UiccProvisionStatus provisionStatus) {
             if (provisionStatus.getUserPreference() == getUserPreference() && provisionStatus.getCurrentState() == getCurrentState()) {
                 return QtiUiccCardProvisioner.DBG;
@@ -77,33 +77,28 @@ public class QtiUiccCardProvisioner extends Handler {
             return QtiUiccCardProvisioner.VDBG;
         }
 
-        /* access modifiers changed from: 0000 */
+        /* access modifiers changed from: package-private */
         public int getUserPreference() {
             return this.userPreference;
         }
 
-        /* access modifiers changed from: 0000 */
+        /* access modifiers changed from: package-private */
         public void setUserPreference(int pref) {
             this.userPreference = pref;
         }
 
-        /* access modifiers changed from: 0000 */
+        /* access modifiers changed from: package-private */
         public int getCurrentState() {
             return this.currentState;
         }
 
-        /* access modifiers changed from: 0000 */
+        /* access modifiers changed from: package-private */
         public void setCurrentState(int state) {
             this.currentState = state;
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("User pref ");
-            sb.append(this.userPreference);
-            sb.append(" Current pref ");
-            sb.append(this.currentState);
-            return sb.toString();
+            return "User pref " + this.userPreference + " Current pref " + this.currentState;
         }
     }
 
@@ -118,7 +113,7 @@ public class QtiUiccCardProvisioner extends Handler {
 
     public static QtiUiccCardProvisioner make(Context context) {
         if (sInstance == null) {
-            sInstance = new QtiUiccCardProvisioner(context, null);
+            sInstance = new QtiUiccCardProvisioner(context, (CommandsInterface[]) null);
         } else {
             Log.wtf(LOG_TAG, "QtiUiccCardProvisioner.make() should be called once");
         }
@@ -145,32 +140,29 @@ public class QtiUiccCardProvisioner extends Handler {
     private QtiUiccCardProvisioner(Context context, CommandsInterface[] cis) {
         this.mContext = context;
         mNumPhones = ((TelephonyManager) this.mContext.getSystemService("phone")).getPhoneCount();
-        StringBuilder sb = new StringBuilder();
-        sb.append(" Invoking constructor, no of phones = ");
-        sb.append(mNumPhones);
-        logd(sb.toString());
+        logd(" Invoking constructor, no of phones = " + mNumPhones);
         this.mCis = cis;
         int i = mNumPhones;
         this.mProvisionStatus = new UiccProvisionStatus[i];
         this.mOldProvisionStatus = new UiccProvisionStatus[i];
         this.mSimIccId = new String[i];
         this.mSimFullIccId = new String[i];
-        this.mCardState = new CardState[i];
+        this.mCardState = new IccCardStatus.CardState[i];
         this.mIsIccIdQueryPending = new boolean[i];
         for (int index = 0; index < mNumPhones; index++) {
             this.mSimIccId[index] = null;
             this.mSimFullIccId[index] = null;
             this.mProvisionStatus[index] = new UiccProvisionStatus();
-            this.mCardState[index] = CardState.CARDSTATE_ABSENT;
+            this.mCardState[index] = IccCardStatus.CardState.CARDSTATE_ABSENT;
             this.mIsIccIdQueryPending[index] = VDBG;
             this.mOldProvisionStatus[index] = new UiccProvisionStatus();
             this.mCis[index].registerForAvailable(this, 5, Integer.valueOf(index));
         }
         mUiccController = UiccController.getInstance();
-        mUiccController.registerForIccChanged(this, 1, null);
+        mUiccController.registerForIccChanged(this, 1, (Object) null);
         this.mQtiRilInterface = QtiRilInterface.getInstance(context);
-        this.mQtiRilInterface.registerForServiceReadyEvent(this, 3, null);
-        this.mQtiRilInterface.registerForUnsol(this, 2, null);
+        this.mQtiRilInterface.registerForServiceReadyEvent(this, 3, (Object) null);
+        this.mQtiRilInterface.registerForUnsol(this, 2, (Object) null);
     }
 
     public void registerForManualProvisionChanged(Handler handler, int what, Object obj) {
@@ -222,12 +214,7 @@ public class QtiUiccCardProvisioner extends Handler {
                     fullIccId = IccUtils.bchToString(data, 0, data.length);
                     iccId = IccUtils.stripTrailingFs(fullIccId);
                 } else {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("Exception in GET iccId[");
-                    sb.append(phoneId);
-                    sb.append("] ");
-                    sb.append(ar3.exception);
-                    logd(sb.toString());
+                    logd("Exception in GET iccId[" + phoneId + "] " + ar3.exception);
                 }
             }
             if (phoneId >= 0 && phoneId < mNumPhones) {
@@ -246,34 +233,22 @@ public class QtiUiccCardProvisioner extends Handler {
                     }
                     UiccProvisionStatus[] uiccProvisionStatusArr = this.mOldProvisionStatus;
                     if (uiccProvisionStatusArr != null && !uiccProvisionStatusArr[phoneId].equals(this.mProvisionStatus[phoneId])) {
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append(" broadcasting ProvisionInfo, phoneId = ");
-                        sb2.append(phoneId);
-                        logd(sb2.toString());
+                        logd(" broadcasting ProvisionInfo, phoneId = " + phoneId);
                         broadcastManualProvisionStatusChanged(phoneId, getCurrentProvisioningStatus(phoneId));
                         this.mOldProvisionStatus[phoneId] = this.mProvisionStatus[phoneId];
                         return;
                     }
                     return;
                 }
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append(" EVENT_GET_ICCID_DONE, ICCID is empty, phoneId = ");
-                sb3.append(phoneId);
-                logi(sb3.toString());
+                logi(" EVENT_GET_ICCID_DONE, ICCID is empty, phoneId = " + phoneId);
             }
         } else if (i != 5) {
-            StringBuilder sb4 = new StringBuilder();
-            sb4.append("Error: hit default case ");
-            sb4.append(msg.what);
-            loge(sb4.toString());
+            loge("Error: hit default case " + msg.what);
         } else {
             AsyncResult ar4 = (AsyncResult) msg.obj;
             if (ar4 != null) {
                 int phoneId2 = ((Integer) ar4.userObj).intValue();
-                StringBuilder sb5 = new StringBuilder();
-                sb5.append("RADIO_AVAILABLE for phone: ");
-                sb5.append(phoneId2);
-                logd(sb5.toString());
+                logd("RADIO_AVAILABLE for phone: " + phoneId2);
                 if (isAllCardProvisionInfoReceived()) {
                     int[] subIds2 = QtiSubscriptionController.getInstance().getSubId(phoneId2);
                     if (!(subIds2 == null || subIds2.length == 0 || !QtiSubscriptionController.getInstance().isActiveSubId(subIds2[0])) || (this.mSimIccId[phoneId2] == null && getCurrentProvisioningStatus(phoneId2) == -2)) {
@@ -295,12 +270,7 @@ public class QtiUiccCardProvisioner extends Handler {
         int rspId = payload.getInt();
         int slotId = msg.arg1;
         if (isValidSlotId(slotId) && rspId == 525316) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(" Unsol: rspId ");
-            sb.append(rspId);
-            sb.append(" slotId ");
-            sb.append(msg.arg1);
-            logi(sb.toString());
+            logi(" Unsol: rspId " + rspId + " slotId " + msg.arg1);
             queryUiccProvisionInfo(slotId, VDBG);
             int dataSlotId = SubscriptionManager.getSlotIndex(SubscriptionManager.getDefaultDataSubscriptionId());
             if (slotId == dataSlotId && getCurrentProvisioningStatus(dataSlotId) == 1) {
@@ -312,13 +282,8 @@ public class QtiUiccCardProvisioner extends Handler {
 
     private void queryAllUiccProvisionInfo() {
         for (int index = 0; index < mNumPhones; index++) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(" query  provision info, card state[");
-            sb.append(index);
-            sb.append("] = ");
-            sb.append(this.mCardState[index]);
-            logd(sb.toString());
-            if (this.mCardState[index] == CardState.CARDSTATE_PRESENT && !this.mIsIccIdQueryPending[index]) {
+            logd(" query  provision info, card state[" + index + "] = " + this.mCardState[index]);
+            if (this.mCardState[index] == IccCardStatus.CardState.CARDSTATE_PRESENT && !this.mIsIccIdQueryPending[index]) {
                 queryUiccProvisionInfo(index, DBG);
             }
         }
@@ -334,10 +299,7 @@ public class QtiUiccCardProvisioner extends Handler {
 
     private void queryUiccProvisionInfo(int phoneId, boolean useSimIORequest) {
         if (!this.mQtiRilInterface.isServiceReady() || !isValidSlotId(phoneId)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Oem hook service is not ready yet ");
-            sb.append(phoneId);
-            logi(sb.toString());
+            logi("Oem hook service is not ready yet " + phoneId);
             return;
         }
         UiccProvisionStatus oldStatus = this.mProvisionStatus[phoneId];
@@ -357,10 +319,7 @@ public class QtiUiccCardProvisioner extends Handler {
                     QtiSubscriptionInfoUpdater.getInstance().addSubInfoRecord(phoneId, iccId);
                     this.mSimIccId[phoneId] = iccId;
                 } else {
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append(" queryUiccProvisionInfo: useSimIORequest=  ");
-                    sb2.append(useSimIORequest);
-                    logd(sb2.toString());
+                    logd(" queryUiccProvisionInfo: useSimIORequest=  " + useSimIORequest);
                     if (useSimIORequest) {
                         loadIccId(phoneId);
                     } else {
@@ -371,28 +330,15 @@ public class QtiUiccCardProvisioner extends Handler {
                             QtiSubscriptionInfoUpdater.getInstance().addSubInfoRecord(phoneId, iccId2);
                             this.mSimIccId[phoneId] = iccId2;
                         } else {
-                            StringBuilder sb3 = new StringBuilder();
-                            sb3.append(" queryUiccProvisionInfo, ICCID[");
-                            sb3.append(phoneId);
-                            sb3.append("] is null");
-                            logi(sb3.toString());
+                            logi(" queryUiccProvisionInfo, ICCID[" + phoneId + "] is null");
                         }
                     }
                 }
             } else {
-                StringBuilder sb4 = new StringBuilder();
-                sb4.append(" queryUiccProvisionInfo, uiccCard[");
-                sb4.append(phoneId);
-                sb4.append("] object is null");
-                logi(sb4.toString());
+                logi(" queryUiccProvisionInfo, uiccCard[" + phoneId + "] object is null");
             }
         }
-        StringBuilder sb5 = new StringBuilder();
-        sb5.append(" queryUiccProvisionInfo, provisionStatus[");
-        sb5.append(phoneId);
-        sb5.append("] = ");
-        sb5.append(this.mProvisionStatus[phoneId]);
-        logd(sb5.toString());
+        logd(" queryUiccProvisionInfo, provisionStatus[" + phoneId + "] = " + this.mProvisionStatus[phoneId]);
         if (!oldStatus.equals(this.mProvisionStatus[phoneId])) {
             if (this.mSimIccId[phoneId] != null && isAllCardProvisionInfoReceived()) {
                 int[] subIds = QtiSubscriptionController.getInstance().getSubId(phoneId);
@@ -402,10 +348,7 @@ public class QtiUiccCardProvisioner extends Handler {
                 }
             }
             if (!useSimIORequest || this.mSimIccId[phoneId] != null) {
-                StringBuilder sb6 = new StringBuilder();
-                sb6.append(" broadcasting ProvisionInfo, phoneId = ");
-                sb6.append(phoneId);
-                logd(sb6.toString());
+                logd(" broadcasting ProvisionInfo, phoneId = " + phoneId);
                 broadcastManualProvisionStatusChanged(phoneId, getCurrentProvisioningStatus(phoneId));
                 this.mOldProvisionStatus[phoneId] = this.mProvisionStatus[phoneId];
             }
@@ -413,55 +356,46 @@ public class QtiUiccCardProvisioner extends Handler {
     }
 
     private void loadIccId(int phoneId) {
+        IccFileHandler fileHandler;
         UiccCard uiccCard = mUiccController.getUiccCard(phoneId);
         if (uiccCard != null) {
             UiccCardApplication validApp = null;
             int numApps = uiccCard.getNumApplications();
             int i = 0;
             while (true) {
-                if (i >= numApps) {
+                if (i < numApps) {
+                    UiccCardApplication app = uiccCard.getApplicationIndex(i);
+                    if (app != null && app.getType() != IccCardApplicationStatus.AppType.APPTYPE_UNKNOWN) {
+                        validApp = app;
+                        break;
+                    }
+                    i++;
+                } else {
                     break;
                 }
-                UiccCardApplication app = uiccCard.getApplicationIndex(i);
-                if (app != null && app.getType() != AppType.APPTYPE_UNKNOWN) {
-                    validApp = app;
-                    break;
-                }
-                i++;
             }
-            if (validApp != null) {
-                IccFileHandler fileHandler = validApp.getIccFileHandler();
-                if (fileHandler != null) {
-                    this.mIsIccIdQueryPending[phoneId] = DBG;
-                    fileHandler.loadEFTransparent(12258, obtainMessage(4, Integer.valueOf(phoneId)));
-                }
+            if (validApp != null && (fileHandler = validApp.getIccFileHandler()) != null) {
+                this.mIsIccIdQueryPending[phoneId] = DBG;
+                fileHandler.loadEFTransparent(12258, obtainMessage(4, Integer.valueOf(phoneId)));
             }
         }
     }
 
     private void updateIccAvailability(int phoneId) {
         if (!isValidSlotId(phoneId)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Invalid phone Index!!! ");
-            sb.append(phoneId);
-            loge(sb.toString());
+            loge("Invalid phone Index!!! " + phoneId);
             return;
         }
-        CardState cardState = CardState.CARDSTATE_ABSENT;
+        IccCardStatus.CardState cardState = IccCardStatus.CardState.CARDSTATE_ABSENT;
         UiccSlot newSlot = mUiccController.getUiccSlotForPhone(phoneId);
         if (newSlot != null) {
-            CardState newState = newSlot.getCardState();
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("updateIccAvailability, card state[");
-            sb2.append(phoneId);
-            sb2.append("] = ");
-            sb2.append(newState);
-            logd(sb2.toString());
+            IccCardStatus.CardState newState = newSlot.getCardState();
+            logd("updateIccAvailability, card state[" + phoneId + "] = " + newState);
             this.mCardState[phoneId] = newState;
             int currentState = getCurrentProvisioningStatus(phoneId);
-            if (this.mCardState[phoneId] == CardState.CARDSTATE_PRESENT && ((this.mSimIccId[phoneId] == null || currentState == -1 || currentState == -2) && !this.mIsIccIdQueryPending[phoneId])) {
+            if (this.mCardState[phoneId] == IccCardStatus.CardState.CARDSTATE_PRESENT && ((this.mSimIccId[phoneId] == null || currentState == -1 || currentState == -2) && !this.mIsIccIdQueryPending[phoneId])) {
                 queryUiccProvisionInfo(phoneId, DBG);
-            } else if ((this.mCardState[phoneId] == CardState.CARDSTATE_ABSENT && !newSlot.isStateUnknown()) || this.mCardState[phoneId] == CardState.CARDSTATE_ERROR) {
+            } else if ((this.mCardState[phoneId] == IccCardStatus.CardState.CARDSTATE_ABSENT && !newSlot.isStateUnknown()) || this.mCardState[phoneId] == IccCardStatus.CardState.CARDSTATE_ERROR) {
                 synchronized (sManualProvLock) {
                     this.mProvisionStatus[phoneId].setUserPreference(-2);
                     this.mProvisionStatus[phoneId].setCurrentState(-2);
@@ -469,18 +403,15 @@ public class QtiUiccCardProvisioner extends Handler {
                     this.mOldProvisionStatus[phoneId].setCurrentState(-2);
                     this.mSimIccId[phoneId] = null;
                     this.mSimFullIccId[phoneId] = null;
-                    this.mManualProvisionChangedRegistrants.notifyRegistrants(new AsyncResult(null, Integer.valueOf(phoneId), null));
+                    this.mManualProvisionChangedRegistrants.notifyRegistrants(new AsyncResult((Object) null, Integer.valueOf(phoneId), (Throwable) null));
                 }
                 if (isAllCardProvisionInfoReceived()) {
                     QtiSubscriptionInfoUpdater.getInstance().updateUserPreferences();
                 }
             }
-            return;
+        } else {
+            logd("updateIccAvailability, uicc card null, ignore " + phoneId);
         }
-        StringBuilder sb3 = new StringBuilder();
-        sb3.append("updateIccAvailability, uicc card null, ignore ");
-        sb3.append(phoneId);
-        logd(sb3.toString());
     }
 
     private void broadcastManualProvisionStatusChanged(int phoneId, int newProvisionState) {
@@ -488,7 +419,7 @@ public class QtiUiccCardProvisioner extends Handler {
         intent.putExtra("phone", phoneId);
         intent.putExtra(EXTRA_NEW_PROVISION_STATE, newProvisionState);
         this.mContext.sendBroadcast(intent);
-        this.mManualProvisionChangedRegistrants.notifyRegistrants(new AsyncResult(null, Integer.valueOf(phoneId), null));
+        this.mManualProvisionChangedRegistrants.notifyRegistrants(new AsyncResult((Object) null, Integer.valueOf(phoneId), (Throwable) null));
     }
 
     private int getCurrentProvisioningStatus(int slotId) {
@@ -524,29 +455,21 @@ public class QtiUiccCardProvisioner extends Handler {
     }
 
     public int activateUiccCard(int slotId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(" activateUiccCard: phoneId = ");
-        sb.append(slotId);
-        logd(sb.toString());
+        logd(" activateUiccCard: phoneId = " + slotId);
         if (!this.mQtiRilInterface.isServiceReady()) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("Oem hook service is not ready yet ");
-            sb2.append(slotId);
-            logi(sb2.toString());
+            logi("Oem hook service is not ready yet " + slotId);
             return -1;
         }
         enforceModifyPhoneState("activateUiccCard");
         int activateStatus = 0;
         if (!canProcessRequest(slotId)) {
-            activateStatus = -2;
-        } else if (getCurrentProvisioningStatus(slotId) == 1) {
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append(" Uicc card in slot[");
-            sb3.append(slotId);
-            sb3.append("] already activated ");
-            logd(sb3.toString());
+            return -2;
+        }
+        if (getCurrentProvisioningStatus(slotId) == 1) {
+            logd(" Uicc card in slot[" + slotId + "] already activated ");
+            return 0;
         } else if (isFlexMapInProgress() || !mRequestInProgress.compareAndSet(VDBG, DBG)) {
-            activateStatus = -3;
+            return -3;
         } else {
             boolean retVal = this.mQtiRilInterface.setUiccProvisionPreference(1, slotId);
             if (!retVal) {
@@ -556,41 +479,28 @@ public class QtiUiccCardProvisioner extends Handler {
                     this.mProvisionStatus[slotId].setCurrentState(1);
                 }
             }
-            StringBuilder sb4 = new StringBuilder();
-            sb4.append(" activation result[");
-            sb4.append(slotId);
-            sb4.append("] = ");
-            sb4.append(retVal);
-            logi(sb4.toString());
+            logi(" activation result[" + slotId + "] = " + retVal);
             mRequestInProgress.set(VDBG);
+            return activateStatus;
         }
-        return activateStatus;
     }
 
     public int deactivateUiccCard(int slotId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(" deactivateUiccCard: phoneId = ");
-        sb.append(slotId);
-        logd(sb.toString());
+        logd(" deactivateUiccCard: phoneId = " + slotId);
         if (!this.mQtiRilInterface.isServiceReady()) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("Oem hook service is not ready yet ");
-            sb2.append(slotId);
-            logi(sb2.toString());
+            logi("Oem hook service is not ready yet " + slotId);
             return -1;
         }
         enforceModifyPhoneState("deactivateUiccCard");
         int deactivateState = 0;
         if (!canProcessRequest(slotId)) {
-            deactivateState = -2;
-        } else if (getCurrentProvisioningStatus(slotId) == 0) {
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append(" Uicc card in slot[");
-            sb3.append(slotId);
-            sb3.append("] already in deactive state ");
-            logd(sb3.toString());
+            return -2;
+        }
+        if (getCurrentProvisioningStatus(slotId) == 0) {
+            logd(" Uicc card in slot[" + slotId + "] already in deactive state ");
+            return 0;
         } else if (isFlexMapInProgress() || !mRequestInProgress.compareAndSet(VDBG, DBG)) {
-            deactivateState = -3;
+            return -3;
         } else {
             boolean retVal = this.mQtiRilInterface.setUiccProvisionPreference(0, slotId);
             if (!retVal) {
@@ -600,15 +510,10 @@ public class QtiUiccCardProvisioner extends Handler {
                     this.mProvisionStatus[slotId].setCurrentState(0);
                 }
             }
-            StringBuilder sb4 = new StringBuilder();
-            sb4.append(" deactivation result[");
-            sb4.append(slotId);
-            sb4.append("] = ");
-            sb4.append(retVal);
-            logi(sb4.toString());
+            logi(" deactivation result[" + slotId + "] = " + retVal);
             mRequestInProgress.set(VDBG);
+            return deactivateState;
         }
-        return deactivateState;
     }
 
     private void enforceModifyPhoneState(String message) {
@@ -619,12 +524,7 @@ public class QtiUiccCardProvisioner extends Handler {
         if (mNumPhones > 1 && isValidSlotId(slotId)) {
             return DBG;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Request can't be processed, slotId ");
-        sb.append(slotId);
-        sb.append(" numPhones ");
-        sb.append(mNumPhones);
-        loge(sb.toString());
+        loge("Request can't be processed, slotId " + slotId + " numPhones " + mNumPhones);
         return VDBG;
     }
 
@@ -641,10 +541,7 @@ public class QtiUiccCardProvisioner extends Handler {
             return VDBG;
         }
         boolean retVal = rcController.isSetNWModeInProgress();
-        StringBuilder sb = new StringBuilder();
-        sb.append("isFlexMapInProgress: = ");
-        sb.append(retVal);
-        logd(sb.toString());
+        logd("isFlexMapInProgress: = " + retVal);
         return retVal;
     }
 
@@ -656,12 +553,7 @@ public class QtiUiccCardProvisioner extends Handler {
         for (int index = 0; index < mNumPhones; index++) {
             int provPref = getCurrentProvisioningStatus(index);
             if (provPref == -1 || (this.mSimIccId[index] != null && provPref == -2)) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("isAllCardProvisionInfoReceived, prov pref[");
-                sb.append(index);
-                sb.append("] = ");
-                sb.append(provPref);
-                logd(sb.toString());
+                logd("isAllCardProvisionInfoReceived, prov pref[" + index + "] = " + provPref);
                 return VDBG;
             }
         }

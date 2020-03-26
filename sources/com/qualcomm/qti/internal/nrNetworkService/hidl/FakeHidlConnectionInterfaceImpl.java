@@ -38,6 +38,24 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
     private Handler mWorkerHandler;
     private HandlerThread mWorkerThread = new HandlerThread("FakeHidlConnectionInterfaceImplBgThread");
 
+    public FakeHidlConnectionInterfaceImpl() {
+        this.mWorkerThread.start();
+        Looper workerLooper = this.mWorkerThread.getLooper();
+        this.mWorkerHandler = new WorkerHandler(workerLooper);
+        Log.d(TAG, "constructor... using its own bg thread Looper = " + workerLooper);
+    }
+
+    public FakeHidlConnectionInterfaceImpl(Looper workerLooper) {
+        Log.d(TAG, "constructor... Looper = " + workerLooper);
+        this.mWorkerHandler = new WorkerHandler(workerLooper);
+    }
+
+    private Token getNextToken() {
+        int i = this.mSerial + 1;
+        this.mSerial = i;
+        return new Token(i);
+    }
+
     private class WorkerHandler extends Handler {
         private static final String TAG = "FakeHidleConnection-WorkerHandler";
 
@@ -52,22 +70,14 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
             DcParam dcParam;
             BearerAllocationStatus bearerAllocationStatus;
             UpperLayerIndInfo upperLayerIndInfo;
-            StringBuilder sb = new StringBuilder();
-            sb.append("handleMessage msg.what = ");
-            sb.append(msg.what);
-            String sb2 = sb.toString();
-            String str = TAG;
-            Log.d(str, sb2);
-            SignalStrength signalStrength = null;
+            Log.d(TAG, "handleMessage msg.what = " + msg.what);
+            SignalStrength ss = null;
             switch (msg.what) {
                 case 0:
                     int slotId = msg.arg1;
                     Token token = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("EVENT_SIMULATE_5G_ENABLED: token = ");
-                        sb3.append(token);
-                        Log.d(str, sb3.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_5G_ENABLED: token = " + token);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.on5gStatus(slotId, token, new Status(1), true);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onNrDcParam(slotId, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new DcParam(1, 1));
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onUpperLayerIndInfo(slotId, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new UpperLayerIndInfo(1, 1));
@@ -76,7 +86,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                         FakeHidlConnectionInterfaceImpl.this.mCallback.on5gConfigInfo(slotId, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new NrConfigType(0));
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onNrIconType(slotId, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new NrIconType(1));
                         FakeHidlConnectionInterfaceImpl.this.mCallback.on5gStatus(slotId, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), true);
-                        FakeHidlConnectionInterfaceImpl.this.m5gEnabledState = true;
+                        boolean unused = FakeHidlConnectionInterfaceImpl.this.m5gEnabledState = true;
                         return;
                     }
                     return;
@@ -84,18 +94,15 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId2 = msg.arg1;
                     Token token2 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("EVENT_SIMULATE_5G_DISABLED: token = ");
-                        sb4.append(token2);
-                        Log.d(str, sb4.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_5G_DISABLED: token = " + token2);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.on5gStatus(slotId2, token2, new Status(1), false);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onNrDcParam(slotId2, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new DcParam(0, 0));
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onUpperLayerIndInfo(slotId2, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new UpperLayerIndInfo(0, 0));
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onAnyNrBearerAllocation(slotId2, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new BearerAllocationStatus(0));
-                        FakeHidlConnectionInterfaceImpl.this.mCallback.onSignalStrength(slotId2, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), null);
+                        FakeHidlConnectionInterfaceImpl.this.mCallback.onSignalStrength(slotId2, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), (SignalStrength) null);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onNrIconType(slotId2, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), new NrIconType(0));
                         FakeHidlConnectionInterfaceImpl.this.mCallback.on5gStatus(slotId2, FakeHidlConnectionInterfaceImpl.this.UNSOL, new Status(1), false);
-                        FakeHidlConnectionInterfaceImpl.this.m5gEnabledState = false;
+                        boolean unused2 = FakeHidlConnectionInterfaceImpl.this.m5gEnabledState = false;
                         return;
                     }
                     return;
@@ -103,10 +110,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId3 = msg.arg1;
                     Token token3 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb5 = new StringBuilder();
-                        sb5.append("EVENT_SIMULATE_QUERY_5G_STATUS: token = ");
-                        sb5.append(token3);
-                        Log.d(str, sb5.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_5G_STATUS: token = " + token3);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.on5gStatus(slotId3, token3, new Status(1), FakeHidlConnectionInterfaceImpl.this.m5gEnabledState);
                         return;
                     }
@@ -115,10 +119,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId4 = msg.arg1;
                     Token token4 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb6 = new StringBuilder();
-                        sb6.append("EVENT_SIMULATE_QUERY_NRDC_PARAM: token = ");
-                        sb6.append(token4);
-                        Log.d(str, sb6.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_NRDC_PARAM: token = " + token4);
                         if (FakeHidlConnectionInterfaceImpl.this.m5gEnabledState) {
                             dcParam = new DcParam(1, 1);
                         } else {
@@ -132,10 +133,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId5 = msg.arg1;
                     Token token5 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb7 = new StringBuilder();
-                        sb7.append("EVENT_SIMULATE_QUERY_BEARER_ALLOCATION: token = ");
-                        sb7.append(token5);
-                        Log.d(str, sb7.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_BEARER_ALLOCATION: token = " + token5);
                         if (FakeHidlConnectionInterfaceImpl.this.m5gEnabledState) {
                             bearerAllocationStatus = new BearerAllocationStatus(2);
                         } else {
@@ -149,14 +147,11 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId6 = msg.arg1;
                     Token token6 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb8 = new StringBuilder();
-                        sb8.append("EVENT_SIMULATE_QUERY_SIGNAL_STRENGTH: token = ");
-                        sb8.append(token6);
-                        Log.d(str, sb8.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_SIGNAL_STRENGTH: token = " + token6);
                         if (FakeHidlConnectionInterfaceImpl.this.m5gEnabledState) {
-                            signalStrength = new SignalStrength();
+                            ss = new SignalStrength();
                         }
-                        FakeHidlConnectionInterfaceImpl.this.mCallback.onSignalStrength(slotId6, token6, new Status(1), signalStrength);
+                        FakeHidlConnectionInterfaceImpl.this.mCallback.onSignalStrength(slotId6, token6, new Status(1), ss);
                         return;
                     }
                     return;
@@ -164,10 +159,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId7 = msg.arg1;
                     Token token7 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb9 = new StringBuilder();
-                        sb9.append("EVENT_SIMULATE_QUERY_UPPER_LAYER_IND_INFO: token = ");
-                        sb9.append(token7);
-                        Log.d(str, sb9.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_UPPER_LAYER_IND_INFO: token = " + token7);
                         if (FakeHidlConnectionInterfaceImpl.this.m5gEnabledState) {
                             upperLayerIndInfo = new UpperLayerIndInfo(1, 1);
                         } else {
@@ -181,10 +173,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId8 = msg.arg1;
                     Token token8 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb10 = new StringBuilder();
-                        sb10.append("EVENT_SIMULATE_QUERY_CONFIG_TYPE: token = ");
-                        sb10.append(token8);
-                        Log.d(str, sb10.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_CONFIG_TYPE: token = " + token8);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.on5gConfigInfo(slotId8, token8, new Status(1), new NrConfigType(0));
                         return;
                     }
@@ -193,10 +182,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId9 = msg.arg1;
                     Token token9 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb11 = new StringBuilder();
-                        sb11.append("EVENT_SIMULATE_QUERY_ICON_TYPE: token = ");
-                        sb11.append(token9);
-                        Log.d(str, sb11.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_ICON_TYPE: token = " + token9);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onNrIconType(slotId9, token9, new Status(1), new NrIconType(1));
                         return;
                     }
@@ -205,10 +191,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId10 = msg.arg1;
                     Token token10 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb12 = new StringBuilder();
-                        sb12.append("EVENT_SIMULATE_ENABLE_ENDC: token = ");
-                        sb12.append(token10);
-                        Log.d(str, sb12.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_ENABLE_ENDC: token = " + token10);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onEnableEndc(slotId10, token10, new Status(1));
                         return;
                     }
@@ -217,10 +200,7 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
                     int slotId11 = msg.arg1;
                     Token token11 = (Token) msg.obj;
                     if (FakeHidlConnectionInterfaceImpl.this.mCallback != null) {
-                        StringBuilder sb13 = new StringBuilder();
-                        sb13.append("EVENT_SIMULATE_QUERY_ENDC_STATUS: token = ");
-                        sb13.append(token11);
-                        Log.d(str, sb13.toString());
+                        Log.d(TAG, "EVENT_SIMULATE_QUERY_ENDC_STATUS: token = " + token11);
                         FakeHidlConnectionInterfaceImpl.this.mCallback.onEndcStatus(slotId11, token11, new Status(1), true);
                         return;
                     }
@@ -231,55 +211,23 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
         }
     }
 
-    public FakeHidlConnectionInterfaceImpl() {
-        this.mWorkerThread.start();
-        Looper workerLooper = this.mWorkerThread.getLooper();
-        this.mWorkerHandler = new WorkerHandler(workerLooper);
-        StringBuilder sb = new StringBuilder();
-        sb.append("constructor... using its own bg thread Looper = ");
-        sb.append(workerLooper);
-        Log.d(TAG, sb.toString());
-    }
-
-    public FakeHidlConnectionInterfaceImpl(Looper workerLooper) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("constructor... Looper = ");
-        sb.append(workerLooper);
-        Log.d(TAG, sb.toString());
-        this.mWorkerHandler = new WorkerHandler(workerLooper);
-    }
-
-    private Token getNextToken() {
-        int i = this.mSerial + 1;
-        this.mSerial = i;
-        return new Token(i);
-    }
-
     public Token enable5g(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "enable5g: ");
+        Log.d(TAG, "enable5g: ");
         Token token = getNextToken();
         if (this.mCallback != null) {
             Handler handler = this.mWorkerHandler;
             handler.sendMessageDelayed(handler.obtainMessage(0, slotId, -1, token), 2000);
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("enable5g: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "enable5g: token = " + token);
         return token;
     }
 
     public Token disable5g(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "disable5g: ");
+        Log.d(TAG, "disable5g: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessageDelayed(handler.obtainMessage(1, slotId, -1, token), 2000);
-        StringBuilder sb = new StringBuilder();
-        sb.append("disable5g: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "disable5g: token = " + token);
         return token;
     }
 
@@ -288,135 +236,93 @@ public class FakeHidlConnectionInterfaceImpl implements IHidlConnectionInterface
     }
 
     public Token query5gStatus(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "query5gStatus: ");
+        Log.d(TAG, "query5gStatus: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(2, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("query5gStatus: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "query5gStatus: token = " + token);
         return token;
     }
 
     public Token query5gConfigInfo(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "query5gConfigInfo: ");
+        Log.d(TAG, "query5gConfigInfo: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(7, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("query5gConfigInfo: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "query5gConfigInfo: token = " + token);
         return token;
     }
 
     public Token queryNrDcParam(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "queryNrDcParam: ");
+        Log.d(TAG, "queryNrDcParam: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(3, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrDcParam: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "queryNrDcParam: token = " + token);
         return token;
     }
 
     public Token queryNrBearerAllocation(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "queryNrBearerAllocation: ");
+        Log.d(TAG, "queryNrBearerAllocation: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(4, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrBearerAllocation: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "queryNrBearerAllocation: token = " + token);
         return token;
     }
 
     public Token queryNrSignalStrength(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "queryNrSignalStrength: ");
+        Log.d(TAG, "queryNrSignalStrength: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(5, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrSignalStrength: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "queryNrSignalStrength: token = " + token);
         return token;
     }
 
     public Token queryUpperLayerIndInfo(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "queryUpperLayerIndInfo: ");
+        Log.d(TAG, "queryUpperLayerIndInfo: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(6, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryUpperLayerIndInfo: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "queryUpperLayerIndInfo: token = " + token);
         return token;
     }
 
     public Token queryNrIconType(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "queryNrIconType: ");
+        Log.d(TAG, "queryNrIconType: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(8, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryNrIconType: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "queryNrIconType: token = " + token);
         return token;
     }
 
     public Token enableEndc(int slotId, boolean enable) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "enableEndc: ");
+        Log.d(TAG, "enableEndc: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(9, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("enableEndc: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "enableEndc: token = " + token);
         return token;
     }
 
     public Token queryEndcStatus(int slotId) throws RemoteException {
-        String str = TAG;
-        Log.d(str, "queryEndcStatus: ");
+        Log.d(TAG, "queryEndcStatus: ");
         Token token = getNextToken();
         Handler handler = this.mWorkerHandler;
         handler.sendMessage(handler.obtainMessage(10, slotId, -1, token));
-        StringBuilder sb = new StringBuilder();
-        sb.append("queryEndcStatus: token = ");
-        sb.append(token);
-        Log.d(str, sb.toString());
+        Log.d(TAG, "queryEndcStatus: token = " + token);
         return token;
     }
 
     public void registerCallback(IHidlConnectionCallback callback) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("registerCallback: callback = ");
-        sb.append(callback);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "registerCallback: callback = " + callback);
         this.mCallback = callback;
     }
 
     public void unRegisterCallback(IHidlConnectionCallback callback) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("unRegisterCallback: callback = ");
-        sb.append(callback);
-        Log.d(TAG, sb.toString());
+        Log.d(TAG, "unRegisterCallback: callback = " + callback);
         if (this.mCallback == callback) {
             this.mCallback = null;
         }

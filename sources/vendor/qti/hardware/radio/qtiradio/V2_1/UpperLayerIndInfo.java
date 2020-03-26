@@ -29,14 +29,7 @@ public final class UpperLayerIndInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".plmnInfoList = ");
-        builder.append(PlmnInfoListStatus.toString(this.plmnInfoList));
-        builder.append(", .upplerLayerInd = ");
-        builder.append(UpperLayerIndStatus.toString(this.upplerLayerInd));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".plmnInfoList = " + PlmnInfoListStatus.toString(this.plmnInfoList) + ", .upplerLayerInd = " + UpperLayerIndStatus.toString(this.upplerLayerInd) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class UpperLayerIndInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 8);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((UpperLayerIndInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 8));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

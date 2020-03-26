@@ -341,10 +341,7 @@ public final class RadioError {
         if (o == 525) {
             return "OEM_ERROR_25";
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("0x");
-        sb.append(Integer.toHexString(o));
-        return sb.toString();
+        return "0x" + Integer.toHexString(o);
     }
 
     public static final String dumpBitfield(int o) {
@@ -684,10 +681,7 @@ public final class RadioError {
             flipped |= OEM_ERROR_25;
         }
         if (o != flipped) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("0x");
-            sb.append(Integer.toHexString((~flipped) & o));
-            list.add(sb.toString());
+            list.add("0x" + Integer.toHexString((~((int) flipped)) & o));
         }
         return String.join(" | ", list);
     }

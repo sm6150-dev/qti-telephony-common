@@ -32,20 +32,7 @@ public final class SuppSvcNotification {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".isMT = ");
-        builder.append(this.isMT);
-        builder.append(", .code = ");
-        builder.append(this.code);
-        builder.append(", .index = ");
-        builder.append(this.index);
-        builder.append(", .type = ");
-        builder.append(this.type);
-        builder.append(", .number = ");
-        builder.append(this.number);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".isMT = " + this.isMT + ", .code = " + this.code + ", .index = " + this.index + ", .type = " + this.type + ", .number = " + this.number + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -89,7 +76,7 @@ public final class SuppSvcNotification {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 32);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SuppSvcNotification) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 32));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

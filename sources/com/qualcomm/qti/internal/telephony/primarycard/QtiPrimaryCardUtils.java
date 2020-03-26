@@ -3,7 +3,7 @@ package com.qualcomm.qti.internal.telephony.primarycard;
 import android.content.Context;
 import android.hardware.radio.V1_0.RadioAccessFamily;
 import android.os.SystemProperties;
-import android.provider.Settings.Global;
+import android.provider.Settings;
 import android.telephony.Rlog;
 import com.qualcomm.qti.internal.telephony.QtiPhoneUtils;
 import com.qualcomm.qti.internal.telephony.QtiRilInterface;
@@ -63,7 +63,7 @@ public class QtiPrimaryCardUtils {
             this.mValue = value;
         }
 
-        /* access modifiers changed from: 0000 */
+        /* access modifiers changed from: package-private */
         public int value() {
             return this.mValue;
         }
@@ -98,10 +98,7 @@ public class QtiPrimaryCardUtils {
     protected static void setConfigValue() {
         int nwmodeConfig;
         QtiRilInterface qtiRilInterface = QtiRilInterface.getInstance(mContext);
-        StringBuilder sb = new StringBuilder();
-        sb.append("oemhook service status: ");
-        sb.append(qtiRilInterface.isServiceReady());
-        logd(sb.toString());
+        logd("oemhook service status: " + qtiRilInterface.isServiceReady());
         if (qtiRilInterface.isServiceReady()) {
             boolean isLpluslSupport = qtiRilInterface.getLpluslSupportStatus();
         }
@@ -127,12 +124,7 @@ public class QtiPrimaryCardUtils {
         } else {
             mConfigValue = 0;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("ConfigValue is:");
-        sb2.append(mConfigValue);
-        sb2.append(", in Binary:");
-        sb2.append(Integer.toString(mConfigValue, 2));
-        logd(sb2.toString());
+        logd("ConfigValue is:" + mConfigValue + ", in Binary:" + Integer.toString(mConfigValue, 2));
     }
 
     public static String getConfigXml() {
@@ -145,11 +137,10 @@ public class QtiPrimaryCardUtils {
             if (isBitSetInConfig(ConfigBits.PRIORITY_CONFIG_3)) {
                 return "priority_config_3";
             }
-            String str = "priority_config_2";
             if (!isBitSetInConfig(ConfigBits.PRIORITY_CONFIG_2) && isBitSetInConfig(ConfigBits.PRIORITY_CONFIG_1)) {
                 return "priority_config_1";
             }
-            return str;
+            return "priority_config_2";
         }
     }
 
@@ -162,10 +153,7 @@ public class QtiPrimaryCardUtils {
         } else if (isBitSetInConfig(ConfigBits.DEFAULT_NWMODE_GCWTL)) {
             defNwMode = 22;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getDefaultNwMode: ");
-        sb.append(defNwMode);
-        logv(sb.toString());
+        logv("getDefaultNwMode: " + defNwMode);
         return defNwMode;
     }
 
@@ -178,46 +166,31 @@ public class QtiPrimaryCardUtils {
         } else if (isBitSetInConfig(ConfigBits.COMPARE_IIN_CARDTYPE)) {
             comparator = 1;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getPriorityConfigComparator: ");
-        sb.append(comparator);
-        logv(sb.toString());
+        logv("getPriorityConfigComparator: " + comparator);
         return comparator;
     }
 
     public static int getDefaultPrimarySlot() {
         int defPrimarySlot = isBitSetInConfig(ConfigBits.DEFAULT_PRIMARY_SLOT_1);
-        StringBuilder sb = new StringBuilder();
-        sb.append("getDefaultPrimarySlot: ");
-        sb.append((int) defPrimarySlot);
-        logv(sb.toString());
+        logv("getDefaultPrimarySlot: " + ((int) defPrimarySlot));
         return defPrimarySlot;
     }
 
     public static boolean setPrimaryCardOnDeAct() {
         boolean setPcOnDeact = isBitSetInConfig(ConfigBits.SET_PRIMARY_ON_DEACT);
-        StringBuilder sb = new StringBuilder();
-        sb.append("setPrimaryCardOnDeAct: ");
-        sb.append(setPcOnDeact);
-        logv(sb.toString());
+        logv("setPrimaryCardOnDeAct: " + setPcOnDeact);
         return setPcOnDeact;
     }
 
     public static boolean read4gFlag() {
         boolean read4g = isBitSetInConfig(ConfigBits.READ_4G_FLAG);
-        StringBuilder sb = new StringBuilder();
-        sb.append("read4gFlag: ");
-        sb.append(read4g);
-        logv(sb.toString());
+        logv("read4gFlag: " + read4g);
         return read4g;
     }
 
     public static boolean disableDds() {
         boolean disableDds = isBitSetInConfig(ConfigBits.DISABLE_DDS);
-        StringBuilder sb = new StringBuilder();
-        sb.append("disableDds: ");
-        sb.append(disableDds);
-        logv(sb.toString());
+        logv("disableDds: " + disableDds);
         return disableDds;
     }
 
@@ -230,10 +203,7 @@ public class QtiPrimaryCardUtils {
         } else if (isBitSetInConfig(ConfigBits.DISABLE_USER_SELECTION)) {
             userSelMode = 1;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("getUserSelectionMode: ");
-        sb.append(userSelMode);
-        logv(sb.toString());
+        logv("getUserSelectionMode: " + userSelMode);
         return userSelMode;
     }
 
@@ -245,27 +215,27 @@ public class QtiPrimaryCardUtils {
     }
 
     public static int getCurrentPrimarySlotFromDB(Context context) {
-        return Global.getInt(context.getContentResolver(), CONFIG_CURRENT_PRIMARY_SUB, -1);
+        return Settings.Global.getInt(context.getContentResolver(), CONFIG_CURRENT_PRIMARY_SUB, -1);
     }
 
     public static void savePrimarySlotToDB(int primarySlot) {
         getInstance();
-        Global.putInt(mContext.getContentResolver(), CONFIG_CURRENT_PRIMARY_SUB, primarySlot);
+        Settings.Global.putInt(mContext.getContentResolver(), CONFIG_CURRENT_PRIMARY_SUB, primarySlot);
     }
 
     public static void saveEnableUserSelectioninDB(boolean enableUserSel) {
         getInstance();
-        Global.putInt(mContext.getContentResolver(), CONFIG_SUB_SELECT_MODE_MANUAL, enableUserSel);
+        Settings.Global.putInt(mContext.getContentResolver(), CONFIG_SUB_SELECT_MODE_MANUAL, enableUserSel);
     }
 
     public static void saveDisableDdsPreferenceInDB(boolean disableDds) {
         getInstance();
-        Global.putInt(mContext.getContentResolver(), CONFIG_DISABLE_DDS_PREFERENCE, disableDds);
+        Settings.Global.putInt(mContext.getContentResolver(), CONFIG_DISABLE_DDS_PREFERENCE, disableDds);
     }
 
     public static void savePrimarySetable(boolean isSetable) {
         getInstance();
-        Global.putInt(mContext.getContentResolver(), CONFIG_PRIMARY_SUB_IS_SETABLE, isSetable);
+        Settings.Global.putInt(mContext.getContentResolver(), CONFIG_PRIMARY_SUB_IS_SETABLE, isSetable);
     }
 
     public static boolean isPrimaryCardFeatureEnabled(Context context) {

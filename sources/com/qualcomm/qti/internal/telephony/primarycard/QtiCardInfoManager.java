@@ -16,7 +16,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import com.android.internal.telephony.CommandsInterface;
 import com.android.internal.telephony.SubscriptionController;
-import com.android.internal.telephony.uicc.IccCardApplicationStatus.AppType;
+import com.android.internal.telephony.uicc.IccCardApplicationStatus;
 import com.android.internal.telephony.uicc.IccFileHandler;
 import com.android.internal.telephony.uicc.IccUtils;
 import com.android.internal.telephony.uicc.UiccCard;
@@ -52,23 +52,25 @@ public class QtiCardInfoManager extends Handler {
                 int slotId = intent.getIntExtra("slot", 0);
                 String stateExtra = intent.getStringExtra("ss");
                 QtiCardInfoManager qtiCardInfoManager = QtiCardInfoManager.this;
-                StringBuilder sb = new StringBuilder();
-                sb.append(" SIM_STATE_CHANGED intent received state is ");
-                sb.append(stateExtra);
-                sb.append(" slotId + ");
-                sb.append(slotId);
-                qtiCardInfoManager.logd(sb.toString());
+                qtiCardInfoManager.logd(" SIM_STATE_CHANGED intent received state is " + stateExtra + " slotId + " + slotId);
                 if (SubscriptionManager.isValidSlotIndex(slotId)) {
                     if (!"LOADED".equals(stateExtra)) {
-                        QtiCardInfoManager.this.mCardInfos[slotId].mMCCMNCLoaded = QtiCardInfoManager.VDBG;
+                        boolean unused = QtiCardInfoManager.this.mCardInfos[slotId].mMCCMNCLoaded = QtiCardInfoManager.VDBG;
                     } else if (!QtiCardInfoManager.this.mCardInfos[slotId].mMCCMNCLoaded) {
-                        QtiCardInfoManager.this.mCardInfos[slotId].mMCCMNCLoaded = QtiCardInfoManager.DBG;
+                        boolean unused2 = QtiCardInfoManager.this.mCardInfos[slotId].mMCCMNCLoaded = QtiCardInfoManager.DBG;
                         QtiCardInfoManager.this.updateCardInfo(slotId);
                     }
                 }
             }
         }
     };
+
+    public enum CardType {
+        UNKNOWN,
+        CARDTYPE_2G,
+        CARDTYPE_3G,
+        CARDTYPE_4G
+    }
 
     public static class CardInfo {
         /* access modifiers changed from: private */
@@ -141,13 +143,6 @@ public class QtiCardInfoManager extends Handler {
         }
     }
 
-    public enum CardType {
-        UNKNOWN,
-        CARDTYPE_2G,
-        CARDTYPE_3G,
-        CARDTYPE_4G
-    }
-
     static QtiCardInfoManager init(Context context, CommandsInterface[] ci) {
         synchronized (QtiCardInfoManager.class) {
             if (sInstance == null) {
@@ -178,9 +173,9 @@ public class QtiCardInfoManager extends Handler {
             ci[index].registerForAvailable(this, 1, new Integer(index));
         }
         this.mQtiCardProvisioner = QtiUiccCardProvisioner.getInstance();
-        this.mQtiCardProvisioner.registerForManualProvisionChanged(this, 1, null);
-        UiccController.getInstance().registerForIccChanged(this, 3, null);
-        QtiSubscriptionController.getInstance().registerForAddSubscriptionRecord(this, 4, null);
+        this.mQtiCardProvisioner.registerForManualProvisionChanged(this, 1, (Object) null);
+        UiccController.getInstance().registerForIccChanged(this, 3, (Object) null);
+        QtiSubscriptionController.getInstance().registerForAddSubscriptionRecord(this, 4, (Object) null);
         if (SubsidyLockSettingsObserver.isSubsidyLockFeatureEnabled()) {
             IntentFilter filter = new IntentFilter();
             filter.addAction("android.intent.action.SIM_STATE_CHANGED");
@@ -252,94 +247,52 @@ public class QtiCardInfoManager extends Handler {
 
     /* access modifiers changed from: private */
     public void updateCardInfo(int slotId) {
+        SubscriptionInfo sir;
         int currProvState = this.mQtiCardProvisioner.getCurrentUiccCardProvisioningStatus(slotId);
         String currIccId = this.mQtiCardProvisioner.getUiccIccId(slotId);
         String currMccMnc = null;
-        StringBuilder sb = new StringBuilder();
-        String str = "updateCardInfo[";
-        sb.append(str);
-        sb.append(slotId);
-        sb.append("]: Start!");
-        logd(sb.toString());
+        logd("updateCardInfo[" + slotId + "]: Start!");
         if (!QtiSubscriptionController.getInstance().isRadioInValidState()) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append(str);
-            sb2.append(slotId);
-            sb2.append("]: Radio is in Invalid State, IGNORE!!!");
-            loge(sb2.toString());
+            loge("updateCardInfo[" + slotId + "]: Radio is in Invalid State, IGNORE!!!");
             return;
         }
         if (1 == currProvState) {
             UiccCard uiccCard = UiccController.getInstance().getUiccCard(slotId);
             if (uiccCard == null || uiccCard.getApplication(1) == null) {
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append(str);
-                sb3.append(slotId);
-                sb3.append("]: card not READY!! ");
-                loge(sb3.toString());
+                loge("updateCardInfo[" + slotId + "]: card not READY!! ");
                 return;
             }
             SubscriptionManager subscriptionManager = (SubscriptionManager) mContext.getSystemService("telephony_subscription_service");
             if (!subscriptionManager.isActiveSubscriptionId(SubscriptionController.getInstance().getSubIdUsingPhoneId(slotId))) {
-                StringBuilder sb4 = new StringBuilder();
-                sb4.append(str);
-                sb4.append(slotId);
-                sb4.append("]: subId not added yet!! ");
-                loge(sb4.toString());
+                loge("updateCardInfo[" + slotId + "]: subId not added yet!! ");
                 return;
-            } else if (SubsidyLockSettingsObserver.isSubsidyLockFeatureEnabled()) {
-                SubscriptionInfo sir = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slotId);
-                if (sir != null) {
-                    StringBuilder sb5 = new StringBuilder();
-                    sb5.append("");
-                    sb5.append(sir.getMcc());
-                    sb5.append(sir.getMnc());
-                    currMccMnc = sb5.toString();
-                }
+            } else if (SubsidyLockSettingsObserver.isSubsidyLockFeatureEnabled() && (sir = subscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(slotId)) != null) {
+                currMccMnc = "" + sir.getMcc() + sir.getMnc();
             }
         }
         if (currProvState == -1) {
             this.mCardInfos[slotId].reset();
-            StringBuilder sb6 = new StringBuilder();
-            sb6.append(str);
-            sb6.append(slotId);
-            sb6.append("]: ProvStatus is Invalid, reset cardInfo!");
-            logd(sb6.toString());
+            logd("updateCardInfo[" + slotId + "]: ProvStatus is Invalid, reset cardInfo!");
         } else if (isUpdateCardInfoRequired(slotId, currIccId, currProvState, currMccMnc)) {
             if (currProvState == -2) {
                 this.mCardInfos[slotId].reset();
-                this.mCardInfos[slotId].mProvisionState = currProvState;
-                this.mCardInfos[slotId].mUpdateCardTypeState = 3;
-                StringBuilder sb7 = new StringBuilder();
-                sb7.append(str);
-                sb7.append(slotId);
-                sb7.append("]: CardAbsent!!!");
-                logd(sb7.toString());
+                int unused = this.mCardInfos[slotId].mProvisionState = currProvState;
+                int unused2 = this.mCardInfos[slotId].mUpdateCardTypeState = 3;
+                logd("updateCardInfo[" + slotId + "]: CardAbsent!!!");
                 notifyAllCardsInfoAvailableIfNeeded();
             } else {
                 this.mCardInfos[slotId].reset();
-                StringBuilder sb8 = new StringBuilder();
-                sb8.append(str);
-                sb8.append(slotId);
-                sb8.append("]: Query current state is required!");
-                logd(sb8.toString());
-                this.mCardInfos[slotId].mIccId = currIccId;
-                this.mCardInfos[slotId].mMccMnc = currMccMnc;
-                this.mCardInfos[slotId].mProvisionState = currProvState;
+                logd("updateCardInfo[" + slotId + "]: Query current state is required!");
+                String unused3 = this.mCardInfos[slotId].mIccId = currIccId;
+                String unused4 = this.mCardInfos[slotId].mMccMnc = currMccMnc;
+                int unused5 = this.mCardInfos[slotId].mProvisionState = currProvState;
                 if (updateUiccCardType(slotId)) {
-                    this.mCardInfos[slotId].mUpdateCardTypeState = 2;
+                    int unused6 = this.mCardInfos[slotId].mUpdateCardTypeState = 2;
                     notifyAllCardsInfoAvailableIfNeeded();
                 }
             }
         }
-        StringBuilder sb9 = new StringBuilder();
-        sb9.append(str);
-        sb9.append(slotId);
-        sb9.append("]: Exit! - UpdateCardTypeState: ");
-        sb9.append(this.mCardInfos[slotId].mUpdateCardTypeState);
-        sb9.append(", mCardType: ");
-        sb9.append(this.mCardInfos[slotId].mCardType);
-        logi(sb9.toString());
+        logi("updateCardInfo[" + slotId + "]: Exit! - UpdateCardTypeState: " + this.mCardInfos[slotId].mUpdateCardTypeState + ", mCardType: " + this.mCardInfos[slotId].mCardType);
     }
 
     private boolean isSubsidyRestricted() {
@@ -347,36 +300,37 @@ public class QtiCardInfoManager extends Handler {
     }
 
     private boolean isUpdateCardInfoRequired(int slotId, String currIccId, int currProvState, String currMccmnc) {
-        if (!TextUtils.equals(currIccId, this.mCardInfos[slotId].mIccId) || ((isSubsidyRestricted() && currMccmnc != null && !TextUtils.equals(currMccmnc, this.mCardInfos[slotId].mMccMnc)) || currProvState != this.mCardInfos[slotId].mProvisionState || this.mCardInfos[slotId].mUpdateCardTypeState == 0 || (this.mCardInfos[slotId].mCardType == CardType.UNKNOWN && this.mCardInfos[slotId].mUpdateCardTypeState != 3))) {
+        if (!TextUtils.equals(currIccId, this.mCardInfos[slotId].mIccId)) {
             return DBG;
         }
-        return VDBG;
+        if ((isSubsidyRestricted() && currMccmnc != null && !TextUtils.equals(currMccmnc, this.mCardInfos[slotId].mMccMnc)) || currProvState != this.mCardInfos[slotId].mProvisionState || this.mCardInfos[slotId].mUpdateCardTypeState == 0) {
+            return DBG;
+        }
+        if (this.mCardInfos[slotId].mCardType != CardType.UNKNOWN || this.mCardInfos[slotId].mUpdateCardTypeState == 3) {
+            return VDBG;
+        }
+        return DBG;
     }
 
     private boolean updateUiccCardType(int slotId) {
         try {
             UiccCardApplication app = UiccController.getInstance().getUiccCard(slotId).getApplication(1);
-            if (app.getType() != AppType.APPTYPE_USIM) {
-                this.mCardInfos[slotId].mCardType = CardType.CARDTYPE_2G;
+            if (app.getType() != IccCardApplicationStatus.AppType.APPTYPE_USIM) {
+                CardType unused = this.mCardInfos[slotId].mCardType = CardType.CARDTYPE_2G;
             } else {
                 boolean read4gEf = QtiPrimaryCardUtils.read4gFlag();
-                this.mCardInfos[slotId].mCardType = CardType.CARDTYPE_3G;
+                CardType unused2 = this.mCardInfos[slotId].mCardType = CardType.CARDTYPE_3G;
                 if (read4gEf) {
                     IccFileHandler iccFh = app.getIccFileHandler();
                     if (this.mCardInfos[slotId].mProvisionState == 1) {
-                        this.mCardInfos[slotId].mUpdateCardTypeState = 1;
+                        int unused3 = this.mCardInfos[slotId].mUpdateCardTypeState = 1;
                         iccFh.loadEFTransparent(28514, obtainMessage(2, Integer.valueOf(slotId)));
                         return VDBG;
                     }
                 }
             }
         } catch (Exception e) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("For slot ");
-            sb.append(slotId);
-            sb.append(" Exception while updateUiccCardType ");
-            sb.append(e.getMessage());
-            loge(sb.toString());
+            loge("For slot " + slotId + " Exception while updateUiccCardType " + e.getMessage());
         }
         return DBG;
     }
@@ -385,50 +339,33 @@ public class QtiCardInfoManager extends Handler {
         int slotId = ((Integer) ar.userObj).intValue();
         logd("onEfLoaded: Started");
         if (ar.exception != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("EF_HPLMNWACT read with exception = ");
-            sb.append(ar.exception);
-            logd(sb.toString());
+            logd("EF_HPLMNWACT read with exception = " + ar.exception);
         } else {
             byte[] data = (byte[]) ar.result;
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("result=");
-            sb2.append(IccUtils.bytesToHexString(data));
-            logd(sb2.toString());
+            logd("result=" + IccUtils.bytesToHexString(data));
             int numRec = data.length / 5;
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append("number of Records=");
-            sb3.append(numRec);
-            logd(sb3.toString());
+            logd("number of Records=" + numRec);
             int i = 0;
             while (true) {
                 if (i >= numRec) {
                     break;
                 } else if ((data[(i * 5) + 3] & 64) != 0) {
-                    this.mCardInfos[slotId].mCardType = CardType.CARDTYPE_4G;
+                    CardType unused = this.mCardInfos[slotId].mCardType = CardType.CARDTYPE_4G;
                     break;
                 } else {
                     i++;
                 }
             }
         }
-        this.mCardInfos[slotId].mUpdateCardTypeState = 2;
+        int unused2 = this.mCardInfos[slotId].mUpdateCardTypeState = 2;
         notifyAllCardsInfoAvailableIfNeeded();
-        StringBuilder sb4 = new StringBuilder();
-        sb4.append("onEfLoaded(");
-        sb4.append(slotId);
-        sb4.append(") : mCardType = ");
-        sb4.append(this.mCardInfos[slotId].mCardType);
-        logd(sb4.toString());
+        logd("onEfLoaded(" + slotId + ") : mCardType = " + this.mCardInfos[slotId].mCardType);
     }
 
     private void notifyAllCardsInfoAvailableIfNeeded() {
         for (int index = 0; index < PHONE_COUNT; index++) {
             if (!this.mCardInfos[index].isCardInfoAvailable(index)) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(" card info not available ");
-                sb.append(index);
-                logd(sb.toString());
+                logd(" card info not available " + index);
                 return;
             }
         }

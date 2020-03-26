@@ -32,13 +32,11 @@ public class QtiDepersoSupplier {
     }
 
     public void supplyIccDepersonalization(String netpin, String type, IDepersoResCallback callback, int phoneId) {
-        boolean isServiceReady = this.mQtiRilInterface.isServiceReady();
-        String str = LOG_TAG;
-        if (!isServiceReady) {
-            Log.d(str, "Oem hook service is not ready yet ");
+        if (!this.mQtiRilInterface.isServiceReady()) {
+            Log.d(LOG_TAG, "Oem hook service is not ready yet ");
             return;
         }
-        Log.d(str, "supplyIccDepersonalization");
+        Log.d(LOG_TAG, "supplyIccDepersonalization");
         this.mQtiRilInterface.supplyIccDepersonalization(netpin, type, callback, phoneId);
     }
 }

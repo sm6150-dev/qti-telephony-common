@@ -31,18 +31,7 @@ public final class SelectUiccSub {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".slot = ");
-        builder.append(this.slot);
-        builder.append(", .appIndex = ");
-        builder.append(this.appIndex);
-        builder.append(", .subType = ");
-        builder.append(SubscriptionType.toString(this.subType));
-        builder.append(", .actStatus = ");
-        builder.append(UiccSubActStatus.toString(this.actStatus));
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".slot = " + this.slot + ", .appIndex = " + this.appIndex + ", .subType = " + SubscriptionType.toString(this.subType) + ", .actStatus = " + UiccSubActStatus.toString(this.actStatus) + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -83,7 +72,7 @@ public final class SelectUiccSub {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 16);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SelectUiccSub) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

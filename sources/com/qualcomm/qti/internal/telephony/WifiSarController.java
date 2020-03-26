@@ -4,8 +4,9 @@ import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
+import com.qualcomm.qti.internal.telephony.DynamicSarService;
 
-public class WifiSarController implements SarControllerClient {
+public class WifiSarController implements DynamicSarService.SarControllerClient {
     private static int mAudioReceiverState;
     private static int mHotspotState;
     private static int mMccState = 3;
@@ -24,10 +25,9 @@ public class WifiSarController implements SarControllerClient {
     private final int DSI7 = 7;
     private final int DSI8 = 8;
     private final int DSI_SAR_DISABLE = 100;
-    private final String PATERN1_DEVCIE_LIST;
-    private final String PATERN2_DEVCIE_LIST;
-    private final String PATERN3_DEVCIE_LIST;
-    private final String TAG;
+    private final String PATERN1_DEVCIE_LIST = "grus";
+    private final String PATERN2_DEVCIE_LIST = "andromeda";
+    private final String TAG = "WifiSarController";
     private Context mContext;
     private DynamicSarService mService = null;
     private WifiManager mWifiManager;
@@ -37,29 +37,16 @@ public class WifiSarController implements SarControllerClient {
     }
 
     public WifiSarController(Context context) {
-        String str = "WifiSarController";
-        this.TAG = str;
-        String str2 = "grus";
-        this.PATERN1_DEVCIE_LIST = str2;
-        String str3 = "andromeda";
-        this.PATERN2_DEVCIE_LIST = str3;
-        String str4 = "raphael,davinci,davinciin,phoenixin";
-        this.PATERN3_DEVCIE_LIST = str4;
-        Log.d(str, "WifiSarController init...");
+        Log.d("WifiSarController", "WifiSarController init...");
         String device = Build.DEVICE.toLowerCase();
-        if (str2.indexOf(device) != -1) {
+        if ("grus".indexOf(device) != -1) {
             mPaternIndex = 1;
-        } else if (str3.indexOf(device) != -1) {
+        } else if ("andromeda".indexOf(device) != -1) {
             mPaternIndex = 2;
-        } else if (str4.indexOf(device) != -1) {
+        } else {
             mPaternIndex = 3;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("device: ");
-        sb.append(device);
-        sb.append(", SAR patern: ");
-        sb.append(mPaternIndex);
-        Log.d(str, sb.toString());
+        Log.d("WifiSarController", "device: " + device + ", SAR patern: " + mPaternIndex);
         this.mContext = context;
         this.mWifiManager = (WifiManager) this.mContext.getSystemService("wifi");
         if (mPaternIndex != 0) {
@@ -86,16 +73,11 @@ public class WifiSarController implements SarControllerClient {
                 this.mService.registerStateChangeListener(8, this);
             }
         }
-        Log.d(str, "WifiSarController init done");
+        Log.d("WifiSarController", "WifiSarController init done");
     }
 
     public void onStateChanged(int type, int value) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("onStateChanged: type = ");
-        sb.append(type);
-        sb.append(", value = ");
-        sb.append(value);
-        Log.d("WifiSarController", sb.toString());
+        Log.d("WifiSarController", "onStateChanged: type = " + type + ", value = " + value);
         if (type == 0) {
             mWifiState = value;
         } else if (type == 1) {
@@ -123,41 +105,43 @@ public class WifiSarController implements SarControllerClient {
             sarSet = calculateSarSetPatern3();
         }
         if (mSarSet != sarSet) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("setSARLimit: ");
-            sb.append(sarSet);
-            Log.d("WifiSarController", sb.toString());
+            Log.d("WifiSarController", "setSARLimit: " + sarSet);
             WifiManagerCompatible.setSARLimit(this.mContext, sarSet);
             mSarSet = sarSet;
         }
     }
 
     private int calculateSarSetPatern1() {
-        int sarSet = 100;
         if (mWifiState == 0 && mHotspotState == 0) {
             return 100;
         }
         if (mAudioReceiverState == 1) {
-            sarSet = mModemState == 1 ? 1 : 0;
+            if (mModemState == 1) {
+                return 1;
+            }
+            return 0;
         } else if (mHotspotState == 1) {
             if (mSarSensorState != 0) {
-                sarSet = 4;
+                return 4;
             }
+            return 100;
         } else if (mModemState == 1) {
             int i = mSarSensorState;
             if (i == 2) {
-                sarSet = 3;
-            } else if (i == 1) {
-                sarSet = 2;
+                return 3;
             }
+            if (i == 1) {
+                return 2;
+            }
+            return 100;
         } else if (mSarSensorState != 0) {
-            sarSet = 0;
+            return 0;
+        } else {
+            return 100;
         }
-        return sarSet;
     }
 
     private int calculateSarSetPatern2() {
-        int sarSet = 100;
         if (mWifiState == 0 && mHotspotState == 0) {
             return 100;
         }
@@ -169,36 +153,35 @@ public class WifiSarController implements SarControllerClient {
             }
         }
         if (mAudioReceiverState == 1) {
-            sarSet = 0;
+            return 0;
         }
-        return sarSet;
+        return 100;
     }
 
     private int calculateSarSetPatern3() {
-        int sarSet = 100;
         if (mWifiState == 0 && mHotspotState == 0) {
             return 100;
         }
         int i = mHotspotState;
-        int i2 = 1;
+        int sarSet = 1;
         if (i == 1) {
-            sarSet = 8;
-        } else if (mAudioReceiverState == 1) {
+            return 8;
+        }
+        if (mAudioReceiverState == 1) {
             if (mMccState == 1) {
                 if (mModemState != 1) {
-                    i2 = 0;
+                    sarSet = 0;
                 }
-                sarSet = i2;
-            } else {
-                sarSet = mModemState == 1 ? 3 : 2;
+                return sarSet;
             }
-        } else if (i == 0) {
+            return mModemState == 1 ? 3 : 2;
+        } else if (i != 0) {
+            return 100;
+        } else {
             if (mMccState == 1) {
-                sarSet = mModemState == 1 ? 5 : 4;
-            } else {
-                sarSet = mModemState == 1 ? 7 : 6;
+                return mModemState == 1 ? 5 : 4;
             }
+            return mModemState == 1 ? 7 : 6;
         }
-        return sarSet;
     }
 }

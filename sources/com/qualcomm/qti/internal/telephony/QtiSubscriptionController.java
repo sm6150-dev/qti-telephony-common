@@ -8,8 +8,7 @@ import android.os.Registrant;
 import android.os.RegistrantList;
 import android.os.RemoteException;
 import android.os.SystemProperties;
-import android.provider.Settings.Global;
-import android.provider.Settings.SettingNotFoundException;
+import android.provider.Settings;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 import android.telephony.Rlog;
@@ -71,7 +70,7 @@ public class QtiSubscriptionController extends SubscriptionController {
                 r0.logd(r1)
                 com.qualcomm.qti.internal.telephony.QtiSubscriptionController r0 = com.qualcomm.qti.internal.telephony.QtiSubscriptionController.this
                 int r1 = com.qualcomm.qti.internal.telephony.QtiSubscriptionController.mDefaultFallbackSubId
-                r0.mCurrentDdsSubId = r1
+                int unused = r0.mCurrentDdsSubId = r1
             L_0x0036:
                 com.qualcomm.qti.internal.telephony.QtiSubscriptionController r0 = com.qualcomm.qti.internal.telephony.QtiSubscriptionController.this
                 java.lang.StringBuilder r1 = new java.lang.StringBuilder
@@ -106,11 +105,7 @@ public class QtiSubscriptionController extends SubscriptionController {
                 sInstance = new QtiSubscriptionController(c);
                 sCi = ci;
             } else {
-                String str = LOG_TAG;
-                StringBuilder sb = new StringBuilder();
-                sb.append("init() called multiple times!  sInstance = ");
-                sb.append(sInstance);
-                Log.wtf(str, sb.toString());
+                Log.wtf(LOG_TAG, "init() called multiple times!  sInstance = " + sInstance);
             }
             qtiSubscriptionController = sInstance;
         }
@@ -149,25 +144,16 @@ public class QtiSubscriptionController extends SubscriptionController {
     }
 
     public int addSubInfoRecord(String iccId, int slotIndex) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("addSubInfoRecord: broadcast intent subId[");
-        sb.append(slotIndex);
-        sb.append("]");
-        logd(sb.toString());
-        return addSubInfo(iccId, null, slotIndex, 0);
+        logd("addSubInfoRecord: broadcast intent subId[" + slotIndex + "]");
+        return addSubInfo(iccId, (String) null, slotIndex, 0);
     }
 
     public int addSubInfo(String uniqueId, String displayName, int slotIndex, int subscriptionType) {
         int retVal = QtiSubscriptionController.super.addSubInfo(uniqueId, displayName, slotIndex, subscriptionType);
         int[] subId = getSubId(slotIndex);
         if (subId != null && subId.length > 0) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("addSubInfoRecord: broadcast intent subId[");
-            sb.append(slotIndex);
-            sb.append("] = ");
-            sb.append(subId[0]);
-            logd(sb.toString());
-            this.mAddSubscriptionRecordRegistrants.notifyRegistrants(new AsyncResult(null, Integer.valueOf(slotIndex), null));
+            logd("addSubInfoRecord: broadcast intent subId[" + slotIndex + "] = " + subId[0]);
+            this.mAddSubscriptionRecordRegistrants.notifyRegistrants(new AsyncResult((Object) null, Integer.valueOf(slotIndex), (Throwable) null));
             Intent intent = new Intent(ACTION_SUBSCRIPTION_RECORD_ADDED);
             SubscriptionManager.putPhoneIdAndSubIdExtra(intent, slotIndex, subId[0]);
             this.mContext.sendBroadcast(intent);
@@ -178,76 +164,47 @@ public class QtiSubscriptionController extends SubscriptionController {
     public void setDefaultDataSubId(int subId) {
         enforceModifyPhoneState("setDefaultDataSubId");
         String flexMapSupportType = SystemProperties.get("persist.vendor.radio.flexmap_type", "nw_mode");
-        if (!QtiPhoneSwitcher.isLplusLSupported || !QtiCallStateNotifier.getInstance().isCallInProgress()) {
-            if (!SubscriptionManager.isValidSubscriptionId(subId) || !flexMapSupportType.equals("dds")) {
-                updateAllDataConnectionTrackers();
-                Global.putInt(this.mContext.getContentResolver(), "multi_sim_data_call", subId);
-                broadcastDefaultDataSubIdChanged(subId);
-            } else {
-                QtiRadioCapabilityController radioCapController = QtiRadioCapabilityController.getInstance();
-                if (radioCapController.isBothPhonesMappedToSameStack()) {
-                    radioCapController.initNormalMappingRequest();
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(" setDefaultDataSubId init normal mapping: ");
-                    sb.append(subId);
-                    logd(sb.toString());
-                }
-                QtiSubscriptionController.super.setDefaultDataSubId(subId);
+        if (QtiPhoneSwitcher.isLplusLSupported && QtiCallStateNotifier.getInstance().isCallInProgress()) {
+            logd("Active call, cannot set Dds to : " + subId);
+            this.mCurrentDdsSubId = subId;
+            QtiCallStateNotifier.getInstance().registerForCallEnd(this.mSubscriptionHandler, 101, (Object) null);
+        } else if (!SubscriptionManager.isValidSubscriptionId(subId) || !flexMapSupportType.equals("dds")) {
+            updateAllDataConnectionTrackers();
+            Settings.Global.putInt(this.mContext.getContentResolver(), "multi_sim_data_call", subId);
+            broadcastDefaultDataSubIdChanged(subId);
+        } else {
+            QtiRadioCapabilityController radioCapController = QtiRadioCapabilityController.getInstance();
+            if (radioCapController.isBothPhonesMappedToSameStack()) {
+                radioCapController.initNormalMappingRequest();
+                logd(" setDefaultDataSubId init normal mapping: " + subId);
             }
-            return;
+            QtiSubscriptionController.super.setDefaultDataSubId(subId);
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("Active call, cannot set Dds to : ");
-        sb2.append(subId);
-        logd(sb2.toString());
-        this.mCurrentDdsSubId = subId;
-        QtiCallStateNotifier.getInstance().registerForCallEnd(this.mSubscriptionHandler, 101, null);
     }
 
     /* access modifiers changed from: protected */
     public boolean shouldDefaultBeCleared(List<SubscriptionInfo> records, int subId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[shouldDefaultBeCleared: subId] ");
-        sb.append(subId);
-        logdl(sb.toString());
+        logdl("[shouldDefaultBeCleared: subId] " + subId);
         if (records == null) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("[shouldDefaultBeCleared] return true no records subId=");
-            sb2.append(subId);
-            logdl(sb2.toString());
+            logdl("[shouldDefaultBeCleared] return true no records subId=" + subId);
             return true;
         } else if (!SubscriptionManager.isValidSubscriptionId(subId)) {
-            StringBuilder sb3 = new StringBuilder();
-            sb3.append("[shouldDefaultBeCleared] return false only one subId, subId=");
-            sb3.append(subId);
-            logdl(sb3.toString());
+            logdl("[shouldDefaultBeCleared] return false only one subId, subId=" + subId);
             return false;
         } else {
             for (SubscriptionInfo record : records) {
                 int id = record.getSubscriptionId();
-                StringBuilder sb4 = new StringBuilder();
-                sb4.append("[shouldDefaultBeCleared] Record.id: ");
-                sb4.append(id);
-                logdl(sb4.toString());
+                logdl("[shouldDefaultBeCleared] Record.id: " + id);
                 if (id == subId) {
-                    StringBuilder sb5 = new StringBuilder();
-                    sb5.append("[shouldDefaultBeCleared] return false subId is active, subId=");
-                    sb5.append(subId);
-                    logdl(sb5.toString());
+                    logdl("[shouldDefaultBeCleared] return false subId is active, subId=" + subId);
                     return false;
                 }
             }
             if (getUiccProvisionStatus(getSlotIndex(subId)) == 1) {
-                StringBuilder sb6 = new StringBuilder();
-                sb6.append("[shouldDefaultBeCleared] return false subId is provisioned, subId=");
-                sb6.append(subId);
-                logdl(sb6.toString());
+                logdl("[shouldDefaultBeCleared] return false subId is provisioned, subId=" + subId);
                 return false;
             }
-            StringBuilder sb7 = new StringBuilder();
-            sb7.append("[shouldDefaultBeCleared] return true not active subId=");
-            sb7.append(subId);
-            logdl(sb7.toString());
+            logdl("[shouldDefaultBeCleared] return true not active subId=" + subId);
             return true;
         }
     }
@@ -276,20 +233,12 @@ public class QtiSubscriptionController extends SubscriptionController {
         try {
             simNotPwrDown = QtiTelephonyComponentFactory.getInstance().getRil(0).getPropertyValueInt(APM_SIM_NOT_PWDN_PROPERTY, 0);
         } catch (RemoteException | NullPointerException ex) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Exception: ");
-            sb.append(ex);
-            loge(sb.toString());
+            loge("Exception: " + ex);
         }
         boolean isApmSimNotPwrDown = simNotPwrDown == 1;
-        int isAPMOn = Global.getInt(this.mContext.getContentResolver(), "airplane_mode_on", 0);
+        int isAPMOn = Settings.Global.getInt(this.mContext.getContentResolver(), "airplane_mode_on", 0);
         if (isAPMOn == 1 && !isApmSimNotPwrDown) {
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("isRadioInValidState, isApmSimNotPwrDown = ");
-            sb2.append(isApmSimNotPwrDown);
-            sb2.append(", isAPMOn:");
-            sb2.append(isAPMOn);
-            logd(sb2.toString());
+            logd("isRadioInValidState, isApmSimNotPwrDown = " + isApmSimNotPwrDown + ", isAPMOn:" + isAPMOn);
             return false;
         } else if (!isRadioAvailableOnAllSubs()) {
             logd(" isRadioInValidState, radio not available");
@@ -302,7 +251,7 @@ public class QtiSubscriptionController extends SubscriptionController {
         }
     }
 
-    /* access modifiers changed from: 0000 */
+    /* access modifiers changed from: package-private */
     public void updateUserPreferences() {
         SubscriptionInfo mNextActivatedSub = null;
         int activeCount = 0;
@@ -324,18 +273,7 @@ public class QtiSubscriptionController extends SubscriptionController {
                     }
                 }
             }
-            StringBuilder sb = new StringBuilder();
-            sb.append("updateUserPreferences:: active sub count = ");
-            sb.append(activeCount);
-            sb.append(" dds = ");
-            sb.append(getDefaultDataSubId());
-            String str = " voice = ";
-            sb.append(str);
-            sb.append(getDefaultVoiceSubId());
-            String str2 = " sms = ";
-            sb.append(str2);
-            sb.append(getDefaultSmsSubId());
-            logd(sb.toString());
+            logd("updateUserPreferences:: active sub count = " + activeCount + " dds = " + getDefaultDataSubId() + " voice = " + getDefaultVoiceSubId() + " sms = " + getDefaultSmsSubId());
             if (activeCount == 1) {
                 setSMSPromptEnabled(false);
             }
@@ -344,10 +282,7 @@ public class QtiSubscriptionController extends SubscriptionController {
                 if (!isSubProvisioned(getDefaultSmsSubId())) {
                     setDefaultSmsSubId(mNextActivatedSub.getSubscriptionId());
                 }
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("updateUserPreferences: isMiuiRom = ");
-                sb2.append(isMiuiRom());
-                logd(sb2.toString());
+                logd("updateUserPreferences: isMiuiRom = " + isMiuiRom());
                 if (!isMiuiRom()) {
                     if (!isSubProvisioned(getDefaultVoiceSubId())) {
                         setDefaultVoiceSubId(mNextActivatedSub.getSubscriptionId());
@@ -355,10 +290,7 @@ public class QtiSubscriptionController extends SubscriptionController {
                     if (!isNonSimAccountFound() && activeCount == 1) {
                         int subId = mNextActivatedSub.getSubscriptionId();
                         PhoneAccountHandle phoneAccountHandle = subscriptionIdToPhoneAccountHandle(subId);
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("set default phoneaccount to  ");
-                        sb3.append(subId);
-                        logi(sb3.toString());
+                        logi("set default phoneaccount to  " + subId);
                         this.mTelecomManager.setUserSelectedOutgoingPhoneAccount(phoneAccountHandle);
                     }
                 }
@@ -366,14 +298,7 @@ public class QtiSubscriptionController extends SubscriptionController {
                     setDefaultFallbackSubId(mNextActivatedSub.getSubscriptionId(), 0);
                 }
                 notifySubscriptionInfoChanged();
-                StringBuilder sb4 = new StringBuilder();
-                sb4.append("updateUserPreferences: after currentDds = ");
-                sb4.append(getDefaultDataSubId());
-                sb4.append(str);
-                sb4.append(getDefaultVoiceSubId());
-                sb4.append(str2);
-                sb4.append(getDefaultSmsSubId());
-                logd(sb4.toString());
+                logd("updateUserPreferences: after currentDds = " + getDefaultDataSubId() + " voice = " + getDefaultVoiceSubId() + " sms = " + getDefaultSmsSubId());
             }
         }
     }
@@ -389,16 +314,7 @@ public class QtiSubscriptionController extends SubscriptionController {
                     userPrefSubValid = true;
                 }
             }
-            StringBuilder sb = new StringBuilder();
-            sb.append("havePrefSub = ");
-            sb.append(userPrefSubValid);
-            sb.append(" user pref subId = ");
-            sb.append(userPrefDataSubId);
-            sb.append(" current dds ");
-            sb.append(currentDataSubId);
-            sb.append(" next active subId ");
-            sb.append(nextActiveSubId);
-            logd(sb.toString());
+            logd("havePrefSub = " + userPrefSubValid + " user pref subId = " + userPrefDataSubId + " current dds " + currentDataSubId + " next active subId " + nextActiveSubId);
             if (!isMiuiRom()) {
                 if (this.mIsCTClassA && isSubProvisioned(getSubId(0)[0])) {
                     logd("set dds to slot0 for ct classA mode");
@@ -414,8 +330,7 @@ public class QtiSubscriptionController extends SubscriptionController {
     }
 
     private boolean isMiuiRom() {
-        String str = "";
-        return !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.name", str)) || !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.code", str));
+        return !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.name", "")) || !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.code", ""));
     }
 
     private int getUiccProvisionStatus(int slotId) {
@@ -434,56 +349,40 @@ public class QtiSubscriptionController extends SubscriptionController {
         }
         int slotId = getSlotIndex(subId);
         if (!SubscriptionManager.isValidSlotIndex(slotId)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(" Invalid slotId ");
-            sb.append(slotId);
-            sb.append(" or subId = ");
-            sb.append(subId);
-            loge(sb.toString());
+            loge(" Invalid slotId " + slotId + " or subId = " + subId);
             return false;
         }
         if (getUiccProvisionStatus(slotId) != 1) {
             isSubIdUsable = false;
         }
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("isSubProvisioned, state = ");
-        sb2.append(isSubIdUsable);
-        sb2.append(" subId = ");
-        sb2.append(subId);
-        loge(sb2.toString());
+        loge("isSubProvisioned, state = " + isSubIdUsable + " subId = " + subId);
         return isSubIdUsable;
     }
 
     public boolean isSMSPromptEnabled() {
         int value = 0;
         try {
-            value = Global.getInt(this.mContext.getContentResolver(), "multi_sim_sms_prompt");
-        } catch (SettingNotFoundException e) {
+            value = Settings.Global.getInt(this.mContext.getContentResolver(), "multi_sim_sms_prompt");
+        } catch (Settings.SettingNotFoundException e) {
             loge("Settings Exception Reading Dual Sim SMS Prompt Values");
         }
         boolean prompt = value != 0;
         if (VDBG) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("SMS Prompt option:");
-            sb.append(prompt);
-            logd(sb.toString());
+            logd("SMS Prompt option:" + prompt);
         }
         return prompt;
     }
 
     public void setSMSPromptEnabled(boolean enabled) {
         enforceModifyPhoneState("setSMSPromptEnabled");
-        Global.putInt(this.mContext.getContentResolver(), "multi_sim_sms_prompt", enabled ? 1 : 0);
-        StringBuilder sb = new StringBuilder();
-        sb.append("setSMSPromptOption to ");
-        sb.append(enabled);
-        logi(sb.toString());
+        Settings.Global.putInt(this.mContext.getContentResolver(), "multi_sim_sms_prompt", (int) enabled);
+        logi("setSMSPromptOption to " + enabled);
     }
 
     private boolean isNonSimAccountFound() {
         Iterator<PhoneAccountHandle> phoneAccounts = this.mTelecomManager.getCallCapablePhoneAccounts().listIterator();
         while (phoneAccounts.hasNext()) {
-            if (this.mTelephonyManager.getSubIdForPhoneAccount(this.mTelecomManager.getPhoneAccount((PhoneAccountHandle) phoneAccounts.next())) == -1) {
+            if (this.mTelephonyManager.getSubIdForPhoneAccount(this.mTelecomManager.getPhoneAccount(phoneAccounts.next())) == -1) {
                 logi("Other than SIM account found. ");
                 return true;
             }
@@ -495,7 +394,7 @@ public class QtiSubscriptionController extends SubscriptionController {
     private PhoneAccountHandle subscriptionIdToPhoneAccountHandle(int subId) {
         Iterator<PhoneAccountHandle> phoneAccounts = this.mTelecomManager.getCallCapablePhoneAccounts().listIterator();
         while (phoneAccounts.hasNext()) {
-            PhoneAccountHandle phoneAccountHandle = (PhoneAccountHandle) phoneAccounts.next();
+            PhoneAccountHandle phoneAccountHandle = phoneAccounts.next();
             if (subId == this.mTelephonyManager.getSubIdForPhoneAccount(this.mTelecomManager.getPhoneAccount(phoneAccountHandle))) {
                 return phoneAccountHandle;
             }
@@ -504,7 +403,7 @@ public class QtiSubscriptionController extends SubscriptionController {
     }
 
     private int getUserPrefDataSubIdFromDB() {
-        return Global.getInt(this.mContext.getContentResolver(), SETTING_USER_PREF_DATA_SUB, -1);
+        return Settings.Global.getInt(this.mContext.getContentResolver(), SETTING_USER_PREF_DATA_SUB, -1);
     }
 
     /* access modifiers changed from: private */

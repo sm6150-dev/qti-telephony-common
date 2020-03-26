@@ -4,13 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import com.qualcomm.qcrilhook.BaseQmiTypes.BaseQmiItemType;
-import com.qualcomm.qcrilhook.BaseQmiTypes.BaseQmiStructType;
-import com.qualcomm.qcrilhook.QmiPrimitiveTypes.QmiArray;
-import com.qualcomm.qcrilhook.QmiPrimitiveTypes.QmiByte;
-import com.qualcomm.qcrilhook.QmiPrimitiveTypes.QmiInteger;
-import com.qualcomm.qcrilhook.QmiPrimitiveTypes.QmiLong;
-import com.qualcomm.qcrilhook.QmiPrimitiveTypes.QmiString;
+import com.qualcomm.qcrilhook.BaseQmiTypes;
+import com.qualcomm.qcrilhook.QmiPrimitiveTypes;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -154,1393 +149,11 @@ public class EmbmsOemHook extends Handler {
     private QmiOemHook mQmiOemHook;
     private RegistrantList mRegistrants = new RegistrantList();
 
-    public class ActDeactRequest extends BaseQmiStructType {
-        public QmiArray<QmiByte> actTmgi;
-        public QmiByte callId;
-        public QmiArray<QmiByte> deActTmgi;
-        public QmiArray<QmiInteger> earfcnList;
-        public QmiInteger priority;
-        public QmiArray<QmiInteger> saiList;
-        public QmiInteger traceId;
-
-        public ActDeactRequest(int trace, byte callId2, byte[] actTmgi2, byte[] deActTmgi2, int priority2, int[] saiList2, int[] earfcnList2) {
-            this.traceId = new QmiInteger((long) trace);
-            this.callId = new QmiByte(callId2);
-            this.priority = new QmiInteger((long) priority2);
-            this.actTmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, actTmgi2);
-            this.deActTmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, deActTmgi2);
-            this.saiList = EmbmsOemHook.this.intArrayToQmiArray(1, saiList2);
-            this.earfcnList = EmbmsOemHook.this.intArrayToQmiArray(1, earfcnList2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.callId, this.actTmgi, this.deActTmgi, this.priority, this.saiList, this.earfcnList};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2, 3, 4, EmbmsOemHook.EMBMSHOOK_MSG_ID_GET_ACTIVE, 16, EmbmsOemHook.SIZE_OF_EACH_PLMN_IN_BYTES};
-        }
-    }
-
-    public class ActDeactResponse {
-        public short actCode = EmbmsOemHook.EMBMSHOOK_MSG_ID_ENABLE;
-        public byte[] actTmgi = null;
-        public short deactCode = EmbmsOemHook.EMBMSHOOK_MSG_ID_ENABLE;
-        public byte[] deactTmgi = null;
-        public int status;
-        public int traceId = 0;
-
-        public ActDeactResponse(int status2, ByteBuffer buf) {
-            this.status = status2;
-            while (buf.hasRemaining()) {
-                int type = PrimitiveParser.toUnsigned(buf.get());
-                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                if (type == 1) {
-                    this.traceId = buf.getInt();
-                    String access$000 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("traceId = ");
-                    sb.append(this.traceId);
-                    Log.i(access$000, sb.toString());
-                } else if (type == 2) {
-                    this.actCode = buf.getShort();
-                    String access$0002 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("Act code = ");
-                    sb2.append(this.actCode);
-                    Log.i(access$0002, sb2.toString());
-                } else if (type != 3) {
-                    switch (type) {
-                        case 16:
-                            byte id = buf.get();
-                            String access$0003 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb3 = new StringBuilder();
-                            sb3.append("callid = ");
-                            sb3.append(id);
-                            Log.i(access$0003, sb3.toString());
-                            break;
-                        case 17:
-                            byte tmgiLength = buf.get();
-                            byte[] tmgi = new byte[tmgiLength];
-                            for (int i = 0; i < tmgiLength; i++) {
-                                tmgi[i] = buf.get();
-                            }
-                            this.actTmgi = tmgi;
-                            String access$0004 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb4 = new StringBuilder();
-                            sb4.append("Act tmgi = ");
-                            sb4.append(EmbmsOemHook.bytesToHexString(this.actTmgi));
-                            Log.i(access$0004, sb4.toString());
-                            break;
-                        case 18:
-                            byte tmgiLength2 = buf.get();
-                            byte[] tmgi2 = new byte[tmgiLength2];
-                            for (int i2 = 0; i2 < tmgiLength2; i2++) {
-                                tmgi2[i2] = buf.get();
-                            }
-                            this.deactTmgi = tmgi2;
-                            String access$0005 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb5 = new StringBuilder();
-                            sb5.append("Deact tmgi = ");
-                            sb5.append(EmbmsOemHook.bytesToHexString(this.deactTmgi));
-                            Log.i(access$0005, sb5.toString());
-                            break;
-                        default:
-                            String access$0006 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb6 = new StringBuilder();
-                            sb6.append("TmgiResponse: Unexpected Type ");
-                            sb6.append(type);
-                            Log.e(access$0006, sb6.toString());
-                            break;
-                    }
-                } else {
-                    this.deactCode = buf.getShort();
-                    String access$0007 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb7 = new StringBuilder();
-                    sb7.append("Deact code = ");
-                    sb7.append(this.deactCode);
-                    Log.i(access$0007, sb7.toString());
-                }
-            }
-        }
-    }
-
-    public class ActiveLogPacketIDsRequest extends BaseQmiStructType {
-        public QmiArray<QmiInteger> supportedLogPacketIdList;
-        public QmiInteger traceId;
-
-        public ActiveLogPacketIDsRequest(int trace, int[] supportedLogPacketIdList2) {
-            this.traceId = new QmiInteger((long) trace);
-            this.supportedLogPacketIdList = EmbmsOemHook.this.intArrayToQmiArray(2, supportedLogPacketIdList2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.supportedLogPacketIdList};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2};
-        }
-    }
-
-    public class ActiveLogPacketIDsResponse {
-        public int[] activePacketIdList = null;
-        public int status;
-        public int traceId = 0;
-
-        public ActiveLogPacketIDsResponse(int status2, ByteBuffer buf) {
-            this.status = status2;
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type != 2) {
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("ActiveLogPacketIDsResponse: Unexpected Type ");
-                        sb2.append(type);
-                        Log.e(access$0002, sb2.toString());
-                    } else {
-                        short logPacketIdLength = buf.getShort();
-                        int[] activeLogPacketIdListArray = new int[logPacketIdLength];
-                        for (int i = 0; i < logPacketIdLength; i++) {
-                            activeLogPacketIdListArray[i] = buf.getInt();
-                        }
-                        this.activePacketIdList = activeLogPacketIdListArray;
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("Active log packet Id's = ");
-                        sb3.append(Arrays.toString(this.activePacketIdList));
-                        Log.i(access$0003, sb3.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in ActiveLogPacketIDsResponse");
-                }
-            }
-        }
-    }
-
-    public class BasicRequest extends BaseQmiStructType {
-        public QmiInteger traceId;
-
-        public BasicRequest(int trace) {
-            this.traceId = new QmiInteger((long) trace);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1};
-        }
-    }
-
-    public class CellIdIndication {
-        public String id = null;
-        public String mcc = null;
-        public String mnc = null;
-        public int traceId = 0;
-
-        public CellIdIndication(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int length = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type == 2) {
-                        byte[] temp = new byte[length];
-                        for (int i = 0; i < length; i++) {
-                            temp[i] = buf.get();
-                        }
-                        this.mcc = new QmiString(temp).toStringValue();
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("MCC = ");
-                        sb2.append(this.mcc);
-                        Log.i(access$0002, sb2.toString());
-                    } else if (type == 3) {
-                        byte[] temp2 = new byte[length];
-                        for (int i2 = 0; i2 < length; i2++) {
-                            temp2[i2] = buf.get();
-                        }
-                        this.mnc = new QmiString(temp2).toStringValue();
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("MNC = ");
-                        sb3.append(this.mnc);
-                        Log.i(access$0003, sb3.toString());
-                    } else if (type != 4) {
-                        String access$0004 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("CellIdIndication: Unexpected Type ");
-                        sb4.append(type);
-                        Log.e(access$0004, sb4.toString());
-                    } else {
-                        this.id = String.format("%7s", new Object[]{Integer.toHexString(buf.getInt())}).replace(' ', '0');
-                        String access$0005 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb5 = new StringBuilder();
-                        sb5.append("CellId = ");
-                        sb5.append(this.id);
-                        Log.i(access$0005, sb5.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for CellIdIndication");
-                }
-            }
-        }
-    }
-
-    public class ContentDescPerObjectControlIndication {
-        public int perObjectContentControl;
-        public int perObjectStatusControl;
-        public byte[] tmgi = null;
-        public int traceId = 0;
-
-        public ContentDescPerObjectControlIndication(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type == 2) {
-                        byte tmgiLength = buf.get();
-                        byte[] tmgi2 = new byte[tmgiLength];
-                        for (int i = 0; i < tmgiLength; i++) {
-                            tmgi2[i] = buf.get();
-                        }
-                        this.tmgi = tmgi2;
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("tmgi = ");
-                        sb2.append(EmbmsOemHook.bytesToHexString(this.tmgi));
-                        Log.i(access$0002, sb2.toString());
-                    } else if (type == 16) {
-                        this.perObjectContentControl = buf.getInt();
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("perObjectContentControl = ");
-                        sb3.append(this.perObjectContentControl);
-                        Log.i(access$0003, sb3.toString());
-                    } else if (type != 17) {
-                        String access$0004 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("ContentDescPerObjectControl: Unexpected Type ");
-                        sb4.append(type);
-                        Log.e(access$0004, sb4.toString());
-                    } else {
-                        this.perObjectStatusControl = buf.getInt();
-                        String access$0005 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb5 = new StringBuilder();
-                        sb5.append("perObjectStatusControl = ");
-                        sb5.append(this.perObjectStatusControl);
-                        Log.i(access$0005, sb5.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing forContentDescPerObjectControl Notification");
-                }
-            }
-        }
-    }
-
-    public class ContentDescriptionReq extends BaseQmiStructType {
-        public QmiByte callId;
-        public QmiArray<QmiInteger> parameterArray;
-        public QmiArray<QmiByte> tmgi;
-        public QmiInteger traceId;
-
-        public ContentDescriptionReq(int trace, byte callId2, byte[] tmgi2, int[] parameterArray2) {
-            this.traceId = new QmiInteger((long) trace);
-            this.callId = new QmiByte(callId2);
-            this.tmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, tmgi2);
-            this.parameterArray = EmbmsOemHook.this.intArrayToQmiArray(1, parameterArray2, 2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.callId, this.tmgi, this.parameterArray};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2, 3, 16};
-        }
-    }
-
-    public class CoverageState {
-        public int code = 0;
-        public int state;
-        public int status;
-        public int traceId = 0;
-
-        public CoverageState(ByteBuffer buf, short msgId) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type != 1) {
-                        if (type != 2) {
-                            if (type != 16) {
-                                String access$000 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb = new StringBuilder();
-                                sb.append("CoverageState: Unexpected Type ");
-                                sb.append(type);
-                                Log.e(access$000, sb.toString());
-                            }
-                        } else if (msgId == 8) {
-                            this.code = buf.getInt();
-                            String access$0002 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb2 = new StringBuilder();
-                            sb2.append("response code = ");
-                            sb2.append(this.code);
-                            Log.i(access$0002, sb2.toString());
-                        }
-                        this.state = buf.getInt();
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("Coverage State = ");
-                        sb3.append(this.state);
-                        Log.i(access$0003, sb3.toString());
-                    } else {
-                        this.traceId = buf.getInt();
-                        String access$0004 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("traceId = ");
-                        sb4.append(this.traceId);
-                        Log.i(access$0004, sb4.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in CoverageState");
-                }
-            }
-        }
-    }
-
-    public class DeliverLogPacketRequest extends BaseQmiStructType {
-        public QmiArray<QmiByte> logPacket;
-        public QmiInteger logPacketId;
-        public QmiInteger traceId;
-
-        public DeliverLogPacketRequest(int trace, int logPacketId2, byte[] logPacket2) {
-            this.traceId = new QmiInteger((long) trace);
-            this.logPacketId = new QmiInteger((long) logPacketId2);
-            this.logPacket = EmbmsOemHook.this.byteArrayToQmiArray(2, logPacket2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.logPacketId, this.logPacket};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2, 3};
-        }
-    }
-
-    public class DisableResponse {
-        public byte callId = 0;
-        public int code = 0;
-        public int status;
-        public int traceId;
-
-        public DisableResponse(int error, ByteBuffer buf) {
-            this.status = error;
-            while (buf.hasRemaining()) {
-                int type = PrimitiveParser.toUnsigned(buf.get());
-                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                if (type == 1) {
-                    this.traceId = buf.getInt();
-                    String access$000 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("traceId = ");
-                    sb.append(this.traceId);
-                    Log.i(access$000, sb.toString());
-                } else if (type == 2) {
-                    this.code = buf.getInt();
-                    String access$0002 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("code = ");
-                    sb2.append(this.code);
-                    Log.i(access$0002, sb2.toString());
-                } else if (type != 16) {
-                    String access$0003 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb3 = new StringBuilder();
-                    sb3.append("DisableResponse: Unexpected Type ");
-                    sb3.append(type);
-                    Log.e(access$0003, sb3.toString());
-                } else {
-                    this.callId = buf.get();
-                    String access$0004 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb4 = new StringBuilder();
-                    sb4.append("callid = ");
-                    sb4.append(this.callId);
-                    Log.i(access$0004, sb4.toString());
-                }
-            }
-        }
-    }
-
-    public class E911StateIndication {
-        public int code;
-        public int state;
-        public int traceId = 0;
-
-        public E911StateIndication(ByteBuffer buf, short msgId) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type != 1) {
-                        if (type != 2) {
-                            if (type != 16) {
-                                String access$000 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb = new StringBuilder();
-                                sb.append("E911 State: Unexpected Type ");
-                                sb.append(type);
-                                Log.e(access$000, sb.toString());
-                            }
-                        } else if (msgId == 27) {
-                            this.code = buf.getInt();
-                            String access$0002 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb2 = new StringBuilder();
-                            sb2.append("response code = ");
-                            sb2.append(this.code);
-                            Log.i(access$0002, sb2.toString());
-                        }
-                        this.state = buf.getInt();
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("E911 State = ");
-                        sb3.append(this.state);
-                        Log.i(access$0003, sb3.toString());
-                    } else {
-                        this.traceId = buf.getInt();
-                        String access$0004 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("traceId = ");
-                        sb4.append(this.traceId);
-                        Log.i(access$0004, sb4.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for E911 Notification");
-                }
-            }
-        }
-    }
-
-    public class EmbmsStatus {
-        private static final int TYPE_EMBMS_STATUS = 1000;
-        public boolean embmsStatus = false;
-        public int traceId = 0;
-
-        public EmbmsStatus(ByteBuffer buf, int msgId) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type == 1 && msgId == 32) {
-                        type = 1000;
-                    }
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type == 2 || type == 1000) {
-                        byte status = buf.get();
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("Unsol embmsStatus received = ");
-                        sb2.append(status);
-                        Log.i(access$0002, sb2.toString());
-                        if (status == 1) {
-                            this.embmsStatus = true;
-                        }
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("Unsol embmsStatus = ");
-                        sb3.append(this.embmsStatus);
-                        Log.i(access$0003, sb3.toString());
-                    } else {
-                        String access$0004 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("embmsStatus: Unexpected Type ");
-                        sb4.append(type);
-                        Log.e(access$0004, sb4.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for embmsStatus");
-                }
-            }
-        }
-    }
-
-    public class EnableResponse {
-        public byte callId = 0;
-        public int code = 0;
-        public int ifIndex = 0;
-        public String interfaceName = null;
-        public int status;
-        public int traceId;
-
-        public EnableResponse(int error, ByteBuffer buf) {
-            this.status = error;
-            while (buf.hasRemaining()) {
-                int type = PrimitiveParser.toUnsigned(buf.get());
-                int length = PrimitiveParser.toUnsigned(buf.getShort());
-                if (type == 1) {
-                    this.traceId = buf.getInt();
-                    String access$000 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("traceId = ");
-                    sb.append(this.traceId);
-                    Log.i(access$000, sb.toString());
-                } else if (type != 2) {
-                    switch (type) {
-                        case 16:
-                            this.callId = buf.get();
-                            String access$0002 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb2 = new StringBuilder();
-                            sb2.append("callid = ");
-                            sb2.append(this.callId);
-                            Log.i(access$0002, sb2.toString());
-                            break;
-                        case 17:
-                            byte[] name = new byte[length];
-                            for (int i = 0; i < length; i++) {
-                                name[i] = buf.get();
-                            }
-                            this.interfaceName = new QmiString(name).toStringValue();
-                            String access$0003 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb3 = new StringBuilder();
-                            sb3.append("ifName = ");
-                            sb3.append(this.interfaceName);
-                            Log.i(access$0003, sb3.toString());
-                            break;
-                        case 18:
-                            this.ifIndex = buf.getInt();
-                            String access$0004 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb4 = new StringBuilder();
-                            sb4.append("ifIndex = ");
-                            sb4.append(this.ifIndex);
-                            Log.i(access$0004, sb4.toString());
-                            break;
-                        default:
-                            String access$0005 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb5 = new StringBuilder();
-                            sb5.append("EnableResponse: Unexpected Type ");
-                            sb5.append(type);
-                            Log.e(access$0005, sb5.toString());
-                            break;
-                    }
-                } else {
-                    this.code = buf.getInt();
-                    String access$0006 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb6 = new StringBuilder();
-                    sb6.append("code = ");
-                    sb6.append(this.code);
-                    Log.i(access$0006, sb6.toString());
-                }
-            }
-        }
-    }
-
-    public class GenericRequest extends BaseQmiStructType {
-        public QmiByte callId;
-        public QmiInteger traceId;
-
-        public GenericRequest(int trace, byte callId2) {
-            this.traceId = new QmiInteger((long) trace);
-            this.callId = new QmiByte(callId2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.callId};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2};
-        }
-    }
-
-    public class GetInterestedTmgiResponse extends BaseQmiStructType {
-        public QmiByte callId;
-        public QmiArray<QmiByte> tmgiList;
-        public QmiInteger traceId;
-
-        public GetInterestedTmgiResponse(int traceId2, byte callId2, byte[] tmgiList2) {
-            this.traceId = new QmiInteger((long) traceId2);
-            this.callId = new QmiByte(callId2);
-            this.tmgiList = EmbmsOemHook.this.tmgiListArrayToQmiArray(1, tmgiList2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.callId, this.tmgiList};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2, 3};
-        }
-    }
-
-    public class GetPLMNListResponse {
-        public byte[] plmnList = null;
-        public int status;
-        public int traceId = 0;
-
-        public GetPLMNListResponse(int status2, ByteBuffer buf) {
-            this.status = status2;
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type != 2) {
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("GetPLMNListResponse: Unexpected Type ");
-                        sb2.append(type);
-                        Log.e(access$0002, sb2.toString());
-                    } else {
-                        byte numOfPlmn = buf.get();
-                        this.plmnList = new byte[(numOfPlmn * EmbmsOemHook.TLV_TYPE_ACTDEACTIVATE_REQ_EARFCN_LIST)];
-                        byte index = 0;
-                        for (int i = 0; i < numOfPlmn; i++) {
-                            byte mccLen = buf.get();
-                            buf.get(this.plmnList, index, mccLen);
-                            int index2 = index + mccLen;
-                            byte mncLen = buf.get();
-                            buf.get(this.plmnList, index2, mncLen);
-                            index = index2 + mncLen;
-                            if (mncLen == 2) {
-                                int index3 = index + 1;
-                                this.plmnList[index] = 32;
-                                index = index3;
-                            }
-                        }
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("plmnList = ");
-                        sb3.append(EmbmsOemHook.bytesToHexString(this.plmnList));
-                        Log.i(access$0003, sb3.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in GetPLMNListResponse");
-                }
-            }
-        }
-    }
-
-    public class OosState {
-        public byte[] list = null;
-        public int state;
-        public int traceId = 0;
-
-        public OosState(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                int type = PrimitiveParser.toUnsigned(buf.get());
-                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                if (type == 1) {
-                    this.traceId = buf.getInt();
-                    String access$000 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("traceId = ");
-                    sb.append(this.traceId);
-                    Log.i(access$000, sb.toString());
-                } else if (type == 2) {
-                    this.state = buf.getInt();
-                    String access$0002 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("OOs State = ");
-                    sb2.append(this.state);
-                    Log.i(access$0002, sb2.toString());
-                } else if (type != 3) {
-                    String access$0003 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb3 = new StringBuilder();
-                    sb3.append("OosState: Unexpected Type ");
-                    sb3.append(type);
-                    Log.e(access$0003, sb3.toString());
-                } else {
-                    this.list = EmbmsOemHook.this.parseTmgi(buf);
-                    String access$0004 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb4 = new StringBuilder();
-                    sb4.append("tmgiArray = ");
-                    sb4.append(EmbmsOemHook.bytesToHexString(this.list));
-                    Log.i(access$0004, sb4.toString());
-                }
-            }
-        }
-    }
-
-    public class RadioStateIndication {
-        public int state = 0;
-        public int traceId = 0;
-
-        public RadioStateIndication(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type != 2) {
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("RadioStateIndication: Unexpected Type ");
-                        sb2.append(type);
-                        Log.e(access$0002, sb2.toString());
-                    } else {
-                        this.state = buf.getInt();
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("radio = ");
-                        sb3.append(this.state);
-                        Log.i(access$0003, sb3.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for RadioStateIndication");
-                }
-            }
-        }
-    }
-
-    public class RequestIndication {
-        public int traceId = 0;
-
-        public RequestIndication(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type != 1) {
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("RequestIndication: Unexpected Type ");
-                        sb.append(type);
-                        Log.e(access$000, sb.toString());
-                    } else {
-                        this.traceId = buf.getInt();
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("traceId = ");
-                        sb2.append(this.traceId);
-                        Log.i(access$0002, sb2.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for RequestIndication");
-                }
-            }
-        }
-    }
-
-    public class SaiIndication {
-        public int[] availableSaiList = null;
-        public int[] campedSaiList = null;
-        public int[] numSaiPerGroupList = null;
-        public int traceId = 0;
-
-        public SaiIndication(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = buf.get();
-                    short s = buf.getShort();
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type == 2) {
-                        byte listLength = buf.get();
-                        int[] list = new int[listLength];
-                        for (int i = 0; i < listLength; i++) {
-                            list[i] = buf.getInt();
-                        }
-                        this.campedSaiList = list;
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("Camped list = ");
-                        sb2.append(Arrays.toString(this.campedSaiList));
-                        Log.i(access$0002, sb2.toString());
-                    } else if (type == 3) {
-                        byte listLength2 = buf.get();
-                        int[] list2 = new int[listLength2];
-                        for (int i2 = 0; i2 < listLength2; i2++) {
-                            list2[i2] = buf.getInt();
-                        }
-                        this.numSaiPerGroupList = list2;
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("Number of SAI per group list = ");
-                        sb3.append(Arrays.toString(this.numSaiPerGroupList));
-                        Log.i(access$0003, sb3.toString());
-                    } else if (type != 4) {
-                        String access$0004 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("SaiIndication: Unexpected Type ");
-                        sb4.append(type);
-                        Log.e(access$0004, sb4.toString());
-                    } else {
-                        short availableLength = buf.getShort();
-                        int[] list3 = new int[availableLength];
-                        for (int i3 = 0; i3 < availableLength; i3++) {
-                            list3[i3] = buf.getInt();
-                        }
-                        this.availableSaiList = list3;
-                        String access$0005 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb5 = new StringBuilder();
-                        sb5.append("Available SAI list = ");
-                        sb5.append(Arrays.toString(this.availableSaiList));
-                        Log.i(access$0005, sb5.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for SaiIndication");
-                }
-            }
-        }
-    }
-
-    public class SetTimeRequest extends BaseQmiStructType {
-        public QmiByte sntpSuccess;
-        public QmiLong timeMseconds;
-        public QmiLong timeStamp;
-
-        public SetTimeRequest(byte sntpSuccess2, long timeMseconds2, long timeStamp2) {
-            this.sntpSuccess = new QmiByte(sntpSuccess2);
-            this.timeMseconds = new QmiLong(timeMseconds2);
-            this.timeStamp = new QmiLong(timeStamp2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.sntpSuccess, this.timeMseconds, this.timeStamp};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 16, 17};
-        }
-    }
-
-    public class Sib16Coverage {
-        public boolean inCoverage = false;
-
-        public Sib16Coverage(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type != 1) {
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Sib16Coverage: Unexpected Type ");
-                        sb.append(type);
-                        Log.e(access$000, sb.toString());
-                    } else {
-                        if (buf.get() == 1) {
-                            this.inCoverage = true;
-                        }
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("Unsol SIB16 coverage status = ");
-                        sb2.append(this.inCoverage);
-                        Log.i(access$0002, sb2.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for Sib16Coverage");
-                }
-            }
-        }
-    }
-
-    public class SigStrengthResponse {
-        public int code = 0;
-        public float[] esnr = null;
-        public int[] mbsfnAreaId = null;
-        public float[] snr = null;
-        public int status;
-        public int[] tmgiPerMbsfn = null;
-        public byte[] tmgilist = null;
-        public int traceId = 0;
-
-        public SigStrengthResponse(int status2, ByteBuffer buf) {
-            this.status = status2;
-            while (buf.hasRemaining()) {
-                try {
-                    int type = buf.get();
-                    short s = buf.getShort();
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type != 2) {
-                        switch (type) {
-                            case 16:
-                                byte mbsfnLength = buf.get();
-                                int[] mbsfnArray = new int[mbsfnLength];
-                                for (int i = 0; i < mbsfnLength; i++) {
-                                    mbsfnArray[i] = buf.getInt();
-                                }
-                                this.mbsfnAreaId = mbsfnArray;
-                                String access$0002 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb2 = new StringBuilder();
-                                sb2.append("MBSFN_Area_ID = ");
-                                sb2.append(Arrays.toString(this.mbsfnAreaId));
-                                Log.i(access$0002, sb2.toString());
-                                break;
-                            case 17:
-                                byte esnrLength = buf.get();
-                                float[] snrArray = new float[esnrLength];
-                                for (int i2 = 0; i2 < esnrLength; i2++) {
-                                    snrArray[i2] = buf.getFloat();
-                                }
-                                this.snr = snrArray;
-                                String access$0003 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb3 = new StringBuilder();
-                                sb3.append("SNR = ");
-                                sb3.append(Arrays.toString(this.snr));
-                                Log.i(access$0003, sb3.toString());
-                                break;
-                            case 18:
-                                byte esnrLength2 = buf.get();
-                                float[] esnrArray = new float[esnrLength2];
-                                for (int i3 = 0; i3 < esnrLength2; i3++) {
-                                    esnrArray[i3] = buf.getFloat();
-                                }
-                                this.esnr = esnrArray;
-                                String access$0004 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb4 = new StringBuilder();
-                                sb4.append("EXCESS SNR = ");
-                                sb4.append(Arrays.toString(this.esnr));
-                                Log.i(access$0004, sb4.toString());
-                                break;
-                            case 19:
-                                byte tmgiPerMbsfnLength = buf.get();
-                                int[] tmgiPerMbsfnArray = new int[tmgiPerMbsfnLength];
-                                for (int i4 = 0; i4 < tmgiPerMbsfnLength; i4++) {
-                                    tmgiPerMbsfnArray[i4] = buf.getInt();
-                                }
-                                this.tmgiPerMbsfn = tmgiPerMbsfnArray;
-                                String access$0005 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb5 = new StringBuilder();
-                                sb5.append("NUMBER OF TMGI PER MBSFN = ");
-                                sb5.append(Arrays.toString(this.tmgiPerMbsfn));
-                                Log.i(access$0005, sb5.toString());
-                                break;
-                            case 20:
-                                this.tmgilist = EmbmsOemHook.this.parseActiveTmgi(buf);
-                                String access$0006 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb6 = new StringBuilder();
-                                sb6.append("tmgiArray = ");
-                                sb6.append(EmbmsOemHook.bytesToHexString(this.tmgilist));
-                                Log.i(access$0006, sb6.toString());
-                                break;
-                            default:
-                                String access$0007 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb7 = new StringBuilder();
-                                sb7.append("SigStrengthResponse: Unexpected Type ");
-                                sb7.append(type);
-                                Log.e(access$0007, sb7.toString());
-                                break;
-                        }
-                    } else {
-                        this.code = buf.getInt();
-                        String access$0008 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb8 = new StringBuilder();
-                        sb8.append("code = ");
-                        sb8.append(this.code);
-                        Log.i(access$0008, sb8.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in SigStrengthResponse");
-                }
-            }
-            if (this.snr == null) {
-                this.snr = new float[0];
-            }
-            if (this.esnr == null) {
-                this.esnr = new float[0];
-            }
-            if (this.tmgiPerMbsfn == null) {
-                this.tmgiPerMbsfn = new int[0];
-            }
-            if (this.mbsfnAreaId == null) {
-                this.mbsfnAreaId = new int[0];
-            }
-            if (this.tmgilist == null) {
-                this.tmgilist = new byte[0];
-            }
-        }
-    }
-
-    public class StateChangeInfo {
-        public int ifIndex;
-        public String ipAddress;
-        public int state;
-
-        public StateChangeInfo(int state2, String address, int index) {
-            this.state = state2;
-            this.ipAddress = address;
-            this.ifIndex = index;
-        }
-
-        public StateChangeInfo(ByteBuffer buf) {
-            while (buf.hasRemaining()) {
-                int type = PrimitiveParser.toUnsigned(buf.get());
-                int length = PrimitiveParser.toUnsigned(buf.getShort());
-                if (type == 1) {
-                    this.state = buf.getInt();
-                    String access$000 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("State = ");
-                    sb.append(this.state);
-                    Log.i(access$000, sb.toString());
-                } else if (type == 2) {
-                    byte[] address = new byte[length];
-                    for (int i = 0; i < length; i++) {
-                        address[i] = buf.get();
-                    }
-                    this.ipAddress = new QmiString(address).toString();
-                    String access$0002 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("ip Address = ");
-                    sb2.append(this.ipAddress);
-                    Log.i(access$0002, sb2.toString());
-                } else if (type != 3) {
-                    String access$0003 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb3 = new StringBuilder();
-                    sb3.append("StateChangeInfo: Unexpected Type ");
-                    sb3.append(type);
-                    Log.e(access$0003, sb3.toString());
-                } else {
-                    this.ifIndex = buf.getInt();
-                    String access$0004 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb4 = new StringBuilder();
-                    sb4.append("index = ");
-                    sb4.append(this.ifIndex);
-                    Log.i(access$0004, sb4.toString());
-                }
-            }
-        }
-    }
-
-    public class TimeResponse {
-        public boolean additionalInfo = false;
-        public int code = 0;
-        public boolean dayLightSaving = false;
-        public byte leapSeconds = 0;
-        public long localTimeOffset = 0;
-        public int status;
-        public long timeMseconds = 0;
-        public int traceId = 0;
-
-        public TimeResponse(int status2, ByteBuffer buf) {
-            this.status = status2;
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type == 1) {
-                        this.traceId = buf.getInt();
-                        String access$000 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("traceId = ");
-                        sb.append(this.traceId);
-                        Log.i(access$000, sb.toString());
-                    } else if (type == 2) {
-                        this.code = buf.getInt();
-                        String access$0002 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb2 = new StringBuilder();
-                        sb2.append("code = ");
-                        sb2.append(this.code);
-                        Log.i(access$0002, sb2.toString());
-                    } else if (type != 3) {
-                        switch (type) {
-                            case 16:
-                                this.additionalInfo = true;
-                                if (buf.get() == 1) {
-                                    this.dayLightSaving = true;
-                                }
-                                String access$0003 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb3 = new StringBuilder();
-                                sb3.append("dayLightSaving = ");
-                                sb3.append(this.dayLightSaving);
-                                Log.i(access$0003, sb3.toString());
-                                break;
-                            case 17:
-                                this.additionalInfo = true;
-                                this.leapSeconds = buf.get();
-                                String access$0004 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb4 = new StringBuilder();
-                                sb4.append("leapSeconds = ");
-                                sb4.append(this.leapSeconds);
-                                Log.i(access$0004, sb4.toString());
-                                break;
-                            case 18:
-                                this.additionalInfo = true;
-                                this.localTimeOffset = (long) buf.get();
-                                String access$0005 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb5 = new StringBuilder();
-                                sb5.append("localTimeOffset = ");
-                                sb5.append(this.localTimeOffset);
-                                Log.i(access$0005, sb5.toString());
-                                break;
-                            default:
-                                String access$0006 = EmbmsOemHook.LOG_TAG;
-                                StringBuilder sb6 = new StringBuilder();
-                                sb6.append("TimeResponse: Unexpected Type ");
-                                sb6.append(type);
-                                Log.e(access$0006, sb6.toString());
-                                break;
-                        }
-                    } else {
-                        this.timeMseconds = buf.getLong();
-                        String access$0007 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb7 = new StringBuilder();
-                        sb7.append("timeMseconds = ");
-                        sb7.append(this.timeMseconds);
-                        Log.i(access$0007, sb7.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in TimeResponse");
-                }
-            }
-            String access$0008 = EmbmsOemHook.LOG_TAG;
-            StringBuilder sb8 = new StringBuilder();
-            sb8.append("additionalInfo = ");
-            sb8.append(this.additionalInfo);
-            Log.i(access$0008, sb8.toString());
-        }
-
-        public TimeResponse(int traceId2, int status2, long timeMseconds2, boolean additionalInfo2, long localTimeOffset2, boolean dayLightSaving2, byte leapSeconds2) {
-            this.status = status2;
-            this.traceId = traceId2;
-            this.code = 0;
-            this.timeMseconds = timeMseconds2;
-            this.localTimeOffset = localTimeOffset2;
-            this.additionalInfo = additionalInfo2;
-            this.dayLightSaving = dayLightSaving2;
-            this.leapSeconds = leapSeconds2;
-            String access$000 = EmbmsOemHook.LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("TimeResponse: traceId = ");
-            sb.append(this.traceId);
-            sb.append(" code = ");
-            sb.append(this.code);
-            sb.append(" timeMseconds = ");
-            sb.append(this.timeMseconds);
-            sb.append("additionalInfo = ");
-            sb.append(this.additionalInfo);
-            sb.append(" localTimeOffset = ");
-            sb.append(this.localTimeOffset);
-            sb.append(" dayLightSaving = ");
-            sb.append(this.dayLightSaving);
-            sb.append(" leapSeconds = ");
-            sb.append(this.leapSeconds);
-            Log.i(access$000, sb.toString());
-        }
-    }
-
-    public class TmgiActivateRequest extends BaseQmiStructType {
-        public QmiByte callId;
-        public QmiArray<QmiInteger> earfcnList;
-        public QmiInteger priority;
-        public QmiArray<QmiInteger> saiList;
-        public QmiArray<QmiByte> tmgi;
-        public QmiInteger traceId;
-
-        public TmgiActivateRequest(int trace, byte callId2, byte[] tmgi2, int priority2, int[] saiList2, int[] earfcnList2) {
-            this.traceId = new QmiInteger((long) trace);
-            this.callId = new QmiByte(callId2);
-            this.priority = new QmiInteger((long) priority2);
-            this.tmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, tmgi2);
-            this.saiList = EmbmsOemHook.this.intArrayToQmiArray(1, saiList2);
-            this.earfcnList = EmbmsOemHook.this.intArrayToQmiArray(1, earfcnList2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.callId, this.tmgi, this.priority, this.saiList, this.earfcnList};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2, 3, 4, 16, EmbmsOemHook.EMBMSHOOK_MSG_ID_GET_ACTIVE};
-        }
-    }
-
-    public class TmgiDeActivateRequest extends BaseQmiStructType {
-        public QmiByte callId;
-        public QmiArray<QmiByte> tmgi;
-        public QmiInteger traceId;
-
-        public TmgiDeActivateRequest(int trace, byte[] tmgi2, byte callId2) {
-            this.traceId = new QmiInteger((long) trace);
-            this.tmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, tmgi2);
-            this.callId = new QmiByte(callId2);
-        }
-
-        public BaseQmiItemType[] getItems() {
-            return new BaseQmiItemType[]{this.traceId, this.callId, this.tmgi};
-        }
-
-        public short[] getTypes() {
-            return new short[]{1, 2, 3};
-        }
-    }
-
-    public class TmgiListIndication {
-        public int code = 0;
-        public byte[] list = new byte[0];
-        public byte[] sessions = null;
-        public int traceId = 0;
-
-        public TmgiListIndication(ByteBuffer buf, short msgId) {
-            while (buf.hasRemaining()) {
-                try {
-                    int type = PrimitiveParser.toUnsigned(buf.get());
-                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                    if (type != 1) {
-                        if (type == 2) {
-                            if (msgId != 4) {
-                                if (msgId == 5) {
-                                }
-                            }
-                            this.code = buf.getInt();
-                            String access$000 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("response code = ");
-                            sb.append(this.code);
-                            Log.i(access$000, sb.toString());
-                        } else if (type != 16) {
-                            String access$0002 = EmbmsOemHook.LOG_TAG;
-                            StringBuilder sb2 = new StringBuilder();
-                            sb2.append("TmgiListIndication: Unexpected Type ");
-                            sb2.append(type);
-                            Log.e(access$0002, sb2.toString());
-                        }
-                        this.list = EmbmsOemHook.this.parseTmgi(buf);
-                        String access$0003 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("tmgiArray = ");
-                        sb3.append(EmbmsOemHook.bytesToHexString(this.list));
-                        Log.i(access$0003, sb3.toString());
-                    } else {
-                        this.traceId = buf.getInt();
-                        String access$0004 = EmbmsOemHook.LOG_TAG;
-                        StringBuilder sb4 = new StringBuilder();
-                        sb4.append("traceId = ");
-                        sb4.append(this.traceId);
-                        Log.i(access$0004, sb4.toString());
-                    }
-                } catch (BufferUnderflowException e) {
-                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in TmgiListIndication");
-                }
-            }
-        }
-    }
-
-    public class TmgiResponse {
-        public int code = 0;
-        public int status;
-        public byte[] tmgi = null;
-        public int traceId = 0;
-
-        public TmgiResponse(int status2, ByteBuffer buf) {
-            this.status = status2;
-            while (buf.hasRemaining()) {
-                int type = PrimitiveParser.toUnsigned(buf.get());
-                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
-                if (type == 1) {
-                    this.traceId = buf.getInt();
-                    String access$000 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("traceId = ");
-                    sb.append(this.traceId);
-                    Log.i(access$000, sb.toString());
-                } else if (type == 2) {
-                    this.code = buf.getInt();
-                    String access$0002 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("code = ");
-                    sb2.append(this.code);
-                    Log.i(access$0002, sb2.toString());
-                } else if (type == 16) {
-                    byte tmgiLength = buf.get();
-                    String access$0003 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb3 = new StringBuilder();
-                    sb3.append("callid = ");
-                    sb3.append(tmgiLength);
-                    Log.i(access$0003, sb3.toString());
-                } else if (type != 17) {
-                    String access$0004 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb4 = new StringBuilder();
-                    sb4.append("TmgiResponse: Unexpected Type ");
-                    sb4.append(type);
-                    Log.e(access$0004, sb4.toString());
-                } else {
-                    byte tmgiLength2 = buf.get();
-                    byte[] tmgi2 = new byte[tmgiLength2];
-                    for (int i = 0; i < tmgiLength2; i++) {
-                        tmgi2[i] = buf.get();
-                    }
-                    this.tmgi = tmgi2;
-                    String access$0005 = EmbmsOemHook.LOG_TAG;
-                    StringBuilder sb5 = new StringBuilder();
-                    sb5.append("tmgi = ");
-                    sb5.append(EmbmsOemHook.bytesToHexString(this.tmgi));
-                    Log.i(access$0005, sb5.toString());
-                }
-            }
-        }
-    }
-
-    public class UnsolObject {
-        public Object obj;
-        public int phoneId;
-        public int unsolId;
-
-        public UnsolObject(int i, Object o, int phone) {
-            this.unsolId = i;
-            this.obj = o;
-            this.phoneId = phone;
-        }
-    }
-
     private EmbmsOemHook(Context context) {
         Log.v(LOG_TAG, "EmbmsOemHook ()");
         this.mQmiOemHook = QmiOemHook.getInstance(context);
         QmiOemHook.registerService(2, this, 1);
-        QmiOemHook.registerOnReadyCb(this, 2, null);
+        QmiOemHook.registerOnReadyCb(this, 2, (Object) null);
     }
 
     public static synchronized EmbmsOemHook getInstance(Context context) {
@@ -1568,35 +181,25 @@ public class EmbmsOemHook extends Handler {
             sInstance = null;
             this.mRegistrants.removeCleared();
         } else {
-            String str = LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("dispose mRefCount = ");
-            sb.append(mRefCount);
-            Log.v(str, sb.toString());
+            Log.v(LOG_TAG, "dispose mRefCount = " + mRefCount);
         }
     }
 
     public void handleMessage(Message msg) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("received message : ");
-        sb.append(msg.what);
-        Log.i(str, sb.toString());
+        Log.i(str, "received message : " + msg.what);
         AsyncResult ar = (AsyncResult) msg.obj;
         int i = msg.what;
         if (i == 1) {
             HashMap<Integer, Object> map = (HashMap) ar.result;
             if (map == null) {
                 Log.e(LOG_TAG, "Hashmap async userobj is NULL");
-                return;
+            } else {
+                handleResponse(map);
             }
-            handleResponse(map);
         } else if (i != 2) {
             String str2 = LOG_TAG;
-            StringBuilder sb2 = new StringBuilder();
-            sb2.append("Unexpected message received from QmiOemHook what = ");
-            sb2.append(msg.what);
-            Log.e(str2, sb2.toString());
+            Log.e(str2, "Unexpected message received from QmiOemHook what = " + msg.what);
         } else {
             notifyUnsol(4097, ar.result, 0);
         }
@@ -1604,24 +207,17 @@ public class EmbmsOemHook extends Handler {
 
     private void handleResponse(HashMap<Integer, Object> map) {
         HashMap<Integer, Object> hashMap = map;
-        short msgId = ((Short) hashMap.get(Integer.valueOf(8))).shortValue();
-        int responseSize = ((Integer) hashMap.get(Integer.valueOf(2))).intValue();
-        int successStatus = ((Integer) hashMap.get(Integer.valueOf(3))).intValue();
-        Message msg = (Message) hashMap.get(Integer.valueOf(4));
-        int phoneId = ((Integer) hashMap.get(Integer.valueOf(9))).intValue();
+        short msgId = ((Short) hashMap.get(8)).shortValue();
+        int responseSize = ((Integer) hashMap.get(2)).intValue();
+        int successStatus = ((Integer) hashMap.get(3)).intValue();
+        Message msg = (Message) hashMap.get(4);
+        int phoneId = ((Integer) hashMap.get(9)).intValue();
         if (msg != null) {
             msg.arg1 = phoneId;
         }
-        ByteBuffer respByteBuf = (ByteBuffer) hashMap.get(Integer.valueOf(6));
+        ByteBuffer respByteBuf = (ByteBuffer) hashMap.get(6);
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append(" responseSize=");
-        sb.append(responseSize);
-        sb.append(" successStatus=");
-        sb.append(successStatus);
-        sb.append("phoneId: ");
-        sb.append(phoneId);
-        Log.d(str, sb.toString());
+        Log.d(str, " responseSize=" + responseSize + " successStatus=" + successStatus + "phoneId: " + phoneId);
         switch (msgId) {
             case 0:
                 msg.obj = new EnableResponse(successStatus, respByteBuf);
@@ -1643,10 +239,7 @@ public class EmbmsOemHook extends Handler {
                     return;
                 }
                 String str2 = LOG_TAG;
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("Error received in EMBMSHOOK_MSG_ID_GET_AVAILABLE: ");
-                sb2.append(successStatus);
-                Log.e(str2, sb2.toString());
+                Log.e(str2, "Error received in EMBMSHOOK_MSG_ID_GET_AVAILABLE: " + successStatus);
                 return;
             case 5:
             case 12:
@@ -1655,10 +248,7 @@ public class EmbmsOemHook extends Handler {
                     return;
                 }
                 String str3 = LOG_TAG;
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append("Error received in EMBMSHOOK_MSG_ID_GET_ACTIVE: ");
-                sb3.append(successStatus);
-                Log.e(str3, sb3.toString());
+                Log.e(str3, "Error received in EMBMSHOOK_MSG_ID_GET_ACTIVE: " + successStatus);
                 return;
             case 8:
             case 13:
@@ -1667,10 +257,7 @@ public class EmbmsOemHook extends Handler {
                     return;
                 }
                 String str4 = LOG_TAG;
-                StringBuilder sb4 = new StringBuilder();
-                sb4.append("Error received in EMBMSHOOK_MSG_ID_GET_COVERAGE: ");
-                sb4.append(successStatus);
-                Log.e(str4, sb4.toString());
+                Log.e(str4, "Error received in EMBMSHOOK_MSG_ID_GET_COVERAGE: " + successStatus);
                 return;
             case 9:
                 msg.obj = new SigStrengthResponse(successStatus, respByteBuf);
@@ -1701,10 +288,7 @@ public class EmbmsOemHook extends Handler {
                 return;
             case 22:
                 String str5 = LOG_TAG;
-                StringBuilder sb5 = new StringBuilder();
-                sb5.append(" deliverLogPacket response successStatus=");
-                sb5.append(successStatus);
-                Log.v(str5, sb5.toString());
+                Log.v(str5, " deliverLogPacket response successStatus=" + successStatus);
                 return;
             case 23:
                 msg.arg1 = successStatus;
@@ -1717,10 +301,7 @@ public class EmbmsOemHook extends Handler {
                     return;
                 }
                 String str6 = LOG_TAG;
-                StringBuilder sb6 = new StringBuilder();
-                sb6.append("Error received in EMBMSHOOK_MSG_ID_GET_SIB16_COVERAGE: ");
-                sb6.append(successStatus);
-                Log.e(str6, sb6.toString());
+                Log.e(str6, "Error received in EMBMSHOOK_MSG_ID_GET_SIB16_COVERAGE: " + successStatus);
                 return;
             case 26:
                 msg.obj = new TimeResponse(successStatus, respByteBuf);
@@ -1732,10 +313,7 @@ public class EmbmsOemHook extends Handler {
                 return;
             case 29:
                 String str7 = LOG_TAG;
-                StringBuilder sb7 = new StringBuilder();
-                sb7.append(" contentDescription response successStatus=");
-                sb7.append(successStatus);
-                Log.v(str7, sb7.toString());
+                Log.v(str7, " contentDescription response successStatus=" + successStatus);
                 return;
             case 30:
                 notifyUnsol(11, new ContentDescPerObjectControlIndication(respByteBuf), phoneId);
@@ -1753,28 +331,19 @@ public class EmbmsOemHook extends Handler {
                 return;
             case 35:
                 String str8 = LOG_TAG;
-                StringBuilder sb8 = new StringBuilder();
-                sb8.append(" getInterestedTmgiListResponse ack successStatus=");
-                sb8.append(successStatus);
-                Log.v(str8, sb8.toString());
+                Log.v(str8, " getInterestedTmgiListResponse ack successStatus=" + successStatus);
                 return;
             default:
                 String str9 = LOG_TAG;
-                StringBuilder sb9 = new StringBuilder();
-                sb9.append("received unexpected msgId ");
-                sb9.append(msgId);
-                Log.e(str9, sb9.toString());
+                Log.e(str9, "received unexpected msgId " + msgId);
                 return;
         }
     }
 
     private void notifyUnsol(int type, Object payload, int phoneId) {
-        AsyncResult ar = new AsyncResult(null, new UnsolObject(type, payload, phoneId), null);
+        AsyncResult ar = new AsyncResult((Object) null, new UnsolObject(type, payload, phoneId), (Throwable) null);
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("Notifying registrants type = ");
-        sb.append(type);
-        Log.i(str, sb.toString());
+        Log.i(str, "Notifying registrants type = " + type);
         this.mRegistrants.notifyRegistrants(ar);
     }
 
@@ -1796,10 +365,7 @@ public class EmbmsOemHook extends Handler {
     public int enable(int traceId, Message msg, int phoneId) {
         try {
             String str = LOG_TAG;
-            StringBuilder sb = new StringBuilder();
-            sb.append("enable called on PhoneId: ");
-            sb.append(phoneId);
-            Log.i(str, sb.toString());
+            Log.i(str, "enable called on PhoneId: " + phoneId);
             BasicRequest req = new BasicRequest(traceId);
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_ENABLE, req.getTypes(), req.getItems(), msg, phoneId);
             return 0;
@@ -1811,12 +377,8 @@ public class EmbmsOemHook extends Handler {
 
     public int activateTmgi(int traceId, byte callId, byte[] tmgi, int priority, int[] saiList, int[] earfcnList, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("activateTmgi called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
-        TmgiActivateRequest tmgiActivateRequest = new TmgiActivateRequest(traceId, callId, tmgi, priority, saiList, earfcnList);
-        TmgiActivateRequest req = tmgiActivateRequest;
+        Log.i(str, "activateTmgi called on PhoneId: " + phoneId);
+        TmgiActivateRequest req = new TmgiActivateRequest(traceId, callId, tmgi, priority, saiList, earfcnList);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, 2, req.getTypes(), req.getItems(), msg, phoneId);
             return 0;
@@ -1828,10 +390,7 @@ public class EmbmsOemHook extends Handler {
 
     public int deactivateTmgi(int traceId, byte callId, byte[] tmgi, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("deactivateTmgi called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "deactivateTmgi called on PhoneId: " + phoneId);
         TmgiDeActivateRequest req = new TmgiDeActivateRequest(traceId, tmgi, callId);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, 3, req.getTypes(), req.getItems(), msg, phoneId);
@@ -1844,12 +403,8 @@ public class EmbmsOemHook extends Handler {
 
     public int actDeactTmgi(int traceId, byte callId, byte[] actTmgi, byte[] deActTmgi, int priority, int[] saiList, int[] earfcnList, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("actDeactTmgi called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
-        ActDeactRequest actDeactRequest = new ActDeactRequest(traceId, callId, actTmgi, deActTmgi, priority, saiList, earfcnList);
-        ActDeactRequest req = actDeactRequest;
+        Log.i(str, "actDeactTmgi called on PhoneId: " + phoneId);
+        ActDeactRequest req = new ActDeactRequest(traceId, callId, actTmgi, deActTmgi, priority, saiList, earfcnList);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, 17, req.getTypes(), req.getItems(), msg, phoneId);
             return 0;
@@ -1861,10 +416,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getAvailableTMGIList(int traceId, byte callId, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getAvailableTMGIList called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getAvailableTMGIList called on PhoneId: " + phoneId);
         GenericRequest req = new GenericRequest(traceId, callId);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, 4, req.getTypes(), req.getItems(), (Message) null, phoneId);
@@ -1877,10 +429,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getActiveTMGIList(int traceId, byte callId, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getActiveTMGIList called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getActiveTMGIList called on PhoneId: " + phoneId);
         GenericRequest req = new GenericRequest(traceId, callId);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_GET_ACTIVE, req.getTypes(), req.getItems(), (Message) null, phoneId);
@@ -1893,10 +442,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getCoverageState(int traceId, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getCoverageState called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getCoverageState called on PhoneId: " + phoneId);
         try {
             BasicRequest req = new BasicRequest(traceId);
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_GET_COVERAGE, req.getTypes(), req.getItems(), (Message) null, phoneId);
@@ -1909,10 +455,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getSignalStrength(int traceId, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getSignalStrength called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getSignalStrength called on PhoneId: " + phoneId);
         try {
             BasicRequest req = new BasicRequest(traceId);
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_GET_SIG_STRENGTH, req.getTypes(), req.getItems(), msg, phoneId);
@@ -1925,10 +468,7 @@ public class EmbmsOemHook extends Handler {
 
     public int disable(int traceId, byte callId, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("disable called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "disable called on PhoneId: " + phoneId);
         GenericRequest req = new GenericRequest(traceId, callId);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, 1, req.getTypes(), req.getItems(), msg, phoneId);
@@ -1941,10 +481,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getActiveLogPacketIDs(int traceId, int[] supportedLogPacketIdList, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getActiveLogPacketIDs called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getActiveLogPacketIDs called on PhoneId: " + phoneId);
         ActiveLogPacketIDsRequest req = new ActiveLogPacketIDsRequest(traceId, supportedLogPacketIdList);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_GET_ACTIVE_LOG_PACKET_IDS, req.getTypes(), req.getItems(), msg, phoneId);
@@ -1957,10 +494,7 @@ public class EmbmsOemHook extends Handler {
 
     public int deliverLogPacket(int traceId, int logPacketId, byte[] logPacket, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("deliverLogPacket called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "deliverLogPacket called on PhoneId: " + phoneId);
         DeliverLogPacketRequest req = new DeliverLogPacketRequest(traceId, logPacketId, logPacket);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_DELIVER_LOG_PACKET, req.getTypes(), req.getItems(), (Message) null, phoneId);
@@ -1977,19 +511,15 @@ public class EmbmsOemHook extends Handler {
         }
         StringBuilder ret = new StringBuilder(bytes.length * 2);
         for (int i = 0; i < bytes.length; i++) {
-            String str = "0123456789abcdef";
-            ret.append(str.charAt((bytes[i] >> 4) & 15));
-            ret.append(str.charAt(bytes[i] & 15));
+            ret.append("0123456789abcdef".charAt((bytes[i] >> 4) & 15));
+            ret.append("0123456789abcdef".charAt(bytes[i] & 15));
         }
         return ret.toString();
     }
 
     public int getTime(int traceId, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getTime called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getTime called on PhoneId: " + phoneId);
         try {
             BasicRequest req = new BasicRequest(traceId);
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_GET_TIME, req.getTypes(), req.getItems(), msg, phoneId);
@@ -2002,10 +532,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getSib16CoverageStatus(Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getSib16CoverageStatus called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getSib16CoverageStatus called on PhoneId: " + phoneId);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, EMBMSHOOK_MSG_ID_GET_SIB16_COVERAGE, msg, phoneId);
             return 0;
@@ -2017,10 +544,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getEmbmsStatus(int traceId, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getEmbmsStatus called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getEmbmsStatus called on PhoneId: " + phoneId);
         try {
             BasicRequest req = new BasicRequest(traceId);
             this.mQmiOemHook.sendQmiMessageAsync(2, 33, req.getTypes(), req.getItems(), (Message) null, phoneId);
@@ -2033,27 +557,14 @@ public class EmbmsOemHook extends Handler {
 
     public int setTime(boolean sntpSuccess, long timeMseconds, long timeStamp, Message msg, int phoneId) {
         byte success;
-        String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("setTime called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(LOG_TAG, "setTime called on PhoneId: " + phoneId);
         if (sntpSuccess) {
             success = 1;
         } else {
             success = 0;
         }
-        String str2 = LOG_TAG;
-        StringBuilder sb2 = new StringBuilder();
-        sb2.append("setTime success = ");
-        sb2.append(success);
-        sb2.append(" timeMseconds = ");
-        sb2.append(timeMseconds);
-        sb2.append(" timeStamp = ");
-        sb2.append(timeStamp);
-        Log.i(str2, sb2.toString());
-        SetTimeRequest setTimeRequest = new SetTimeRequest(success, timeMseconds, timeStamp);
-        SetTimeRequest req = setTimeRequest;
+        Log.i(LOG_TAG, "setTime success = " + success + " timeMseconds = " + timeMseconds + " timeStamp = " + timeStamp);
+        SetTimeRequest req = new SetTimeRequest(success, timeMseconds, timeStamp);
         try {
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_SET_TIME, req.getTypes(), req.getItems(), msg, phoneId);
             return 0;
@@ -2065,10 +576,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getE911State(int traceId, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getE911State called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getE911State called on PhoneId: " + phoneId);
         try {
             BasicRequest req = new BasicRequest(traceId);
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_GET_E911_STATE, req.getTypes(), req.getItems(), msg, phoneId);
@@ -2080,26 +588,18 @@ public class EmbmsOemHook extends Handler {
     }
 
     public int contentDescription(int traceId, byte callId, byte[] tmgi, int numberOfParameter, int[] parameterCode, int[] parameterValue, Message msg, int phoneId) {
-        String str;
         int i = numberOfParameter;
         int[] parameterCode2 = parameterCode;
         int[] parameterValue2 = parameterValue;
         try {
-            String str2 = LOG_TAG;
+            String str = LOG_TAG;
             StringBuilder sb = new StringBuilder();
             sb.append("contentDescription called on PhoneId: ");
             try {
                 sb.append(phoneId);
-                Log.i(str2, sb.toString());
-                str = " parameterValue = ";
+                Log.i(str, sb.toString());
                 if (parameterCode2 == null || parameterValue2 == null) {
-                    String str3 = LOG_TAG;
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("contentDescription: either parameterCode or parameterValue is nullparameterCode = ");
-                    sb2.append(parameterCode2);
-                    sb2.append(str);
-                    sb2.append(parameterValue2);
-                    Log.i(str3, sb2.toString());
+                    Log.i(LOG_TAG, "contentDescription: either parameterCode or parameterValue is nullparameterCode = " + parameterCode2 + " parameterValue = " + parameterValue2);
                     parameterCode2 = new int[0];
                     try {
                         parameterValue2 = new int[0];
@@ -2123,26 +623,13 @@ public class EmbmsOemHook extends Handler {
                             parameterArray[i2 + 1] = parameterValue2[pointer];
                             pointer++;
                         }
-                        String str4 = LOG_TAG;
-                        StringBuilder sb3 = new StringBuilder();
-                        sb3.append("contentDescription: parameterArray: ");
-                        sb3.append(Arrays.toString(parameterArray));
-                        Log.i(str4, sb3.toString());
-                        ContentDescriptionReq contentDescriptionReq = new ContentDescriptionReq(traceId, callId, tmgi, parameterArray);
-                        ContentDescriptionReq req = contentDescriptionReq;
+                        Log.i(LOG_TAG, "contentDescription: parameterArray: " + Arrays.toString(parameterArray));
+                        ContentDescriptionReq req = new ContentDescriptionReq(traceId, callId, tmgi, parameterArray);
                         this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_CONTENT_DESCRIPTION, req.getTypes(), req.getItems(), msg, phoneId);
                         return 0;
                     }
                 }
-                String str5 = LOG_TAG;
-                StringBuilder sb4 = new StringBuilder();
-                sb4.append("contentDescription: Invalid input, numberOfParameter = ");
-                sb4.append(i);
-                sb4.append(" parameterCode = ");
-                sb4.append(parameterCode2);
-                sb4.append(str);
-                sb4.append(parameterValue2);
-                Log.e(str5, sb4.toString());
+                Log.e(LOG_TAG, "contentDescription: Invalid input, numberOfParameter = " + i + " parameterCode = " + parameterCode2 + " parameterValue = " + parameterValue2);
                 return -1;
             } catch (IOException e3) {
                 Log.e(LOG_TAG, "IOException occurred during contentDescription !!!!!!");
@@ -2157,10 +644,7 @@ public class EmbmsOemHook extends Handler {
 
     public int getPLMNListRequest(int traceId, Message msg, int phoneId) {
         String str = LOG_TAG;
-        StringBuilder sb = new StringBuilder();
-        sb.append("getPLMNListRequest called on PhoneId: ");
-        sb.append(phoneId);
-        Log.i(str, sb.toString());
+        Log.i(str, "getPLMNListRequest called on PhoneId: " + phoneId);
         try {
             BasicRequest req = new BasicRequest(traceId);
             this.mQmiOemHook.sendQmiMessageAsync(2, (short) EMBMSHOOK_MSG_ID_GET_PLMN_LIST, req.getTypes(), req.getItems(), msg, phoneId);
@@ -2182,6 +666,57 @@ public class EmbmsOemHook extends Handler {
         }
     }
 
+    public class UnsolObject {
+        public Object obj;
+        public int phoneId;
+        public int unsolId;
+
+        public UnsolObject(int i, Object o, int phone) {
+            this.unsolId = i;
+            this.obj = o;
+            this.phoneId = phone;
+        }
+    }
+
+    public class StateChangeInfo {
+        public int ifIndex;
+        public String ipAddress;
+        public int state;
+
+        public StateChangeInfo(int state2, String address, int index) {
+            this.state = state2;
+            this.ipAddress = address;
+            this.ifIndex = index;
+        }
+
+        public StateChangeInfo(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                int type = PrimitiveParser.toUnsigned(buf.get());
+                int length = PrimitiveParser.toUnsigned(buf.getShort());
+                if (type == 1) {
+                    this.state = buf.getInt();
+                    String access$000 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$000, "State = " + this.state);
+                } else if (type == 2) {
+                    byte[] address = new byte[length];
+                    for (int i = 0; i < length; i++) {
+                        address[i] = buf.get();
+                    }
+                    this.ipAddress = new QmiPrimitiveTypes.QmiString(address).toString();
+                    String access$0002 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0002, "ip Address = " + this.ipAddress);
+                } else if (type != 3) {
+                    String access$0003 = EmbmsOemHook.LOG_TAG;
+                    Log.e(access$0003, "StateChangeInfo: Unexpected Type " + type);
+                } else {
+                    this.ifIndex = buf.getInt();
+                    String access$0004 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0004, "index = " + this.ifIndex);
+                }
+            }
+        }
+    }
+
     /* access modifiers changed from: private */
     public byte[] parseTmgi(ByteBuffer buf) {
         int index = 0;
@@ -2191,10 +726,9 @@ public class EmbmsOemHook extends Handler {
             byte tmgiLength = buf.get();
             int j = 0;
             while (j < tmgiLength) {
-                int index2 = index + 1;
                 tmgi[index] = buf.get();
                 j++;
-                index = index2;
+                index++;
             }
         }
         return tmgi;
@@ -2209,64 +743,1107 @@ public class EmbmsOemHook extends Handler {
             byte tmgiLength = buf.get();
             int j = 0;
             while (j < tmgiLength) {
-                int index2 = index + 1;
                 tmgi[index] = buf.get();
                 j++;
-                index = index2;
+                index++;
             }
         }
         return tmgi;
     }
 
-    /* access modifiers changed from: private */
-    public QmiArray<QmiByte> byteArrayToQmiArray(short vSize, byte[] arr) {
-        QmiByte[] qmiByteArray = new QmiByte[arr.length];
-        for (int i = 0; i < arr.length; i++) {
-            qmiByteArray[i] = new QmiByte(arr[i]);
+    public class TmgiListIndication {
+        public int code = 0;
+        public byte[] list = new byte[0];
+        public byte[] sessions = null;
+        public int traceId = 0;
+
+        public TmgiListIndication(ByteBuffer buf, short msgId) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type != 1) {
+                        if (type == 2) {
+                            if (msgId != 4) {
+                                if (msgId == 5) {
+                                }
+                            }
+                            this.code = buf.getInt();
+                            String access$000 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$000, "response code = " + this.code);
+                        } else if (type != 16) {
+                            String access$0002 = EmbmsOemHook.LOG_TAG;
+                            Log.e(access$0002, "TmgiListIndication: Unexpected Type " + type);
+                        }
+                        this.list = EmbmsOemHook.this.parseTmgi(buf);
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "tmgiArray = " + EmbmsOemHook.bytesToHexString(this.list));
+                    } else {
+                        this.traceId = buf.getInt();
+                        String access$0004 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0004, "traceId = " + this.traceId);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in TmgiListIndication");
+                }
+            }
         }
-        return new QmiArray<>((T[]) qmiByteArray, QmiByte.class, vSize);
+    }
+
+    public class OosState {
+        public byte[] list = null;
+        public int state;
+        public int traceId = 0;
+
+        public OosState(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                int type = PrimitiveParser.toUnsigned(buf.get());
+                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                if (type == 1) {
+                    this.traceId = buf.getInt();
+                    String access$000 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$000, "traceId = " + this.traceId);
+                } else if (type == 2) {
+                    this.state = buf.getInt();
+                    String access$0002 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0002, "OOs State = " + this.state);
+                } else if (type != 3) {
+                    String access$0003 = EmbmsOemHook.LOG_TAG;
+                    Log.e(access$0003, "OosState: Unexpected Type " + type);
+                } else {
+                    this.list = EmbmsOemHook.this.parseTmgi(buf);
+                    String access$0004 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0004, "tmgiArray = " + EmbmsOemHook.bytesToHexString(this.list));
+                }
+            }
+        }
+    }
+
+    public class CellIdIndication {
+        public String id = null;
+        public String mcc = null;
+        public String mnc = null;
+        public int traceId = 0;
+
+        public CellIdIndication(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int length = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type == 2) {
+                        byte[] temp = new byte[length];
+                        for (int i = 0; i < length; i++) {
+                            temp[i] = buf.get();
+                        }
+                        this.mcc = new QmiPrimitiveTypes.QmiString(temp).toStringValue();
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0002, "MCC = " + this.mcc);
+                    } else if (type == 3) {
+                        byte[] temp2 = new byte[length];
+                        for (int i2 = 0; i2 < length; i2++) {
+                            temp2[i2] = buf.get();
+                        }
+                        this.mnc = new QmiPrimitiveTypes.QmiString(temp2).toStringValue();
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "MNC = " + this.mnc);
+                    } else if (type != 4) {
+                        String access$0004 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$0004, "CellIdIndication: Unexpected Type " + type);
+                    } else {
+                        this.id = String.format("%7s", new Object[]{Integer.toHexString(buf.getInt())}).replace(' ', '0');
+                        String access$0005 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0005, "CellId = " + this.id);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for CellIdIndication");
+                }
+            }
+        }
+    }
+
+    public class RadioStateIndication {
+        public int state = 0;
+        public int traceId = 0;
+
+        public RadioStateIndication(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type != 2) {
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$0002, "RadioStateIndication: Unexpected Type " + type);
+                    } else {
+                        this.state = buf.getInt();
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "radio = " + this.state);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for RadioStateIndication");
+                }
+            }
+        }
+    }
+
+    public class SaiIndication {
+        public int[] availableSaiList = null;
+        public int[] campedSaiList = null;
+        public int[] numSaiPerGroupList = null;
+        public int traceId = 0;
+
+        public SaiIndication(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = buf.get();
+                    short s = buf.getShort();
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type == 2) {
+                        int listLength = buf.get();
+                        int[] list = new int[listLength];
+                        for (int i = 0; i < listLength; i++) {
+                            list[i] = buf.getInt();
+                        }
+                        this.campedSaiList = list;
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0002, "Camped list = " + Arrays.toString(this.campedSaiList));
+                    } else if (type == 3) {
+                        int listLength2 = buf.get();
+                        int[] list2 = new int[listLength2];
+                        for (int i2 = 0; i2 < listLength2; i2++) {
+                            list2[i2] = buf.getInt();
+                        }
+                        this.numSaiPerGroupList = list2;
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "Number of SAI per group list = " + Arrays.toString(this.numSaiPerGroupList));
+                    } else if (type != 4) {
+                        String access$0004 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$0004, "SaiIndication: Unexpected Type " + type);
+                    } else {
+                        int availableLength = buf.getShort();
+                        int[] list3 = new int[availableLength];
+                        for (int i3 = 0; i3 < availableLength; i3++) {
+                            list3[i3] = buf.getInt();
+                        }
+                        this.availableSaiList = list3;
+                        String access$0005 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0005, "Available SAI list = " + Arrays.toString(this.availableSaiList));
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for SaiIndication");
+                }
+            }
+        }
+    }
+
+    public class CoverageState {
+        public int code = 0;
+        public int state;
+        public int status;
+        public int traceId = 0;
+
+        public CoverageState(ByteBuffer buf, short msgId) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type != 1) {
+                        if (type != 2) {
+                            if (type != 16) {
+                                String access$000 = EmbmsOemHook.LOG_TAG;
+                                Log.e(access$000, "CoverageState: Unexpected Type " + type);
+                            }
+                        } else if (msgId == 8) {
+                            this.code = buf.getInt();
+                            String access$0002 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0002, "response code = " + this.code);
+                        }
+                        this.state = buf.getInt();
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "Coverage State = " + this.state);
+                    } else {
+                        this.traceId = buf.getInt();
+                        String access$0004 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0004, "traceId = " + this.traceId);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in CoverageState");
+                }
+            }
+        }
+    }
+
+    public class Sib16Coverage {
+        public boolean inCoverage = false;
+
+        public Sib16Coverage(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type != 1) {
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$000, "Sib16Coverage: Unexpected Type " + type);
+                    } else {
+                        if (buf.get() == 1) {
+                            this.inCoverage = true;
+                        }
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0002, "Unsol SIB16 coverage status = " + this.inCoverage);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for Sib16Coverage");
+                }
+            }
+        }
+    }
+
+    public class E911StateIndication {
+        public int code;
+        public int state;
+        public int traceId = 0;
+
+        public E911StateIndication(ByteBuffer buf, short msgId) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type != 1) {
+                        if (type != 2) {
+                            if (type != 16) {
+                                String access$000 = EmbmsOemHook.LOG_TAG;
+                                Log.e(access$000, "E911 State: Unexpected Type " + type);
+                            }
+                        } else if (msgId == 27) {
+                            this.code = buf.getInt();
+                            String access$0002 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0002, "response code = " + this.code);
+                        }
+                        this.state = buf.getInt();
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "E911 State = " + this.state);
+                    } else {
+                        this.traceId = buf.getInt();
+                        String access$0004 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0004, "traceId = " + this.traceId);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for E911 Notification");
+                }
+            }
+        }
+    }
+
+    public class ContentDescPerObjectControlIndication {
+        public int perObjectContentControl;
+        public int perObjectStatusControl;
+        public byte[] tmgi = null;
+        public int traceId = 0;
+
+        public ContentDescPerObjectControlIndication(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type == 2) {
+                        int tmgiLength = buf.get();
+                        byte[] tmgi2 = new byte[tmgiLength];
+                        for (int i = 0; i < tmgiLength; i++) {
+                            tmgi2[i] = buf.get();
+                        }
+                        this.tmgi = tmgi2;
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0002, "tmgi = " + EmbmsOemHook.bytesToHexString(this.tmgi));
+                    } else if (type == 16) {
+                        this.perObjectContentControl = buf.getInt();
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "perObjectContentControl = " + this.perObjectContentControl);
+                    } else if (type != 17) {
+                        String access$0004 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$0004, "ContentDescPerObjectControl: Unexpected Type " + type);
+                    } else {
+                        this.perObjectStatusControl = buf.getInt();
+                        String access$0005 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0005, "perObjectStatusControl = " + this.perObjectStatusControl);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing forContentDescPerObjectControl Notification");
+                }
+            }
+        }
+    }
+
+    public class RequestIndication {
+        public int traceId = 0;
+
+        public RequestIndication(ByteBuffer buf) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type != 1) {
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$000, "RequestIndication: Unexpected Type " + type);
+                    } else {
+                        this.traceId = buf.getInt();
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0002, "traceId = " + this.traceId);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for RequestIndication");
+                }
+            }
+        }
+    }
+
+    public class EnableResponse {
+        public byte callId = 0;
+        public int code = 0;
+        public int ifIndex = 0;
+        public String interfaceName = null;
+        public int status;
+        public int traceId;
+
+        public EnableResponse(int error, ByteBuffer buf) {
+            this.status = error;
+            while (buf.hasRemaining()) {
+                int type = PrimitiveParser.toUnsigned(buf.get());
+                int length = PrimitiveParser.toUnsigned(buf.getShort());
+                if (type == 1) {
+                    this.traceId = buf.getInt();
+                    String access$000 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$000, "traceId = " + this.traceId);
+                } else if (type != 2) {
+                    switch (type) {
+                        case 16:
+                            this.callId = buf.get();
+                            String access$0002 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0002, "callid = " + this.callId);
+                            break;
+                        case 17:
+                            byte[] name = new byte[length];
+                            for (int i = 0; i < length; i++) {
+                                name[i] = buf.get();
+                            }
+                            this.interfaceName = new QmiPrimitiveTypes.QmiString(name).toStringValue();
+                            String access$0003 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0003, "ifName = " + this.interfaceName);
+                            break;
+                        case 18:
+                            this.ifIndex = buf.getInt();
+                            String access$0004 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0004, "ifIndex = " + this.ifIndex);
+                            break;
+                        default:
+                            String access$0005 = EmbmsOemHook.LOG_TAG;
+                            Log.e(access$0005, "EnableResponse: Unexpected Type " + type);
+                            break;
+                    }
+                } else {
+                    this.code = buf.getInt();
+                    String access$0006 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0006, "code = " + this.code);
+                }
+            }
+        }
+    }
+
+    public class DisableResponse {
+        public byte callId = 0;
+        public int code = 0;
+        public int status;
+        public int traceId;
+
+        public DisableResponse(int error, ByteBuffer buf) {
+            this.status = error;
+            while (buf.hasRemaining()) {
+                int type = PrimitiveParser.toUnsigned(buf.get());
+                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                if (type == 1) {
+                    this.traceId = buf.getInt();
+                    String access$000 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$000, "traceId = " + this.traceId);
+                } else if (type == 2) {
+                    this.code = buf.getInt();
+                    String access$0002 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0002, "code = " + this.code);
+                } else if (type != 16) {
+                    String access$0003 = EmbmsOemHook.LOG_TAG;
+                    Log.e(access$0003, "DisableResponse: Unexpected Type " + type);
+                } else {
+                    this.callId = buf.get();
+                    String access$0004 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0004, "callid = " + this.callId);
+                }
+            }
+        }
+    }
+
+    public class BasicRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public BasicRequest(int trace) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1};
+        }
+    }
+
+    public class GenericRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiByte callId;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public GenericRequest(int trace, byte callId2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+            this.callId = new QmiPrimitiveTypes.QmiByte(callId2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.callId};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2};
+        }
     }
 
     /* access modifiers changed from: private */
-    public QmiArray<QmiByte> tmgiListArrayToQmiArray(short vSize, byte[] tmgiList) {
+    public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> byteArrayToQmiArray(short vSize, byte[] arr) {
+        QmiPrimitiveTypes.QmiByte[] qmiByteArray = new QmiPrimitiveTypes.QmiByte[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            qmiByteArray[i] = new QmiPrimitiveTypes.QmiByte(arr[i]);
+        }
+        return new QmiPrimitiveTypes.QmiArray<>((T[]) qmiByteArray, QmiPrimitiveTypes.QmiByte.class, vSize);
+    }
+
+    /* access modifiers changed from: private */
+    public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> tmgiListArrayToQmiArray(short vSize, byte[] tmgiList) {
         int length = tmgiList == null ? 0 : tmgiList.length;
         int numOfTmgi = length / 6;
-        QmiByte[] qmiByteArray = new QmiByte[(length + (numOfTmgi * 1))];
+        QmiPrimitiveTypes.QmiByte[] qmiByteArray = new QmiPrimitiveTypes.QmiByte[(length + (numOfTmgi * 1))];
         int index = 0;
         int i = 0;
         while (i < numOfTmgi) {
             int index2 = index + 1;
-            qmiByteArray[index] = new QmiByte(6);
+            qmiByteArray[index] = new QmiPrimitiveTypes.QmiByte(6);
             int j = i * 6;
             while (j < (i + 1) * 6) {
-                int index3 = index2 + 1;
-                qmiByteArray[index2] = new QmiByte(tmgiList[j]);
+                qmiByteArray[index2] = new QmiPrimitiveTypes.QmiByte(tmgiList[j]);
                 j++;
-                index2 = index3;
+                index2++;
             }
             i++;
             index = index2;
         }
-        return new QmiArray<>(qmiByteArray, QmiByte.class, vSize, 7);
+        return new QmiPrimitiveTypes.QmiArray<>(qmiByteArray, QmiPrimitiveTypes.QmiByte.class, vSize, 7);
     }
 
     /* access modifiers changed from: private */
-    public QmiArray<QmiInteger> intArrayToQmiArray(short vSize, int[] arr) {
+    public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> intArrayToQmiArray(short vSize, int[] arr) {
         int length = arr == null ? 0 : arr.length;
-        QmiInteger[] qmiIntArray = new QmiInteger[length];
+        QmiPrimitiveTypes.QmiInteger[] qmiIntArray = new QmiPrimitiveTypes.QmiInteger[length];
         for (int i = 0; i < length; i++) {
-            qmiIntArray[i] = new QmiInteger((long) arr[i]);
+            qmiIntArray[i] = new QmiPrimitiveTypes.QmiInteger((long) arr[i]);
         }
-        return new QmiArray<>((T[]) qmiIntArray, QmiInteger.class, vSize);
+        return new QmiPrimitiveTypes.QmiArray<>((T[]) qmiIntArray, QmiPrimitiveTypes.QmiInteger.class, vSize);
     }
 
     /* access modifiers changed from: private */
-    public QmiArray<QmiInteger> intArrayToQmiArray(short vSize, int[] arr, short numOfElements) {
+    public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> intArrayToQmiArray(short vSize, int[] arr, short numOfElements) {
         int length = arr == null ? 0 : arr.length;
-        QmiInteger[] qmiIntArray = new QmiInteger[length];
+        QmiPrimitiveTypes.QmiInteger[] qmiIntArray = new QmiPrimitiveTypes.QmiInteger[length];
         for (int i = 0; i < length; i++) {
-            qmiIntArray[i] = new QmiInteger((long) arr[i]);
+            qmiIntArray[i] = new QmiPrimitiveTypes.QmiInteger((long) arr[i]);
         }
-        return new QmiArray<>(qmiIntArray, QmiInteger.class, vSize, numOfElements);
+        return new QmiPrimitiveTypes.QmiArray<>(qmiIntArray, QmiPrimitiveTypes.QmiInteger.class, vSize, numOfElements);
+    }
+
+    public class TmgiActivateRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiByte callId;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> earfcnList;
+        public QmiPrimitiveTypes.QmiInteger priority;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> saiList;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> tmgi;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public TmgiActivateRequest(int trace, byte callId2, byte[] tmgi2, int priority2, int[] saiList2, int[] earfcnList2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+            this.callId = new QmiPrimitiveTypes.QmiByte(callId2);
+            this.priority = new QmiPrimitiveTypes.QmiInteger((long) priority2);
+            this.tmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, tmgi2);
+            this.saiList = EmbmsOemHook.this.intArrayToQmiArray(1, saiList2);
+            this.earfcnList = EmbmsOemHook.this.intArrayToQmiArray(1, earfcnList2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.callId, this.tmgi, this.priority, this.saiList, this.earfcnList};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2, 3, 4, 16, EmbmsOemHook.EMBMSHOOK_MSG_ID_GET_ACTIVE};
+        }
+    }
+
+    public class ActDeactRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> actTmgi;
+        public QmiPrimitiveTypes.QmiByte callId;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> deActTmgi;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> earfcnList;
+        public QmiPrimitiveTypes.QmiInteger priority;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> saiList;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public ActDeactRequest(int trace, byte callId2, byte[] actTmgi2, byte[] deActTmgi2, int priority2, int[] saiList2, int[] earfcnList2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+            this.callId = new QmiPrimitiveTypes.QmiByte(callId2);
+            this.priority = new QmiPrimitiveTypes.QmiInteger((long) priority2);
+            this.actTmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, actTmgi2);
+            this.deActTmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, deActTmgi2);
+            this.saiList = EmbmsOemHook.this.intArrayToQmiArray(1, saiList2);
+            this.earfcnList = EmbmsOemHook.this.intArrayToQmiArray(1, earfcnList2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.callId, this.actTmgi, this.deActTmgi, this.priority, this.saiList, this.earfcnList};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2, 3, 4, EmbmsOemHook.EMBMSHOOK_MSG_ID_GET_ACTIVE, 16, EmbmsOemHook.SIZE_OF_EACH_PLMN_IN_BYTES};
+        }
+    }
+
+    public class TmgiDeActivateRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiByte callId;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> tmgi;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public TmgiDeActivateRequest(int trace, byte[] tmgi2, byte callId2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+            this.tmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, tmgi2);
+            this.callId = new QmiPrimitiveTypes.QmiByte(callId2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.callId, this.tmgi};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2, 3};
+        }
+    }
+
+    public class SetTimeRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiByte sntpSuccess;
+        public QmiPrimitiveTypes.QmiLong timeMseconds;
+        public QmiPrimitiveTypes.QmiLong timeStamp;
+
+        public SetTimeRequest(byte sntpSuccess2, long timeMseconds2, long timeStamp2) {
+            this.sntpSuccess = new QmiPrimitiveTypes.QmiByte(sntpSuccess2);
+            this.timeMseconds = new QmiPrimitiveTypes.QmiLong(timeMseconds2);
+            this.timeStamp = new QmiPrimitiveTypes.QmiLong(timeStamp2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.sntpSuccess, this.timeMseconds, this.timeStamp};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 16, 17};
+        }
+    }
+
+    public class ActiveLogPacketIDsRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> supportedLogPacketIdList;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public ActiveLogPacketIDsRequest(int trace, int[] supportedLogPacketIdList2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+            this.supportedLogPacketIdList = EmbmsOemHook.this.intArrayToQmiArray(2, supportedLogPacketIdList2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.supportedLogPacketIdList};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2};
+        }
+    }
+
+    public class DeliverLogPacketRequest extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> logPacket;
+        public QmiPrimitiveTypes.QmiInteger logPacketId;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public DeliverLogPacketRequest(int trace, int logPacketId2, byte[] logPacket2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+            this.logPacketId = new QmiPrimitiveTypes.QmiInteger((long) logPacketId2);
+            this.logPacket = EmbmsOemHook.this.byteArrayToQmiArray(2, logPacket2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.logPacketId, this.logPacket};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2, 3};
+        }
+    }
+
+    public class ContentDescriptionReq extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiByte callId;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiInteger> parameterArray;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> tmgi;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public ContentDescriptionReq(int trace, byte callId2, byte[] tmgi2, int[] parameterArray2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) trace);
+            this.callId = new QmiPrimitiveTypes.QmiByte(callId2);
+            this.tmgi = EmbmsOemHook.this.byteArrayToQmiArray(1, tmgi2);
+            this.parameterArray = EmbmsOemHook.this.intArrayToQmiArray(1, parameterArray2, 2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.callId, this.tmgi, this.parameterArray};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2, 3, 16};
+        }
+    }
+
+    public class GetInterestedTmgiResponse extends BaseQmiTypes.BaseQmiStructType {
+        public QmiPrimitiveTypes.QmiByte callId;
+        public QmiPrimitiveTypes.QmiArray<QmiPrimitiveTypes.QmiByte> tmgiList;
+        public QmiPrimitiveTypes.QmiInteger traceId;
+
+        public GetInterestedTmgiResponse(int traceId2, byte callId2, byte[] tmgiList2) {
+            this.traceId = new QmiPrimitiveTypes.QmiInteger((long) traceId2);
+            this.callId = new QmiPrimitiveTypes.QmiByte(callId2);
+            this.tmgiList = EmbmsOemHook.this.tmgiListArrayToQmiArray(1, tmgiList2);
+        }
+
+        public BaseQmiTypes.BaseQmiItemType[] getItems() {
+            return new BaseQmiTypes.BaseQmiItemType[]{this.traceId, this.callId, this.tmgiList};
+        }
+
+        public short[] getTypes() {
+            return new short[]{1, 2, 3};
+        }
+    }
+
+    public class TmgiResponse {
+        public int code = 0;
+        public int status;
+        public byte[] tmgi = null;
+        public int traceId = 0;
+
+        public TmgiResponse(int status2, ByteBuffer buf) {
+            this.status = status2;
+            while (buf.hasRemaining()) {
+                int type = PrimitiveParser.toUnsigned(buf.get());
+                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                if (type == 1) {
+                    this.traceId = buf.getInt();
+                    String access$000 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$000, "traceId = " + this.traceId);
+                } else if (type == 2) {
+                    this.code = buf.getInt();
+                    String access$0002 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0002, "code = " + this.code);
+                } else if (type == 16) {
+                    byte id = buf.get();
+                    String access$0003 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0003, "callid = " + id);
+                } else if (type != 17) {
+                    String access$0004 = EmbmsOemHook.LOG_TAG;
+                    Log.e(access$0004, "TmgiResponse: Unexpected Type " + type);
+                } else {
+                    int tmgiLength = buf.get();
+                    byte[] tmgi2 = new byte[tmgiLength];
+                    for (int i = 0; i < tmgiLength; i++) {
+                        tmgi2[i] = buf.get();
+                    }
+                    this.tmgi = tmgi2;
+                    String access$0005 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0005, "tmgi = " + EmbmsOemHook.bytesToHexString(this.tmgi));
+                }
+            }
+        }
+    }
+
+    public class SigStrengthResponse {
+        public int code = 0;
+        public float[] esnr = null;
+        public int[] mbsfnAreaId = null;
+        public float[] snr = null;
+        public int status;
+        public int[] tmgiPerMbsfn = null;
+        public byte[] tmgilist = null;
+        public int traceId = 0;
+
+        public SigStrengthResponse(int status2, ByteBuffer buf) {
+            this.status = status2;
+            while (buf.hasRemaining()) {
+                try {
+                    int type = buf.get();
+                    short s = buf.getShort();
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type != 2) {
+                        switch (type) {
+                            case 16:
+                                int mbsfnLength = buf.get();
+                                int[] mbsfnArray = new int[mbsfnLength];
+                                for (int i = 0; i < mbsfnLength; i++) {
+                                    mbsfnArray[i] = buf.getInt();
+                                }
+                                this.mbsfnAreaId = mbsfnArray;
+                                String access$0002 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0002, "MBSFN_Area_ID = " + Arrays.toString(this.mbsfnAreaId));
+                                break;
+                            case 17:
+                                int esnrLength = buf.get();
+                                float[] snrArray = new float[esnrLength];
+                                for (int i2 = 0; i2 < esnrLength; i2++) {
+                                    snrArray[i2] = buf.getFloat();
+                                }
+                                this.snr = snrArray;
+                                String access$0003 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0003, "SNR = " + Arrays.toString(this.snr));
+                                break;
+                            case 18:
+                                int esnrLength2 = buf.get();
+                                float[] esnrArray = new float[esnrLength2];
+                                for (int i3 = 0; i3 < esnrLength2; i3++) {
+                                    esnrArray[i3] = buf.getFloat();
+                                }
+                                this.esnr = esnrArray;
+                                String access$0004 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0004, "EXCESS SNR = " + Arrays.toString(this.esnr));
+                                break;
+                            case 19:
+                                int tmgiPerMbsfnLength = buf.get();
+                                int[] tmgiPerMbsfnArray = new int[tmgiPerMbsfnLength];
+                                for (int i4 = 0; i4 < tmgiPerMbsfnLength; i4++) {
+                                    tmgiPerMbsfnArray[i4] = buf.getInt();
+                                }
+                                this.tmgiPerMbsfn = tmgiPerMbsfnArray;
+                                String access$0005 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0005, "NUMBER OF TMGI PER MBSFN = " + Arrays.toString(this.tmgiPerMbsfn));
+                                break;
+                            case 20:
+                                this.tmgilist = EmbmsOemHook.this.parseActiveTmgi(buf);
+                                String access$0006 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0006, "tmgiArray = " + EmbmsOemHook.bytesToHexString(this.tmgilist));
+                                break;
+                            default:
+                                String access$0007 = EmbmsOemHook.LOG_TAG;
+                                Log.e(access$0007, "SigStrengthResponse: Unexpected Type " + type);
+                                break;
+                        }
+                    } else {
+                        this.code = buf.getInt();
+                        String access$0008 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0008, "code = " + this.code);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in SigStrengthResponse");
+                }
+            }
+            if (this.snr == null) {
+                this.snr = new float[0];
+            }
+            if (this.esnr == null) {
+                this.esnr = new float[0];
+            }
+            if (this.tmgiPerMbsfn == null) {
+                this.tmgiPerMbsfn = new int[0];
+            }
+            if (this.mbsfnAreaId == null) {
+                this.mbsfnAreaId = new int[0];
+            }
+            if (this.tmgilist == null) {
+                this.tmgilist = new byte[0];
+            }
+        }
+    }
+
+    public class ActDeactResponse {
+        public short actCode = EmbmsOemHook.EMBMSHOOK_MSG_ID_ENABLE;
+        public byte[] actTmgi = null;
+        public short deactCode = EmbmsOemHook.EMBMSHOOK_MSG_ID_ENABLE;
+        public byte[] deactTmgi = null;
+        public int status;
+        public int traceId = 0;
+
+        public ActDeactResponse(int status2, ByteBuffer buf) {
+            this.status = status2;
+            while (buf.hasRemaining()) {
+                int type = PrimitiveParser.toUnsigned(buf.get());
+                int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                if (type == 1) {
+                    this.traceId = buf.getInt();
+                    String access$000 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$000, "traceId = " + this.traceId);
+                } else if (type == 2) {
+                    this.actCode = buf.getShort();
+                    String access$0002 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0002, "Act code = " + this.actCode);
+                } else if (type != 3) {
+                    switch (type) {
+                        case 16:
+                            byte id = buf.get();
+                            String access$0003 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0003, "callid = " + id);
+                            break;
+                        case 17:
+                            int tmgiLength = buf.get();
+                            byte[] tmgi = new byte[tmgiLength];
+                            for (int i = 0; i < tmgiLength; i++) {
+                                tmgi[i] = buf.get();
+                            }
+                            this.actTmgi = tmgi;
+                            String access$0004 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0004, "Act tmgi = " + EmbmsOemHook.bytesToHexString(this.actTmgi));
+                            break;
+                        case 18:
+                            int tmgiLength2 = buf.get();
+                            byte[] tmgi2 = new byte[tmgiLength2];
+                            for (int i2 = 0; i2 < tmgiLength2; i2++) {
+                                tmgi2[i2] = buf.get();
+                            }
+                            this.deactTmgi = tmgi2;
+                            String access$0005 = EmbmsOemHook.LOG_TAG;
+                            Log.i(access$0005, "Deact tmgi = " + EmbmsOemHook.bytesToHexString(this.deactTmgi));
+                            break;
+                        default:
+                            String access$0006 = EmbmsOemHook.LOG_TAG;
+                            Log.e(access$0006, "TmgiResponse: Unexpected Type " + type);
+                            break;
+                    }
+                } else {
+                    this.deactCode = buf.getShort();
+                    String access$0007 = EmbmsOemHook.LOG_TAG;
+                    Log.i(access$0007, "Deact code = " + this.deactCode);
+                }
+            }
+        }
+    }
+
+    public class TimeResponse {
+        public boolean additionalInfo = false;
+        public int code = 0;
+        public boolean dayLightSaving = false;
+        public byte leapSeconds = 0;
+        public long localTimeOffset = 0;
+        public int status;
+        public long timeMseconds = 0;
+        public int traceId = 0;
+
+        public TimeResponse(int status2, ByteBuffer buf) {
+            this.status = status2;
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type == 2) {
+                        this.code = buf.getInt();
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0002, "code = " + this.code);
+                    } else if (type != 3) {
+                        switch (type) {
+                            case 16:
+                                this.additionalInfo = true;
+                                if (buf.get() == 1) {
+                                    this.dayLightSaving = true;
+                                }
+                                String access$0003 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0003, "dayLightSaving = " + this.dayLightSaving);
+                                break;
+                            case 17:
+                                this.additionalInfo = true;
+                                this.leapSeconds = buf.get();
+                                String access$0004 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0004, "leapSeconds = " + this.leapSeconds);
+                                break;
+                            case 18:
+                                this.additionalInfo = true;
+                                this.localTimeOffset = (long) buf.get();
+                                String access$0005 = EmbmsOemHook.LOG_TAG;
+                                Log.i(access$0005, "localTimeOffset = " + this.localTimeOffset);
+                                break;
+                            default:
+                                String access$0006 = EmbmsOemHook.LOG_TAG;
+                                Log.e(access$0006, "TimeResponse: Unexpected Type " + type);
+                                break;
+                        }
+                    } else {
+                        this.timeMseconds = buf.getLong();
+                        String access$0007 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0007, "timeMseconds = " + this.timeMseconds);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in TimeResponse");
+                }
+            }
+            String access$0008 = EmbmsOemHook.LOG_TAG;
+            Log.i(access$0008, "additionalInfo = " + this.additionalInfo);
+        }
+
+        public TimeResponse(int traceId2, int status2, long timeMseconds2, boolean additionalInfo2, long localTimeOffset2, boolean dayLightSaving2, byte leapSeconds2) {
+            this.status = status2;
+            this.traceId = traceId2;
+            this.code = 0;
+            this.timeMseconds = timeMseconds2;
+            this.localTimeOffset = localTimeOffset2;
+            this.additionalInfo = additionalInfo2;
+            this.dayLightSaving = dayLightSaving2;
+            this.leapSeconds = leapSeconds2;
+            String access$000 = EmbmsOemHook.LOG_TAG;
+            Log.i(access$000, "TimeResponse: traceId = " + this.traceId + " code = " + this.code + " timeMseconds = " + this.timeMseconds + "additionalInfo = " + this.additionalInfo + " localTimeOffset = " + this.localTimeOffset + " dayLightSaving = " + this.dayLightSaving + " leapSeconds = " + this.leapSeconds);
+        }
+    }
+
+    public class ActiveLogPacketIDsResponse {
+        public int[] activePacketIdList = null;
+        public int status;
+        public int traceId = 0;
+
+        public ActiveLogPacketIDsResponse(int status2, ByteBuffer buf) {
+            this.status = status2;
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type != 2) {
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$0002, "ActiveLogPacketIDsResponse: Unexpected Type " + type);
+                    } else {
+                        int logPacketIdLength = buf.getShort();
+                        int[] activeLogPacketIdListArray = new int[logPacketIdLength];
+                        for (int i = 0; i < logPacketIdLength; i++) {
+                            activeLogPacketIdListArray[i] = buf.getInt();
+                        }
+                        this.activePacketIdList = activeLogPacketIdListArray;
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "Active log packet Id's = " + Arrays.toString(this.activePacketIdList));
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in ActiveLogPacketIDsResponse");
+                }
+            }
+        }
+    }
+
+    public class GetPLMNListResponse {
+        public byte[] plmnList = null;
+        public int status;
+        public int traceId = 0;
+
+        public GetPLMNListResponse(int status2, ByteBuffer buf) {
+            this.status = status2;
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type != 2) {
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$0002, "GetPLMNListResponse: Unexpected Type " + type);
+                    } else {
+                        byte numOfPlmn = buf.get();
+                        this.plmnList = new byte[(numOfPlmn * EmbmsOemHook.TLV_TYPE_ACTDEACTIVATE_REQ_EARFCN_LIST)];
+                        byte index = 0;
+                        for (int i = 0; i < numOfPlmn; i++) {
+                            byte mccLen = buf.get();
+                            buf.get(this.plmnList, index, mccLen);
+                            int index2 = index + mccLen;
+                            byte mncLen = buf.get();
+                            buf.get(this.plmnList, index2, mncLen);
+                            index = index2 + mncLen;
+                            if (mncLen == 2) {
+                                this.plmnList[index] = 32;
+                                index++;
+                            }
+                        }
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "plmnList = " + EmbmsOemHook.bytesToHexString(this.plmnList));
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Invalid format of byte buffer received in GetPLMNListResponse");
+                }
+            }
+        }
+    }
+
+    public class EmbmsStatus {
+        private static final int TYPE_EMBMS_STATUS = 1000;
+        public boolean embmsStatus = false;
+        public int traceId = 0;
+
+        public EmbmsStatus(ByteBuffer buf, int msgId) {
+            while (buf.hasRemaining()) {
+                try {
+                    int type = PrimitiveParser.toUnsigned(buf.get());
+                    int unsigned = PrimitiveParser.toUnsigned(buf.getShort());
+                    if (type == 1 && msgId == 32) {
+                        type = 1000;
+                    }
+                    if (type == 1) {
+                        this.traceId = buf.getInt();
+                        String access$000 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$000, "traceId = " + this.traceId);
+                    } else if (type == 2 || type == 1000) {
+                        byte status = buf.get();
+                        String access$0002 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0002, "Unsol embmsStatus received = " + status);
+                        if (status == 1) {
+                            this.embmsStatus = true;
+                        }
+                        String access$0003 = EmbmsOemHook.LOG_TAG;
+                        Log.i(access$0003, "Unsol embmsStatus = " + this.embmsStatus);
+                    } else {
+                        String access$0004 = EmbmsOemHook.LOG_TAG;
+                        Log.e(access$0004, "embmsStatus: Unexpected Type " + type);
+                    }
+                } catch (BufferUnderflowException e) {
+                    Log.e(EmbmsOemHook.LOG_TAG, "Unexpected buffer format when parsing for embmsStatus");
+                }
+            }
+        }
     }
 }

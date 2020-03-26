@@ -3,10 +3,10 @@ package com.qualcomm.qcrilhook;
 import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
-import com.qualcomm.qcrilhook.IOemHookCallback.Stub;
-import com.qualcomm.qcrilhook.QmiOemHookConstants.ResponseType;
+import com.qualcomm.qcrilhook.IOemHookCallback;
+import com.qualcomm.qcrilhook.QmiOemHookConstants;
 
-public class OemHookCallback extends Stub {
+public class OemHookCallback extends IOemHookCallback.Stub {
     Message mAppMessage;
 
     public OemHookCallback(Message msg) {
@@ -14,17 +14,11 @@ public class OemHookCallback extends Stub {
     }
 
     public void onOemHookException(int phoneId) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("mPhoneId: ");
-        sb.append(phoneId);
-        Log.w("onOemHookException", sb.toString());
+        Log.w("onOemHookException", "mPhoneId: " + phoneId);
     }
 
     public void onOemHookResponse(byte[] response, int phoneId) throws RemoteException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("mPhoneId: ");
-        sb.append(phoneId);
-        Log.w("OemHookCallback", sb.toString());
-        QmiOemHook.receive(response, this.mAppMessage, ResponseType.IS_ASYNC_RESPONSE, phoneId);
+        Log.w("OemHookCallback", "mPhoneId: " + phoneId);
+        QmiOemHook.receive(response, this.mAppMessage, QmiOemHookConstants.ResponseType.IS_ASYNC_RESPONSE, phoneId);
     }
 }

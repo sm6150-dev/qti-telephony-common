@@ -20,15 +20,13 @@ public class QtiServiceStateTracker extends ServiceStateTracker {
     private static final boolean DBG = true;
     private static final String LOG_TAG = "QtiServiceStateTracker";
     private static final boolean VDBG = false;
-    private final String ACTION_RAC_CHANGED;
+    private final String ACTION_RAC_CHANGED = "qualcomm.intent.action.ACTION_RAC_CHANGED";
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals("qualcomm.intent.action.ACTION_RAC_CHANGED")) {
-                Bundle bundle = intent.getExtras();
-                if (bundle != null) {
-                    QtiServiceStateTracker.this.mRac = bundle.getInt("rac");
-                    QtiServiceStateTracker.this.mRat = bundle.getInt("rat");
-                }
+            Bundle bundle;
+            if (intent.getAction().equals("qualcomm.intent.action.ACTION_RAC_CHANGED") && (bundle = intent.getExtras()) != null) {
+                int unused = QtiServiceStateTracker.this.mRac = bundle.getInt("rac");
+                int unused2 = QtiServiceStateTracker.this.mRat = bundle.getInt("rat");
             }
         }
     };
@@ -42,10 +40,8 @@ public class QtiServiceStateTracker extends ServiceStateTracker {
 
     public QtiServiceStateTracker(GsmCdmaPhone phone, CommandsInterface ci) {
         super(phone, ci);
-        String str = "qualcomm.intent.action.ACTION_RAC_CHANGED";
-        this.ACTION_RAC_CHANGED = str;
         IntentFilter filter = new IntentFilter();
-        filter.addAction(str);
+        filter.addAction("qualcomm.intent.action.ACTION_RAC_CHANGED");
         phone.getContext().registerReceiver(this.mIntentReceiver, filter);
     }
 
@@ -59,10 +55,7 @@ public class QtiServiceStateTracker extends ServiceStateTracker {
         if (this.mPhone.isPhoneTypeGsm()) {
             NetworkRegistrationInfo regStates = (NetworkRegistrationInfo) ar.result;
             if (regStates.getRegistrationState() == 3 && regStates.getRejectCause() == 10) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(" Posting Managed roaming intent sub = ");
-                sb.append(this.mPhone.getSubId());
-                log(sb.toString());
+                log(" Posting Managed roaming intent sub = " + this.mPhone.getSubId());
                 try {
                     Intent intent = new Intent(ACTION_MANAGED_ROAMING_IND);
                     intent.setComponent(new ComponentName("com.qualcomm.qti.networksetting", "com.qualcomm.qti.networksetting.ManagedRoaming"));
@@ -70,10 +63,7 @@ public class QtiServiceStateTracker extends ServiceStateTracker {
                     intent.putExtra("subscription", this.mPhone.getSubId());
                     this.mPhone.getContext().startActivity(intent);
                 } catch (ActivityNotFoundException e) {
-                    StringBuilder sb2 = new StringBuilder();
-                    sb2.append("unable to start activity: ");
-                    sb2.append(e);
-                    loge(sb2.toString());
+                    loge("unable to start activity: " + e);
                 }
             }
         }

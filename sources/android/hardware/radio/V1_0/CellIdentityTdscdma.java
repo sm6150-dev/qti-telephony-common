@@ -32,20 +32,7 @@ public final class CellIdentityTdscdma {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".mcc = ");
-        builder.append(this.mcc);
-        builder.append(", .mnc = ");
-        builder.append(this.mnc);
-        builder.append(", .lac = ");
-        builder.append(this.lac);
-        builder.append(", .cid = ");
-        builder.append(this.cid);
-        builder.append(", .cpid = ");
-        builder.append(this.cpid);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".mcc = " + this.mcc + ", .mnc = " + this.mnc + ", .lac = " + this.lac + ", .cid = " + this.cid + ", .cpid = " + this.cpid + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -90,7 +77,7 @@ public final class CellIdentityTdscdma {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 48);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CellIdentityTdscdma) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

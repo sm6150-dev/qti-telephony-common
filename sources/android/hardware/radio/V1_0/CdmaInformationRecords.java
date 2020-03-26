@@ -13,13 +13,10 @@ public final class CdmaInformationRecords {
         if (this == otherObject) {
             return true;
         }
-        if (otherObject == null || otherObject.getClass() != CdmaInformationRecords.class) {
-            return false;
+        if (otherObject != null && otherObject.getClass() == CdmaInformationRecords.class && HidlSupport.deepEquals(this.infoRec, ((CdmaInformationRecords) otherObject).infoRec)) {
+            return true;
         }
-        if (!HidlSupport.deepEquals(this.infoRec, ((CdmaInformationRecords) otherObject).infoRec)) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     public final int hashCode() {
@@ -27,12 +24,7 @@ public final class CdmaInformationRecords {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".infoRec = ");
-        builder.append(this.infoRec);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".infoRec = " + this.infoRec + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -79,7 +71,7 @@ public final class CdmaInformationRecords {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 16);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaInformationRecords) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 16));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -91,7 +83,7 @@ public final class CdmaInformationRecords {
         _hidl_blob.putBool(_hidl_offset + 0 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaInformationRecord) this.infoRec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
+            this.infoRec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
         }
         _hidl_blob.putBlob(_hidl_offset + 0 + 0, childBlob);
     }

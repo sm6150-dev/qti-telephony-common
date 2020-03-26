@@ -33,22 +33,7 @@ public final class CallForwardInfo {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".status = ");
-        builder.append(CallForwardInfoStatus.toString(this.status));
-        builder.append(", .reason = ");
-        builder.append(this.reason);
-        builder.append(", .serviceClass = ");
-        builder.append(this.serviceClass);
-        builder.append(", .toa = ");
-        builder.append(this.toa);
-        builder.append(", .number = ");
-        builder.append(this.number);
-        builder.append(", .timeSeconds = ");
-        builder.append(this.timeSeconds);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".status = " + CallForwardInfoStatus.toString(this.status) + ", .reason = " + this.reason + ", .serviceClass = " + this.serviceClass + ", .toa = " + this.toa + ", .number = " + this.number + ", .timeSeconds = " + this.timeSeconds + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -93,7 +78,7 @@ public final class CallForwardInfo {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 40);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CallForwardInfo) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 40));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

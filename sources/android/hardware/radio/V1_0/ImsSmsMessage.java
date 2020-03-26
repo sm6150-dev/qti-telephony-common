@@ -32,20 +32,7 @@ public final class ImsSmsMessage {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".tech = ");
-        builder.append(RadioTechnologyFamily.toString(this.tech));
-        builder.append(", .retry = ");
-        builder.append(this.retry);
-        builder.append(", .messageRef = ");
-        builder.append(this.messageRef);
-        builder.append(", .cdmaMessage = ");
-        builder.append(this.cdmaMessage);
-        builder.append(", .gsmMessage = ");
-        builder.append(this.gsmMessage);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".tech = " + RadioTechnologyFamily.toString(this.tech) + ", .retry = " + this.retry + ", .messageRef = " + this.messageRef + ", .cdmaMessage = " + this.cdmaMessage + ", .gsmMessage = " + this.gsmMessage + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -103,7 +90,7 @@ public final class ImsSmsMessage {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 48);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((ImsSmsMessage) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 48));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
@@ -119,7 +106,7 @@ public final class ImsSmsMessage {
         hwBlob.putBool(_hidl_offset + 16 + 12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 88);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaSmsMessage) this.cdmaMessage.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
+            this.cdmaMessage.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 88));
         }
         hwBlob.putBlob(_hidl_offset + 16 + 0, childBlob);
         int _hidl_vec_size2 = this.gsmMessage.size();
@@ -127,7 +114,7 @@ public final class ImsSmsMessage {
         hwBlob.putBool(_hidl_offset + 32 + 12, false);
         HwBlob childBlob2 = new HwBlob(_hidl_vec_size2 * 32);
         for (int _hidl_index_02 = 0; _hidl_index_02 < _hidl_vec_size2; _hidl_index_02++) {
-            ((GsmSmsMessage) this.gsmMessage.get(_hidl_index_02)).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 32));
+            this.gsmMessage.get(_hidl_index_02).writeEmbeddedToBlob(childBlob2, (long) (_hidl_index_02 * 32));
         }
         hwBlob.putBlob(_hidl_offset + 32 + 0, childBlob2);
     }

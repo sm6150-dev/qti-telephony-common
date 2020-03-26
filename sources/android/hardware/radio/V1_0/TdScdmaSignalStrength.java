@@ -13,13 +13,10 @@ public final class TdScdmaSignalStrength {
         if (this == otherObject) {
             return true;
         }
-        if (otherObject == null || otherObject.getClass() != TdScdmaSignalStrength.class) {
-            return false;
+        if (otherObject != null && otherObject.getClass() == TdScdmaSignalStrength.class && this.rscp == ((TdScdmaSignalStrength) otherObject).rscp) {
+            return true;
         }
-        if (this.rscp != ((TdScdmaSignalStrength) otherObject).rscp) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     public final int hashCode() {
@@ -27,12 +24,7 @@ public final class TdScdmaSignalStrength {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".rscp = ");
-        builder.append(this.rscp);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".rscp = " + this.rscp + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -70,7 +62,7 @@ public final class TdScdmaSignalStrength {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 4);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((TdScdmaSignalStrength) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 4));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 4));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

@@ -29,14 +29,7 @@ public final class CdmaSmsWriteArgs {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".status = ");
-        builder.append(CdmaSmsWriteArgsStatus.toString(this.status));
-        builder.append(", .message = ");
-        builder.append(this.message);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".status = " + CdmaSmsWriteArgsStatus.toString(this.status) + ", .message = " + this.message + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -75,7 +68,7 @@ public final class CdmaSmsWriteArgs {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * 96);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((CdmaSmsWriteArgs) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 96));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * 96));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);

@@ -38,32 +38,7 @@ public final class SetupDataCallResult {
     }
 
     public final String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        builder.append(".status = ");
-        builder.append(DataCallFailCause.toString(this.status));
-        builder.append(", .suggestedRetryTime = ");
-        builder.append(this.suggestedRetryTime);
-        builder.append(", .cid = ");
-        builder.append(this.cid);
-        builder.append(", .active = ");
-        builder.append(this.active);
-        builder.append(", .type = ");
-        builder.append(this.type);
-        builder.append(", .ifname = ");
-        builder.append(this.ifname);
-        builder.append(", .addresses = ");
-        builder.append(this.addresses);
-        builder.append(", .dnses = ");
-        builder.append(this.dnses);
-        builder.append(", .gateways = ");
-        builder.append(this.gateways);
-        builder.append(", .pcscf = ");
-        builder.append(this.pcscf);
-        builder.append(", .mtu = ");
-        builder.append(this.mtu);
-        builder.append("}");
-        return builder.toString();
+        return "{" + ".status = " + DataCallFailCause.toString(this.status) + ", .suggestedRetryTime = " + this.suggestedRetryTime + ", .cid = " + this.cid + ", .active = " + this.active + ", .type = " + this.type + ", .ifname = " + this.ifname + ", .addresses = " + this.addresses + ", .dnses = " + this.dnses + ", .gateways = " + this.gateways + ", .pcscf = " + this.pcscf + ", .mtu = " + this.mtu + "}";
     }
 
     public final void readFromParcel(HwParcel parcel) {
@@ -118,7 +93,7 @@ public final class SetupDataCallResult {
         _hidl_blob.putBool(12, false);
         HwBlob childBlob = new HwBlob(_hidl_vec_size * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH);
         for (int _hidl_index_0 = 0; _hidl_index_0 < _hidl_vec_size; _hidl_index_0++) {
-            ((SetupDataCallResult) _hidl_vec.get(_hidl_index_0)).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
+            _hidl_vec.get(_hidl_index_0).writeEmbeddedToBlob(childBlob, (long) (_hidl_index_0 * DataCallFailCause.IFACE_AND_POL_FAMILY_MISMATCH));
         }
         _hidl_blob.putBlob(0, childBlob);
         parcel.writeBuffer(_hidl_blob);
